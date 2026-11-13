@@ -20,6 +20,21 @@ work="${WORK:-$(mktemp -d)}"
 failed=0
 mkdir -p "$out"
 
+# the task's environment, once: if it cannot be built, no run of it can
+echo "::group::environment for $task"
+if ! TASK="$task" python3 -c '
+import os, sys
+sys.path.insert(0, sys.argv[1])
+from common import load_task
+from trees import environment
+environment(load_task(os.environ["TASK"]), os.environ.get("VENV"))
+' "$here/harness"; then
+  echo "::endgroup::"
+  echo "::error::the environment for $task could not be built"
+  exit 1
+fi
+echo "::endgroup::"
+
 while read -r t arm which; do
   id="$t.$arm.$which"
   echo "::group::$id"

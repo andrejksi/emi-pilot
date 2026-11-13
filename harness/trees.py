@@ -17,7 +17,7 @@ import shlex
 import shutil
 from pathlib import Path
 
-from common import PILOT, copy_tree, run
+from common import PILOT, copy_tree, git, run
 
 CACHE = Path(os.environ.get("PILOT_CACHE", PILOT / ".cache"))
 # what EMI needs in every environment, beside the project's own packages
@@ -89,6 +89,10 @@ def environment(task, given_venv=None):
             return venv
         shutil.rmtree(home, ignore_errors=True)
         baseline_tree(task, src)
+        # some builds read their version from git (setuptools-scm); give the
+        # source one commit and no tags, so they find a development version
+        for args in (["init", "-q"], ["add", "-A"], ["commit", "-q", "--no-verify", "-m", "baseline"]):
+            git(src, *args)
         uv = shutil.which("uv")
         if not uv:
             raise SystemExit("git tasks need uv (pip install uv) to make a Python "
