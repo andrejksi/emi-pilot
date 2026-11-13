@@ -13,7 +13,7 @@ import json
 from pathlib import Path
 
 from common import ARMS, EMI_ARMS, PILOT, git, load_task, run
-from trees import baseline_tree, environment, test_command
+from trees import baseline_tree, environment, import_roots, test_command
 
 
 def prepare(task_id, arm, work, venv, emi):
@@ -46,6 +46,9 @@ def configure(work, arm, emi, task):
     path = work / ".emi" / "config.json"
     config = json.loads(path.read_text())
     config["tests"]["command"] = test_command(task)
+    if import_roots(task):
+        # a src layout: EMI must run the candidate's code, not the installed copy
+        config["python_path"] = import_roots(task)
     config.update(json.loads((PILOT / "arms" / f"{arm}.json").read_text()))
     path.write_text(json.dumps(config, indent=2) + "\n")
     git(work, "add", "-A")

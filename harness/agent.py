@@ -24,7 +24,7 @@ from pathlib import Path
 
 from common import ARMS, PILOT, candidate_diff, copy_tree, load_task, run, write_json
 from gates import GATES, REPAIR_ROUNDS
-from trees import CACHE, test_command
+from trees import CACHE, code_env, test_command
 
 SYSTEM = (
     "You are a coding agent working in a git repository. Use the tools to read "
@@ -80,11 +80,13 @@ def inside(work, path):
     return p
 
 
-def scrubbed_env(secret_name):
-    """The agent's commands do not see the model key or other credentials."""
+def scrubbed_env(secret_name, extra=None):
+    """The agent's commands do not see the model key or other credentials;
+    `extra` (the project's import roots) is added."""
     words = ("KEY", "TOKEN", "SECRET", "PASSWORD")
-    return {k: v for k, v in os.environ.items()
-            if k != secret_name and not any(w in k.upper() for w in words)}
+    env = {k: v for k, v in os.environ.items()
+           if k != secret_name and not any(w in k.upper() for w in words)}
+    return {**env, **(extra or {})}
 
 
 def sealed(work, command):
@@ -108,7 +110,7 @@ def sealed(work, command):
     return cmd
 
 
-def tool(work, name, args, secret_name):
+def tool(work, name, args, secret_name, extra_env=None):
     if name == "list_files":
         return run(["git", "ls-files", "--cached", "--others", "--exclude-standard"], cwd=work)[1]
     if name == "read_file":
@@ -121,7 +123,7 @@ def tool(work, name, args, secret_name):
     if name == "run":
         try:
             p = subprocess.run(sealed(work, args["command"]), cwd=work, capture_output=True,
-                               text=True, timeout=300, env=scrubbed_env(secret_name))
+                               text=True, timeout=300, env=scrubbed_env(secret_name, extra_env))
             return f"exit {p.returncode}\n{(p.stdout + p.stderr)[-8000:]}"
         except subprocess.TimeoutExpired:
             return "timed out after 300 s"
@@ -164,7 +166,8 @@ def chat_backend(args, task, gate, usage):
             name = call["function"]["name"]
             try:
                 fargs = json.loads(call["function"].get("arguments") or "{}")
-                result = "ok" if name == "finish" else tool(args.work, name, fargs, args.api_key_env)
+                result = "ok" if name == "finish" else tool(args.work, name, fargs, args.api_key_env,
+                                                             code_env(task, args.work))
             except Exception as e:  # the model sees its own tool errors
                 result = f"error: {e}"
             finished = finished or name == "finish"

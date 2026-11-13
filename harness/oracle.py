@@ -22,7 +22,7 @@ import tempfile
 from pathlib import Path
 
 from common import GIT_ENV, PILOT, git, load_task, run, write_json
-from trees import baseline_tree, environment
+from trees import baseline_tree, code_env, environment
 
 RUNNER_CONFIG = ("pytest.ini", "tox.ini", "setup.cfg", "pyproject.toml", "conftest.py")
 STATUSES = ("PASSED", "FAILED", "ERROR", "XFAIL", "XPASS", "SKIPPED")
@@ -80,7 +80,7 @@ def judge_git(task, work, venv):
     cmd = [str(venv / "bin" / "python"), "-m", "pytest", "-rA", "--no-header", "--tb=short",
            "--color=no", "-p", "no:cacheprovider", "-W", "ignore::DeprecationWarning",
            *task["test_files"]]
-    code, out = run(cmd, cwd=work, timeout=1800)
+    code, out = run(cmd, cwd=work, env=code_env(task, work), timeout=1800)
     out = ANSI.sub("", out)
     seen = outcomes(out)
     if not seen:
