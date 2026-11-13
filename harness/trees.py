@@ -74,6 +74,23 @@ def baseline_tree(task, dst):
         run(base + ["checkout-index", "-a", "-f"], cwd=dst, env=env, check=True, timeout=1800)
     finally:
         index.unlink(missing_ok=True)
+    return copy_generated(task, dst)
+
+
+def copy_generated(task, dst):
+    """The Python files the task's install generated beside its source (a
+    `_version.py` written by setuptools-scm, say), copied into dst as a
+    checkout that was installed would have them. Returns their paths."""
+    home = CACHE / "envs" / task["id"]
+    listing = home / "generated.txt"
+    if not listing.exists():
+        return []
+    paths = listing.read_text().split()
+    for rel in paths:
+        target = Path(dst) / rel
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(home / "src" / rel, target)
+    return paths
 
 
 def environment(task, given_venv=None):
@@ -109,6 +126,12 @@ def environment(task, given_venv=None):
                 raise SystemExit(f"install step failed: {step}\n{out[-3000:]}")
         run([uv, "pip", "install", "-q", *EMI_NEEDS], cwd=src, env=path_env, check=True,
             timeout=1800)
+        # files the install wrote beside the source that git ignores: a
+        # generated module the code imports must be in every run's copy too
+        _, ignored = run(["git", "ls-files", "--others", "--ignored", "--exclude-standard",
+                          "--", "*.py"], cwd=src, check=True)
+        generated = [f for f in ignored.split() if not f.startswith(("build/", ".")) and "/." not in f]
+        (home / "generated.txt").write_text("\n".join(generated) + "\n")
         ready.write_text("ok\n")
     return venv
 

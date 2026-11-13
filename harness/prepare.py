@@ -22,13 +22,16 @@ def prepare(task_id, arm, work, venv, emi):
     if work.exists() and any(work.iterdir()):
         raise SystemExit(f"{work} is not empty")
     venv = environment(task, venv)
-    baseline_tree(task, work)
+    generated = baseline_tree(task, work) or []
     (work / ".venv").symlink_to(venv)
     git(work, "init", "-q", "-b", "main")
     # the link to the environment is never part of the change
     with open(work / ".git" / "info" / "exclude", "a") as f:
         f.write("/.venv\n")
     git(work, "add", "-A")
+    if generated:
+        # ignored by the project's .gitignore, but its code imports them
+        git(work, "add", "-f", "--", *generated)
     git(work, "commit", "-q", "--no-verify", "-m", "baseline")
     if arm in EMI_ARMS:
         configure(work, arm, emi, task)
