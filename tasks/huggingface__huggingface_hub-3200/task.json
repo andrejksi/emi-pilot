@@ -1,0 +1,64 @@
+{
+  "base_commit": "73b8e36ce316ecc1f30aa0d2212d2429b2572339",
+  "created_at": "2025-07-03 15:17:07",
+  "install": [
+    "pip install -e .[testing] --quiet"
+  ],
+  "kind": "git",
+  "license": "Apache-2.0",
+  "oracle": {
+    "fail_to_pass": [
+      "tests/test_inference_client.py::test_resolve_chat_completion_url[https://rur2d6yoccusjxgn.us-east-1.aws.endpoints.huggingface.cloud/v1/chat/completions?api-version=1-https://rur2d6yoccusjxgn.us-east-1.aws.endpoints.huggingface.cloud/v1/chat/completions?api-version=1]",
+      "tests/test_inference_client.py::test_resolve_chat_completion_url[https://rur2d6yoccusjxgn.us-east-1.aws.endpoints.huggingface.cloud/chat/completions?api-version=1-https://rur2d6yoccusjxgn.us-east-1.aws.endpoints.huggingface.cloud/chat/completions?api-version=1]",
+      "tests/test_inference_client.py::test_resolve_chat_completion_url[https://rur2d6yoccusjxgn.us-east-1.aws.endpoints.huggingface.cloud?api-version=1-https://rur2d6yoccusjxgn.us-east-1.aws.endpoints.huggingface.cloud/v1/chat/completions?api-version=1]",
+      "tests/test_inference_client.py::test_resolve_chat_completion_url[https://rur2d6yoccusjxgn.us-east-1.aws.endpoints.huggingface.cloud/v1?api-version=1-https://rur2d6yoccusjxgn.us-east-1.aws.endpoints.huggingface.cloud/v1/chat/completions?api-version=1]",
+      "tests/test_inference_client.py::test_resolve_chat_completion_url[https://rur2d6yoccusjxgn.us-east-1.aws.endpoints.huggingface.cloud/?api-version=1-https://rur2d6yoccusjxgn.us-east-1.aws.endpoints.huggingface.cloud/v1/chat/completions?api-version=1]"
+    ],
+    "pass_to_pass": [
+      "tests/test_inference_client.py::TestOpenAsBinary::test_open_as_binary_with_none",
+      "tests/test_inference_client.py::TestOpenAsBinary::test_open_as_binary_from_str_path",
+      "tests/test_inference_client.py::TestOpenAsBinary::test_open_as_binary_from_pathlib_path",
+      "tests/test_inference_client.py::TestOpenAsBinary::test_open_as_binary_from_url",
+      "tests/test_inference_client.py::TestOpenAsBinary::test_open_as_binary_opened_file",
+      "tests/test_inference_client.py::TestOpenAsBinary::test_open_as_binary_from_bytes",
+      "tests/test_inference_client.py::TestHeadersAndCookies::test_headers_and_cookies",
+      "tests/test_inference_client.py::TestHeadersAndCookies::test_accept_header_image",
+      "tests/test_inference_client.py::TestListDeployedModels::test_list_deployed_models_main_frameworks_mock",
+      "tests/test_inference_client.py::TestListDeployedModels::test_list_deployed_models_all_frameworks_mock",
+      "tests/test_inference_client.py::test_stream_text_generation_response[data:",
+      "tests/test_inference_client.py::test_stream_chat_completion_response[data:",
+      "tests/test_inference_client.py::test_chat_completion_error_in_stream",
+      "tests/test_inference_client.py::test_resolve_chat_completion_url[https://api-inference.huggingface.co/models/username/repo_name-https://api-inference.huggingface.co/models/username/repo_name/v1/chat/completions]",
+      "tests/test_inference_client.py::test_resolve_chat_completion_url[https://rur2d6yoccusjxgn.us-east-1.aws.endpoints.huggingface.cloud-https://rur2d6yoccusjxgn.us-east-1.aws.endpoints.huggingface.cloud/v1/chat/completions]",
+      "tests/test_inference_client.py::test_resolve_chat_completion_url[https://rur2d6yoccusjxgn.us-east-1.aws.endpoints.huggingface.cloud/v1/chat/completions-https://rur2d6yoccusjxgn.us-east-1.aws.endpoints.huggingface.cloud/v1/chat/completions]",
+      "tests/test_inference_client.py::test_resolve_chat_completion_url[https://rur2d6yoccusjxgn.us-east-1.aws.endpoints.huggingface.cloud/v1-https://rur2d6yoccusjxgn.us-east-1.aws.endpoints.huggingface.cloud/v1/chat/completions]",
+      "tests/test_inference_client.py::test_resolve_chat_completion_url[https://rur2d6yoccusjxgn.us-east-1.aws.endpoints.huggingface.cloud/v1/-https://rur2d6yoccusjxgn.us-east-1.aws.endpoints.huggingface.cloud/v1/chat/completions]",
+      "tests/test_inference_client.py::test_resolve_chat_completion_url[http://0.0.0.0:8080/v1-http://0.0.0.0:8080/v1/chat/completions]",
+      "tests/test_inference_client.py::test_pass_url_as_base_url",
+      "tests/test_inference_client.py::test_cannot_pass_token_false",
+      "tests/test_inference_client.py::TestBillToOrganization::test_bill_to_added_to_new_headers",
+      "tests/test_inference_client.py::TestBillToOrganization::test_bill_to_added_to_existing_headers",
+      "tests/test_inference_client.py::TestBillToOrganization::test_warning_if_bill_to_already_set",
+      "tests/test_inference_client.py::TestBillToOrganization::test_warning_if_bill_to_with_direct_calls",
+      "tests/test_inference_client.py::test_chat_completion_url_resolution[client_model_is_url]",
+      "tests/test_inference_client.py::test_chat_completion_url_resolution[client_base_url_is_url]",
+      "tests/test_inference_client.py::test_chat_completion_url_resolution[client_model_is_id]",
+      "tests/test_inference_client.py::test_chat_completion_url_resolution[client_model_is_full_chat_url]",
+      "tests/test_inference_client.py::test_chat_completion_url_resolution[client_model_is_localhost_url]",
+      "tests/test_inference_client.py::test_chat_completion_url_resolution[client_base_url_is_localhost_ip_with_path]",
+      "tests/test_inference_client.py::test_as_url[https://my-url.com/cat.gif-image/jpeg-https://my-url.com/cat.gif-True]",
+      "tests/test_inference_client.py::test_as_url[assets/image.png-image/jpeg-data:image/png;base64,-False]",
+      "tests/test_inference_client.py::test_as_url[content_input2-image/jpeg-data:image/png;base64,-False]",
+      "tests/test_inference_client.py::test_as_url[assets/image.foo-image/jpeg-data:image/jpeg;base64,-False]",
+      "tests/test_inference_client.py::test_as_url[some",
+      "tests/test_inference_client.py::test_as_url[content_input5-image/jpeg-data:image/jpeg;base64,c29tZSBpbWFnZSBieXRlcw==-True]"
+    ]
+  },
+  "prompt": "AsyncInferenceClient model option for OpenAI's client does not work\n### Describe the bug\n\nIn the AsyncInferenceClient it is written that if you want to use a custom openai base_url you have to use model instead of base_url\n\nExtract from doc \"Note: for better compatibility with OpenAI's client, model has been aliased as base_url. Those 2 arguments are mutually exclusive. If using base_url for chat completion, the /chat/completions suffix path will be appended to the base URL. When passing a URL as model, the client will not append any suffix path to it.\"\n\nBut when setting AsyncInferenceClient with model it still add /v1/chat/completion at the end of the endpoint when calling client. The error is still there even when trying to custom the  AsyncInferenceClient. The error seem to be in :\nsrc/huggingface_hub/inference/_providers/hf_inference.py\n\ndef _build_chat_completion_url(model_url: str) -> str:\n    # Strip trailing /\n    model_url = model_url.rstrip(\"/\")\n\n    # Append /chat/completions if not already present\n    if model_url.endswith(\"/v1\"):\n        model_url += \"/chat/completions\"\n\n    # Append /v1/chat/completions if not already present\n    if not model_url.endswith(\"/chat/completions\"):\n        model_url += \"/v1/chat/completions\"\n\n    return model_url\n\n\n\n### Reproduction\n\nfrom huggingface_hub import Agent\n\nasync def runAgent(data):\n\n    # On r\u00e9cup\u00e8re l'historique complet si fourni\n    messages = data.get(\"messages\")\n    prompt = (data.get(\"prompt\") or \"\").strip()\n    \n    async with Agent(\n        model=data.get(\"model\"),\n        api_key=data.get(\"api_key\"),\n        servers=data.get(\"servers\"),\n    ) as agent:\n        \n        agent.client = AsyncInferenceClient(\n            model= \"https://url/deployments/gpt-4o/chat/completions?api-version=2024-06-01\",\n            api_key= str(AZURE_OPENAI_API_KEY)\n        )\n        await agent.load_tools()\n        #print(agent.available_tools)\n        response_acum = \"\"\n        result = []\n\n        try:\n            async for chunk in agent.run(prompt):\n                if hasattr(chunk, \"choices\"):\n                    delta = chunk.choices[0].delta\n                    if delta.content:\n                        result.append(delta.content)\n                        response_acum += delta.content\n                    if delta.tool_calls:\n                        for call in delta.tool_calls:\n                            if call.function.name:\n                                print(f\"Calling Tool : {call.function.name} {call.function.arguments}\\n\")\n        except Exception as e:\n            tb_str = traceback.format_exc()\n            print(f\"\\nError during agent run: {e}\\n{tb_str}\", flush=True)\n        return result\n\nif __name__ == \"__main__\":\n    data = {\n        \"messages\": [],\n        \"prompt\": \"Quel est la liste de tous les repos ?\",\n        \"model\": \"https://url/deployments/gpt-4o/chat/completions?api-version=2024-06-01\",\n        \"api_key\": str(AZURE_OPENAI_API_KEY),\n        \"servers\": [{\"type\": \"http\", \"config\": {\"url\": \"http://localhost:9000/mcp\"}}]\n    }\n\n    # Use asyncio.run for running the coroutine\n    result = asyncio.run(runAgent(data))\n\n### Logs\n\n```shell\nrror during agent run: 401, message='Access Denied', url='https://url/deployments/gpt-4o/chat/completions?api-version=2024-06-01/v1/chat/completions'\nTraceback (most recent call last):\n  File \"/home/agents/tiny_agent_ju.py\", line 89, in runAgent\n    async for chunk in agent.run(prompt):\n  File \"/home/myenv/lib/python3.12/site-packages/huggingface_hub/inference/_mcp/agent.py\", line 83, in run\n    async for item in self.process_single_turn_with_tools(\n  File \"/home/myenv/lib/python3.12/site-packages/huggingface_hub/inference/_mcp/mcp_client.py\", line 261, in process_single_turn_with_tools\n    response = await self.client.chat.completions.create(\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/myenv/lib/python3.12/site-packages/huggingface_hub/inference/_generated/_async_client.py\", line 964, in chat_completion\n    data = await self._inner_post(request_parameters, stream=stream)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/myenv/lib/python3.12/site-packages/huggingface_hub/inference/_generated/_async_client.py\", line 290, in _inner_post\n    raise error\n  File \"/home/myenv/lib/python3.12/site-packages/huggingface_hub/inference/_generated/_async_client.py\", line 276, in _inner_post\n    response.raise_for_status()\n  File \"/home/myenv/lib/python3.12/site-packages/aiohttp/client_reqrep.py\", line 629, in raise_for_status\n    raise ClientResponseError(\naiohttp.client_exceptions.ClientResponseError: 401, message='Access Denied', url='https://url/deployments/gpt-4o/chat/completions?api-version=2024-06-01/v1/chat/completions'\n```\n\n### System info\n\n```shell\n- huggingface-hub[mcp]: 0.33.1\n- Distribution : Ubuntu-22.04 \n- Python 3.12.3\n```\n\nInterface the change must provide:\nFunction: _build_chat_completion_url(model_url: str) -> str\nLocation: src/huggingface_hub/inference/_providers/hf_inference.py\nInputs: \n- **model_url** (`str`): The base URL of an inference endpoint or a custom OpenAI\u2011compatible base URL. May include or omit trailing slashes, the `/v1` prefix, the `/chat/completions` suffix, and optional query parameters (e.g., `?api-version=1`). The function must correctly interpret all these forms.\nOutputs: \n- Returns a **string** containing a normalized URL that always ends with the full `(/v1)/chat/completions` path, preserving any original query parameters. If the input already ends with `/chat/completions`, it is returned unchanged; otherwise the appropriate suffix is appended in a way that avoids duplicate slashes.\nDescription: \nConstructs the chat\u2011completion endpoint URL from a user\u2011provided base URL, handling edge\u2011cases such as missing `/v1` or `/chat/completions` components and retaining query strings. This function is directly exercised by the test `test_resolve_chat_completion_url`, which verifies correct handling of various URL shapes with query parameters.",
+  "python": "3.10",
+  "repo": "huggingface/huggingface_hub",
+  "source": "nebius/SWE-rebench-V2",
+  "test_files": [
+    "tests/test_inference_client.py"
+  ]
+}

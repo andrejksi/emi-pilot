@@ -1,0 +1,32 @@
+{
+  "base_commit": "d602f13e8cd22154936ded9c9356e28fe3be4cd4",
+  "created_at": "2025-06-06 10:19:55",
+  "install": [
+    "pip install -q -e .",
+    "pip install -q pytest pytest-cov pytest-xdist attrs coverage pexpect pyftpdlib pygments sybil testfixtures"
+  ],
+  "kind": "git",
+  "license": "BSD-3-Clause",
+  "oracle": {
+    "fail_to_pass": [
+      "tests/test_engine.py::TestEngine::test_close_without_downloader"
+    ],
+    "pass_to_pass": [
+      "tests/test_engine.py::TestEngine::test_close_downloader",
+      "tests/test_engine.py::TestEngine::test_crawler",
+      "tests/test_engine.py::TestEngine::test_crawler_change_close_reason_on_idle",
+      "tests/test_engine.py::TestEngine::test_crawler_dupefilter",
+      "tests/test_engine.py::TestEngine::test_crawler_itemerror",
+      "tests/test_engine.py::TestEngine::test_short_timeout",
+      "tests/test_engine.py::TestEngine::test_start_already_running_exception",
+      "tests/test_engine.py::test_request_scheduled_signal"
+    ]
+  },
+  "prompt": "ExecuteEngine.close() assumes self.downloader has been defined\nhttps://github.com/scrapy/scrapy/blob/8fb8d2c6b8a83181ef6564fbc9afa9cfeea2bd05/scrapy/core/engine.py#L177\n\nHowever, `self.close()` is called in the `finally` block where `self.downloader` is set, so that may not be always the case.\n\nFound it after using scrapy-poet with bad imports in a page object file consumed with `consume_modules()`.",
+  "python": "3.10",
+  "repo": "scrapy/scrapy",
+  "source": "nebius/SWE-rebench-V2",
+  "test_files": [
+    "tests/test_engine.py"
+  ]
+}

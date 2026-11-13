@@ -1,0 +1,68 @@
+{
+  "base_commit": "16469b8afc93afdec840f73a89d36a9ed29e109c",
+  "created_at": "2025-07-07 18:28:46",
+  "install": [
+    "pip install -q -e .[dev]"
+  ],
+  "kind": "git",
+  "license": "Apache-2.0",
+  "oracle": {
+    "fail_to_pass": [
+      "tests/units/cli/exec/test_utils.py::test_collect_commands[command-failed-to-be-collected]",
+      "tests/units/test_device.py::TestAsyncEOSDevice::test__collect[asynceapi.EapiCommandError"
+    ],
+    "pass_to_pass": [
+      "tests/units/cli/exec/test_utils.py::test_clear_counters[no_connected_device]",
+      "tests/units/cli/exec/test_utils.py::test_clear_counters[cEOSLab",
+      "tests/units/cli/exec/test_utils.py::test_clear_counters[device",
+      "tests/units/cli/exec/test_utils.py::test_clear_counters[tags]",
+      "tests/units/cli/exec/test_utils.py::test_collect_commands[no_connected_device]",
+      "tests/units/cli/exec/test_utils.py::test_collect_commands[JSON",
+      "tests/units/cli/exec/test_utils.py::test_collect_commands[Text",
+      "tests/units/cli/exec/test_utils.py::test_collect_commands[tags]",
+      "tests/units/cli/exec/test_utils.py::test_collect_commands[bad-input]",
+      "tests/units/cli/exec/test_utils.py::test_collect_commands[uncaught-exception]",
+      "tests/units/test_device.py::TestAntaDevice::test_collect[device",
+      "tests/units/test_device.py::TestAntaDevice::test_cache_statistics[with_cache]",
+      "tests/units/test_device.py::TestAntaDevice::test_cache_statistics[without_cache]",
+      "tests/units/test_device.py::TestAntaDevice::test_max_connections",
+      "tests/units/test_device.py::TestAsyncEOSDevice::test__init__[no",
+      "tests/units/test_device.py::TestAsyncEOSDevice::test__init__[name]",
+      "tests/units/test_device.py::TestAsyncEOSDevice::test__init__[insecure]",
+      "tests/units/test_device.py::TestAsyncEOSDevice::test__init__[host",
+      "tests/units/test_device.py::TestAsyncEOSDevice::test__init__[username",
+      "tests/units/test_device.py::TestAsyncEOSDevice::test__init__[password",
+      "tests/units/test_device.py::TestAsyncEOSDevice::test__eq[equal]",
+      "tests/units/test_device.py::TestAsyncEOSDevice::test__eq[equals-name]",
+      "tests/units/test_device.py::TestAsyncEOSDevice::test__eq[not-equal-port]",
+      "tests/units/test_device.py::TestAsyncEOSDevice::test__eq[not-equal-host]",
+      "tests/units/test_device.py::TestAsyncEOSDevice::test_max_connections",
+      "tests/units/test_device.py::TestAsyncEOSDevice::test_max_connections_none",
+      "tests/units/test_device.py::TestAsyncEOSDevice::test_refresh[established]",
+      "tests/units/test_device.py::TestAsyncEOSDevice::test_refresh[is",
+      "tests/units/test_device.py::TestAsyncEOSDevice::test_refresh[cannot",
+      "tests/units/test_device.py::TestAsyncEOSDevice::test_refresh[asynceapi.EapiCommandError]",
+      "tests/units/test_device.py::TestAsyncEOSDevice::test_refresh[httpx.HTTPError]",
+      "tests/units/test_device.py::TestAsyncEOSDevice::test_refresh[httpx.ConnectError]",
+      "tests/units/test_device.py::TestAsyncEOSDevice::test_refresh[modelName",
+      "tests/units/test_device.py::TestAsyncEOSDevice::test__collect[command]",
+      "tests/units/test_device.py::TestAsyncEOSDevice::test__collect[enable]",
+      "tests/units/test_device.py::TestAsyncEOSDevice::test__collect[enable",
+      "tests/units/test_device.py::TestAsyncEOSDevice::test__collect[revision]",
+      "tests/units/test_device.py::TestAsyncEOSDevice::test__collect[httpx.HTTPError]",
+      "tests/units/test_device.py::TestAsyncEOSDevice::test__collect[httpx.ConnectError]",
+      "tests/units/test_device.py::TestAsyncEOSDevice::test__collect[httpx.TimeoutException]",
+      "tests/units/test_device.py::TestAsyncEOSDevice::test_copy[from]",
+      "tests/units/test_device.py::TestAsyncEOSDevice::test_copy[to]",
+      "tests/units/test_device.py::TestAsyncEOSDevice::test_copy[wrong]"
+    ]
+  },
+  "prompt": "Refactor: Change error messages for unsupported commands and known eos error\nhttps://github.com/aristanetworks/anta/blob/main/anta/device.py#L505\n\nThis should be copied to AntaTest handling to get the test context + add back a warning with device context\n\nInterface the change must provide:\nMethod: AsyncEOSDevice._handle_eapi_command_error(self, command: AntaCommand, e: asynceapi.EapiCommandError) -> None\nLocation: anta/device.py\nInputs: \n- **command** \u2013 an\u202fAntaCommand instance representing the eAPI command that was issued (contains attributes such as `command`, `requires_privileges`, `supported`, `returned_known_eos_error`, and mutable `errors` list).  \n- **e** \u2013 an\u202fasynceapi.EapiCommandError exception object with attributes `errors` (list of error strings, may be empty or contain empty strings) and `errmsg` (full error message string).\nOutputs: None (the method mutates `command.errors` and emits log messages). It sets `command.errors` to a cleaned list of error messages \u2013 using the non\u2011empty entries from `e.errors` or, if those are all empty, extracting the relevant part of `e.errmsg`. It also logs an error, warning, or debug message that includes the device name and command context.\nDescription: Processes an EapiCommandError by removing empty error strings, falling back to the parsed `errmsg` when necessary, updating the AntaCommand's error list, and producing a device\u2011specific log entry that reflects privilege issues, unsupported commands, known EOS errors, or generic failures. This method replaces the older `_log_eapi_command_error` and is invoked during async command collection, directly influencing the assertions in the updated tests.",
+  "python": "3.10",
+  "repo": "aristanetworks/anta",
+  "source": "nebius/SWE-rebench-V2",
+  "test_files": [
+    "tests/units/cli/exec/test_utils.py",
+    "tests/units/test_device.py"
+  ]
+}

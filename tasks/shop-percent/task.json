@@ -1,0 +1,2 @@
+{"project": "shop",
+ "prompt": "discounted(price, percent) in shop.py must refuse a percent below 0 or above 100 with ValueError. Add tests."}

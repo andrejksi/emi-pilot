@@ -1,0 +1,49 @@
+{
+  "base_commit": "28acbd0e9ab5df0fc80ebf41ba5586c5c01df86c",
+  "created_at": "2025-07-21 08:49:06",
+  "install": [
+    "pip install -q hatchling",
+    "pip install -q -e \".[pandas,polars,pyarrow]\"",
+    "pip install -q pytest pytest-cov pytest-env pytest-randomly pytest-xdist hypothesis"
+  ],
+  "kind": "git",
+  "license": "MIT",
+  "oracle": {
+    "fail_to_pass": [
+      "tests/series_only/scatter_test.py::test_scatter_2862[pyarrow]"
+    ],
+    "pass_to_pass": [
+      "tests/series_only/scatter_test.py::test_scatter_unordered_indices[polars[eager]]",
+      "tests/series_only/scatter_test.py::test_scatter_unchanged[pyarrow]",
+      "tests/series_only/scatter_test.py::test_scatter_unordered_indices[pandas[pyarrow]]",
+      "tests/series_only/scatter_test.py::test_single_series[pandas]",
+      "tests/series_only/scatter_test.py::test_scatter_integer[polars[eager]]",
+      "tests/series_only/scatter_test.py::test_scatter[pandas[pyarrow]]",
+      "tests/series_only/scatter_test.py::test_scatter_2862[polars[eager]]",
+      "tests/series_only/scatter_test.py::test_scatter_unchanged[pandas]",
+      "tests/series_only/scatter_test.py::test_scatter_unordered_indices[pandas]",
+      "tests/series_only/scatter_test.py::test_scatter_integer[pyarrow]",
+      "tests/series_only/scatter_test.py::test_scatter_2862[pandas[pyarrow]]",
+      "tests/series_only/scatter_test.py::test_single_series[pyarrow]",
+      "tests/series_only/scatter_test.py::test_scatter_unchanged[pandas[pyarrow]]",
+      "tests/series_only/scatter_test.py::test_scatter_indices",
+      "tests/series_only/scatter_test.py::test_scatter[pyarrow]",
+      "tests/series_only/scatter_test.py::test_single_series[polars[eager]]",
+      "tests/series_only/scatter_test.py::test_single_series[pandas[pyarrow]]",
+      "tests/series_only/scatter_test.py::test_scatter_unordered_indices[pyarrow]",
+      "tests/series_only/scatter_test.py::test_scatter_2862[pandas]",
+      "tests/series_only/scatter_test.py::test_scatter[pandas]",
+      "tests/series_only/scatter_test.py::test_scatter_integer[pandas]",
+      "tests/series_only/scatter_test.py::test_scatter_integer[pandas[pyarrow]]",
+      "tests/series_only/scatter_test.py::test_scatter_unchanged[polars[eager]]",
+      "tests/series_only/scatter_test.py::test_scatter[polars[eager]]"
+    ]
+  },
+  "prompt": "bug: `ArrowSeries.scatter` raises out of bound error\npyarrow backed series raises an out of bound error in scatter if `indices`:\n\n- is not 0\n- are not full length of the series\n\nRepro:\n\n```py\nimport narwhals as nw\nimport pyarrow as pa\n\ntbl = pa.table({\"a\": [1, 2, 3], \"b\": [142, 124, 132]})\nframe = nw.from_native(tbl, eager_only=True)\nser = frame[\"a\"]\n\ntry:\n    result = ser.scatter(1, 999)\nexcept Exception as exc:\n    print(exc)\n\n\ntry:\n    result = ser.scatter([0, 2], [999, 888])\nexcept Exception as exc:\n    print(exc)\n```\n\n> Index 1 out of bounds\n> Index 2 out of bounds\n\nInterface the change must provide:\nMethod: ArrowSeries.scatter(self, indices, values)  \nLocation: narwhals/_arrow/series.py (implements the `scatter` operation for Arrow\u2011backed Series)  \nInputs:  \n- **indices** \u2013\u202fint or sequence of ints specifying positions in the Series to be replaced.  \n- **values** \u2013\u202fscalar, sequence, or Series providing replacement data; when a sequence is given its length must match the length of *indices*.  \nOutputs: Returns a new `ArrowSeries` (same concrete type as *self*) where the specified positions have been replaced by the given values. Raises an out\u2011of\u2011bounds error if any index is <\u202f0 or \u2265\u202flen(self).  \nDescription: Performs an in\u2011place\u2011like selective assignment on a Series, yielding a new Series with the *indices* populated by *values*. Used to test that non\u2011zero, non\u2011full\u2011length index selections are accepted without error.  \n\nFunction: scatter (exposed via the Series API)  \nLocation: narwhals/_arrow/series.py (and analogous implementations in other backend modules)  \nInputs: same as above.  \nOutputs: same as above.  \nDescription: High\u2011level entry point for the scatter operation that forwards to the backend\u2011specific implementation; the test suite calls this method directly on a Series instance.",
+  "python": "3.10",
+  "repo": "narwhals-dev/narwhals",
+  "source": "nebius/SWE-rebench-V2",
+  "test_files": [
+    "tests/series_only/scatter_test.py"
+  ]
+}

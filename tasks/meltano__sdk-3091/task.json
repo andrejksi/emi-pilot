@@ -1,0 +1,44 @@
+{
+  "base_commit": "ae326fe394ec15d528ec2f1e396b8bb3dd5e99a2",
+  "created_at": "2025-06-12 01:47:30",
+  "install": [
+    "pip install -q -e .",
+    "pip install -q pytest jwt time-machine fastjsonschema msgspec requests-mock requests-cache pytz"
+  ],
+  "kind": "git",
+  "license": "Apache-2.0",
+  "oracle": {
+    "fail_to_pass": [
+      "tests/singerlib/test_schema.py::test_resolve_schema_references[resolve_schema_multiple_properties_with_same_reference]"
+    ],
+    "pass_to_pass": [
+      "tests/singerlib/test_schema.py::test_schema_to_dict[string_to_dict]",
+      "tests/singerlib/test_schema.py::test_schema_to_dict[integer_to_dict]",
+      "tests/singerlib/test_schema.py::test_schema_to_dict[array_to_dict]",
+      "tests/singerlib/test_schema.py::test_schema_to_dict[object_to_dict]",
+      "tests/singerlib/test_schema.py::test_schema_from_dict[schema_from_string_dict]",
+      "tests/singerlib/test_schema.py::test_schema_from_dict[schema_from_integer_dict]",
+      "tests/singerlib/test_schema.py::test_schema_from_dict[schema_from_array_dict]",
+      "tests/singerlib/test_schema.py::test_schema_from_dict[schema_from_object_dict]",
+      "tests/singerlib/test_schema.py::test_resolve_schema_references[resolve_schema_references]",
+      "tests/singerlib/test_schema.py::test_resolve_schema_references[resolve_schema_references_with_refs]",
+      "tests/singerlib/test_schema.py::test_resolve_schema_references[resolve_schema_references_with_pattern_properties]",
+      "tests/singerlib/test_schema.py::test_resolve_schema_references[resolve_schema_references_with_items]",
+      "tests/singerlib/test_schema.py::test_resolve_schema_references[resolve_schema_nested_references]",
+      "tests/singerlib/test_schema.py::test_resolve_schema_references[resolve_schema_indirect_references]",
+      "tests/singerlib/test_schema.py::test_resolve_schema_references[resolve_schema_preserves_existing_fields]",
+      "tests/singerlib/test_schema.py::test_resolve_schema_references[resolve_schema_any_of]",
+      "tests/singerlib/test_schema.py::test_resolve_schema_references[resolve_schema_all_of]",
+      "tests/singerlib/test_schema.py::test_resolve_schema_references[resolve_schema_one_of]",
+      "tests/singerlib/test_schema.py::test_resolve_schema_references[resolve_nested_one_of]",
+      "tests/singerlib/test_schema.py::test_resolve_schema_references[resolve_schema_references_with_circular_references]"
+    ]
+  },
+  "prompt": "bug: JSON schema references are incorrectly resolved when mulitple properties use the same reference\n### Singer SDK Version\n\n0.46.4\n\n### Is this a regression?\n\n- [x] Yes\n\n### Python Version\n\nNA\n\n### Bug scope\n\nTaps (catalog, state, etc.)\n\n### Operating System\n\nNA\n\n### Description\n\n```python\nfrom singer_sdk.singerlib resolve_schema_references\n\nresolve_schema_references(\n    {\n        \"type\": \"object\",\n        \"properties\": {\n            \"min_compute_units\": {\"$ref\": \"components#/schemas/ComputeUnit\"},\n             \"max_compute_units\": {\"$ref\": \"components#/schemas/ComputeUnit\"},\n        },\n    },\n    {\"components\": {\"schemas\": {\"ComputeUnit\": {\"type\": \"number\"}}}},\n)\n\n# Expected:\n# {\n#     \"type\": \"object\",\n#     \"properties\": {\n#         \"min_compute_units\": {\"type\": \"number\"},\n#         \"max_compute_units\": {\"type\": \"number\"},\n#     },\n# }\n\n# Actual\n# {\n#     \"type\": \"object\",\n#     \"properties\": {\n#         \"min_compute_units\": {\"type\": \"number\"},\n#         \"max_compute_units\": {},  # Presumably ComputeUnit had already been visited\n#     },\n# }\n```\n\n\n### Link to Slack/Linen\n\n_No response_",
+  "python": "3.10",
+  "repo": "meltano/sdk",
+  "source": "nebius/SWE-rebench-V2",
+  "test_files": [
+    "tests/singerlib/test_schema.py"
+  ]
+}

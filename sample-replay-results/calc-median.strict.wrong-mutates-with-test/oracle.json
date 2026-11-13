@@ -1,0 +1,5 @@
+{
+  "exit": 1,
+  "output": "....F                                                                    [100%]\n=================================== FAILURES ===================================\n_________________________ test_the_input_is_left_alone _________________________\n\n    def test_the_input_is_left_alone():\n        values = [3, 1, 2]\n        median(values)\n>       assert values == [3, 1, 2]\nE       assert [1, 2, 3] == [3, 1, 2]\nE         \nE         At index 0 diff: 1 != 3\nE         Use -v to get more diff\n\n_oracle/test_oracle_median.py:26: AssertionError\n=========================== short test summary info ============================\nFAILED _oracle/test_oracle_median.py::test_the_input_is_left_alone - assert [...\n1 failed, 4 passed in 0.14s\n",
+  "passed": false
+}

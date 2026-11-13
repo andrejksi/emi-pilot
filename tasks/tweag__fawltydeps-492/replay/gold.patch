@@ -1,0 +1,51 @@
+diff --git a/fawltydeps/extract_imports.py b/fawltydeps/extract_imports.py
+index f174fa1..28dfaee 100644
+--- a/fawltydeps/extract_imports.py
++++ b/fawltydeps/extract_imports.py
+@@ -188,14 +188,10 @@ def parse_source(
+ 
+     assert isinstance(src.path, Path)  # noqa: S101, sanity check / silence mypy
+ 
+-    local_context = (
+-        None
+-        if src.base_dir is None
+-        else make_isort_config(
+-            path=src.base_dir,
+-            src_paths=tuple(dirs_between(src.base_dir, src.path.parent)),
+-        )
+-    )
++    local_context = None
++    if src.base_dir is not None:
++        src_paths = tuple(dirs_between(src.base_dir, src.path.parent))
++        local_context = make_isort_config(path=src.base_dir, src_paths=src_paths)
+ 
+     if src.path.suffix == ".py":
+         logger.info("Parsing Python file %s", src.path)
+diff --git a/fawltydeps/utils.py b/fawltydeps/utils.py
+index d199e74..a1b3c74 100644
+--- a/fawltydeps/utils.py
++++ b/fawltydeps/utils.py
+@@ -4,6 +4,7 @@ import logging
+ import sys
+ from collections.abc import Iterator
+ from dataclasses import is_dataclass
++from itertools import takewhile
+ from pathlib import Path
+ from typing import TypeVar
+ 
+@@ -21,10 +22,11 @@ def version() -> str:
+ 
+ 
+ def dirs_between(parent: Path, child: Path) -> Iterator[Path]:
+-    """Yield directories between 'parent' and 'child', inclusive."""
+-    yield child
+-    if child != parent:
+-        yield from dirs_between(parent, child.parent)
++    """Return directories between 'parent' and 'child', inclusive.
++
++    Return nothing if 'parent' is not a parent of `child'.
++    """
++    return takewhile(lambda p: p.is_relative_to(parent), [child, *child.parents])
+ 
+ 
+ def hide_dataclass_fields(instance: object, *field_names: str) -> None:

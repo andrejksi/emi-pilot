@@ -1,0 +1,2 @@
+{"project": "calc",
+ "prompt": "Add a function `median(values)` to calc.py. It returns the middle value of the values; for an even number of values, the mean of the two middle ones. An empty list raises ValueError. Add tests for it."}

@@ -1,0 +1,1 @@
+{"on_unexercised": "repair", "on_redundant": "repair", "adequacy": {"max_mutants": 20, "on_survivors": "repair"}}

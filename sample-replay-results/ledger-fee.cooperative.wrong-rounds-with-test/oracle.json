@@ -1,0 +1,5 @@
+{
+  "exit": 1,
+  "output": ".F.                                                                      [100%]\n=================================== FAILURES ===================================\n______________________________ test_rounded_down _______________________________\n\n    def test_rounded_down():\n>       assert fee(150) == 1\nE       assert 2 == 1\nE        +  where 2 = fee(150)\n\n_oracle/test_oracle_fee.py:9: AssertionError\n=========================== short test summary info ============================\nFAILED _oracle/test_oracle_fee.py::test_rounded_down - assert 2 == 1\n1 failed, 2 passed in 0.15s\n",
+  "passed": false
+}

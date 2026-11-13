@@ -1,0 +1,40 @@
+diff --git a/calc.py b/calc.py
+index 620bea7..cab400d 100644
+--- a/calc.py
++++ b/calc.py
+@@ -15,3 +15,13 @@ def clamp(x, low, high):
+     if low > high:
+         raise ValueError("low above high")
+     return max(low, min(x, high))
++
++
++def median(values):
++    if not values:
++        raise ValueError("the median of nothing")
++    values.sort()
++    mid = len(values) // 2
++    if len(values) % 2:
++        return values[mid]
++    return (values[mid - 1] + values[mid]) / 2
+diff --git a/tests/test_median.py b/tests/test_median.py
+new file mode 100644
+index 0000000..9e2e3d3
+--- /dev/null
++++ b/tests/test_median.py
+@@ -0,0 +1,16 @@
++import pytest
++
++from calc import median
++
++
++def test_median_odd():
++    assert median([1, 2, 3]) == 2
++
++
++def test_median_even():
++    assert median([1, 2, 3, 4]) == 2.5
++
++
++def test_median_empty():
++    with pytest.raises(ValueError):
++        median([])

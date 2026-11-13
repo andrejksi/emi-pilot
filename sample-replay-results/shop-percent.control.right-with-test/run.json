@@ -1,0 +1,22 @@
+{
+  "arm": "control",
+  "backend": "replay",
+  "claims": [
+    {
+      "gate": "none",
+      "verdict": "accepted"
+    }
+  ],
+  "final": "accepted",
+  "model": null,
+  "project": "shop",
+  "repair_rounds": 0,
+  "replay": "right-with-test",
+  "seconds": 0.0,
+  "seed": 0,
+  "task": "shop-percent",
+  "usage": {
+    "completion_tokens": 0,
+    "prompt_tokens": 0
+  }
+}

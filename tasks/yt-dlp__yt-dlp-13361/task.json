@@ -1,0 +1,39 @@
+{
+  "base_commit": "3fe72e9eea38d9a58211cde42cfaa577ce020e2c",
+  "created_at": "2025-06-01 04:28:03",
+  "install": [
+    "pip install -e .[test] --quiet",
+    "pip install -q pytest"
+  ],
+  "kind": "git",
+  "license": "Unlicense",
+  "oracle": {
+    "fail_to_pass": [
+      "test/test_InfoExtractor.py::TestInfoExtractor::test_search_json_ld_realworld"
+    ],
+    "pass_to_pass": [
+      "test/test_InfoExtractor.py::TestInfoExtractor::test_download_json",
+      "test/test_InfoExtractor.py::TestInfoExtractor::test_extract_jwplayer_data_realworld",
+      "test/test_InfoExtractor.py::TestInfoExtractor::test_get_netrc_login_info",
+      "test/test_InfoExtractor.py::TestInfoExtractor::test_html_search_meta",
+      "test/test_InfoExtractor.py::TestInfoExtractor::test_html_search_regex",
+      "test/test_InfoExtractor.py::TestInfoExtractor::test_ie_key",
+      "test/test_InfoExtractor.py::TestInfoExtractor::test_opengraph",
+      "test/test_InfoExtractor.py::TestInfoExtractor::test_parse_f4m_formats",
+      "test/test_InfoExtractor.py::TestInfoExtractor::test_parse_html5_media_entries",
+      "test/test_InfoExtractor.py::TestInfoExtractor::test_parse_ism_formats",
+      "test/test_InfoExtractor.py::TestInfoExtractor::test_parse_m3u8_formats",
+      "test/test_InfoExtractor.py::TestInfoExtractor::test_parse_mpd_formats",
+      "test/test_InfoExtractor.py::TestInfoExtractor::test_parse_xspf",
+      "test/test_InfoExtractor.py::TestInfoExtractor::test_response_with_expected_status_returns_content",
+      "test/test_InfoExtractor.py::TestInfoExtractor::test_search_nextjs_data"
+    ]
+  },
+  "prompt": "\"Unable to extract player;\" error on certain OKRU videos (Odnoklassniki)\n### Checklist\n\n- [x] I'm reporting that yt-dlp is broken on a **supported** site\n- [x] I've verified that I have **updated yt-dlp to nightly or master** ([update instructions](https://github.com/yt-dlp/yt-dlp#update-channels))\n- [x] I've checked that all provided URLs are playable in a browser with the same IP and same login details\n- [x] I've checked that all URLs and arguments with special characters are [properly quoted or escaped](https://github.com/yt-dlp/yt-dlp/wiki/FAQ#video-url-contains-an-ampersand--and-im-getting-some-strange-output-1-2839-or-v-is-not-recognized-as-an-internal-or-external-command)\n- [x] I've searched [known issues](https://github.com/yt-dlp/yt-dlp/issues/3766), [the FAQ](https://github.com/yt-dlp/yt-dlp/wiki/FAQ), and the [bugtracker](https://github.com/yt-dlp/yt-dlp/issues?q=is%3Aissue%20-label%3Aspam%20%20) for similar issues **including closed ones**. DO NOT post duplicates\n- [x] I've read about [sharing account credentials](https://github.com/yt-dlp/yt-dlp/blob/master/CONTRIBUTING.md#are-you-willing-to-share-account-details-if-needed) and I'm willing to share it if required\n\n### Region\n\nAustralia\n\n### Provide a description that is worded well enough to be understood\n\nSome OKRU videos produce this error, while others behave normally. Here are URLs which fail to download and give the error reported in the post title:\n\nhttps://ok.ru/video/10003120720431\nhttps://ok.ru/video/10003121244719\nhttps://ok.ru/video/10002989648431\nhttps://ok.ru/video/10009477122607\nhttps://ok.ru/video/10009477319215\n\nHere is one that works fine (most seem ok):\n\nhttps://ok.ru/video/10029569477167\n\n\n### Provide verbose output that clearly demonstrates the problem\n\n- [x] Run **your** yt-dlp command with **-vU** flag added (`yt-dlp -vU <your command line>`)\n- [x] If using API, add `'verbose': True` to `YoutubeDL` params instead\n- [x] Copy the WHOLE output (starting with `[debug] Command-line config`) and insert it below\n\n### Complete Verbose Output\n\n```shell\n[debug] Command-line config: ['https://ok.ru/video/10009477122607', '-vU']\n[debug] Encodings: locale UTF-8, fs utf-8, pref UTF-8, out utf-8, error utf-8, screen utf-8\n[debug] yt-dlp version nightly@2025.05.30.233011 from yt-dlp/yt-dlp-nightly-builds [3fe72e9ee] (zip)\n[debug] Python 3.9.6 (CPython x86_64 64bit) - macOS-10.16-x86_64-i386-64bit (OpenSSL 1.1.1k  25 Mar 2021)\n[debug] exe versions: ffmpeg 4.4-tessus (setts), ffprobe 4.4-tessus, rtmpdump 2.4\n[debug] Optional libraries: Cryptodome-3.17, brotli-1.0.9, certifi-2022.12.07, mutagen-1.46.0, sqlite3-3.35.5, websockets-10.4 (unsupported)\n[debug] Proxy map: {}\n[debug] Request Handlers: urllib\n[debug] Plugin directories: none\n[debug] Loaded 1860 extractors\n[debug] Fetching release info: https://api.github.com/repos/yt-dlp/yt-dlp-nightly-builds/releases/latest\nLatest version: nightly@2025.05.30.233011 from yt-dlp/yt-dlp-nightly-builds\nyt-dlp is up to date (nightly@2025.05.30.233011 from yt-dlp/yt-dlp-nightly-builds)\n[Odnoklassniki] Extracting URL: https://ok.ru/video/10009477122607\n[Odnoklassniki] 10009477122607: Downloading desktop webpage\n[Odnoklassniki] 10009477122607: Downloading mobile webpage\nERROR: [Odnoklassniki] 10009477122607: Unable to extract player; please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U\n  File \"/usr/local/bin/yt-dlp/yt_dlp/extractor/common.py\", line 748, in extract\n    ie_result = self._real_extract(url)\n  File \"/usr/local/bin/yt-dlp/yt_dlp/extractor/odnoklassniki.py\", line 252, in _real_extract\n    raise e\n  File \"/usr/local/bin/yt-dlp/yt_dlp/extractor/odnoklassniki.py\", line 246, in _real_extract\n    return self._extract_desktop(url)\n  File \"/usr/local/bin/yt-dlp/yt_dlp/extractor/odnoklassniki.py\", line 278, in _extract_desktop\n    unescapeHTML(self._search_regex(\n  File \"/usr/local/bin/yt-dlp/yt_dlp/extractor/common.py\", line 1339, in _search_regex\n    raise RegexNotFoundError(f'Unable to extract {_name}')\n```",
+  "python": "3.10",
+  "repo": "yt-dlp/yt-dlp",
+  "source": "nebius/SWE-rebench-V2",
+  "test_files": [
+    "test/test_InfoExtractor.py"
+  ]
+}

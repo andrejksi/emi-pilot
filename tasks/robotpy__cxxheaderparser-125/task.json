@@ -1,0 +1,54 @@
+{
+  "base_commit": "20e83a9b79aacc2cdcbe91361d9fbad42721cae8",
+  "created_at": "2025-07-15 00:40:22",
+  "install": [
+    "pip install -q -e .",
+    "pip install -q -r tests/requirements.txt"
+  ],
+  "kind": "git",
+  "license": "custom-check-github",
+  "oracle": {
+    "fail_to_pass": [
+      "tests/test_fn.py::test_fn_pointer_params"
+    ],
+    "pass_to_pass": [
+      "tests/test_fn.py::test_fn_returns_class",
+      "tests/test_fn.py::test_fn_returns_typename",
+      "tests/test_fn.py::test_fn_returns_typename_const",
+      "tests/test_fn.py::test_fn_void_is_no_params",
+      "tests/test_fn.py::test_fn_array_param",
+      "tests/test_fn.py::test_fn_typename_param",
+      "tests/test_fn.py::test_fn_weird_refs",
+      "tests/test_fn.py::test_fn_too_many_parens",
+      "tests/test_fn.py::test_fn_same_line",
+      "tests/test_fn.py::test_fn_auto_template",
+      "tests/test_fn.py::test_fn_template_ptr",
+      "tests/test_fn.py::test_fn_with_impl",
+      "tests/test_fn.py::test_fn_return_std_function",
+      "tests/test_fn.py::test_fn_return_std_function_trailing",
+      "tests/test_fn.py::test_fn_trailing_return_simple",
+      "tests/test_fn.py::test_fn_trailing_return_std_function",
+      "tests/test_fn.py::test_inline_volatile_fn",
+      "tests/test_fn.py::test_method_w_reference",
+      "tests/test_fn.py::test_fn_w_mvreference",
+      "tests/test_fn.py::test_msvc_conventions",
+      "tests/test_fn.py::test_throw_empty",
+      "tests/test_fn.py::test_throw_dynamic",
+      "tests/test_fn.py::test_noexcept_empty",
+      "tests/test_fn.py::test_noexcept_contents",
+      "tests/test_fn.py::test_auto_decltype_return",
+      "tests/test_fn.py::test_pure_virtual_trailing_return",
+      "tests/test_fn.py::test_fn_trailing_return_with_body",
+      "tests/test_fn.py::test_method_trailing_return_with_body",
+      "tests/test_fn.py::test_msvc_inline",
+      "tests/test_fn.py::test_deleted_function"
+    ]
+  },
+  "prompt": "[PARSE BUG]: `restrict` keyword not able to be parsed\n### Problem description\n\nCannot parse `__restrict__` used to anti-alias pointers\n\n### C++ code that can't be parsed correctly (please double-check that https://robotpy.github.io/cxxheaderparser/ has the same error)\n\n```text\nvoid myFunc(int*__restrict__ x, int*__restrict__ y);\n```\n\nInterface the change must provide:\nMethod: Pointer.__init__(self, ptr_to: typing.Union[Array, FunctionType, Pointer, Type], const: bool = False, volatile: bool = False, restrict: bool = False)\nLocation: cxxheaderparser/types.py\nInputs: \n- ptr_to \u2013 the pointee type (e.g., a Type representing \u201cint\u201d); must be an Array, FunctionType, Pointer, or Type.\n- const \u2013 optional, defaults to False; indicates a const\u2011qualified pointer.\n- volatile \u2013 optional, defaults to False; indicates a volatile\u2011qualified pointer.\n- restrict \u2013 optional, defaults to False; when True the pointer is marked with the C/C++ `__restrict__` qualifier.\nOutputs: An instance of Pointer with the given attributes; its `format()` and `format_decl()` methods will emit \u201c__restrict__\u201d in the generated declaration when `restrict=True`.\nDescription: Constructs a pointer type representation, now supporting the `restrict` qualifier for anti\u2011aliasing semantics.\n\nMethod: Reference.__init__(self, ref_to: typing.Union[Array, FunctionType, Pointer, Type], restrict: bool = False)\nLocation: cxxheaderparser/types.py\nInputs: \n- ref_to \u2013 the referenced type (e.g., a Type representing \u201cint\u201d); must be an Array, FunctionType, Pointer, or Type.\n- restrict \u2013 optional, defaults to False; when True the reference is marked with the C/C++ `__restrict__` qualifier.\nOutputs: An instance of Reference with the given attributes; its `format()` and `format_decl()` methods will emit \u201c__restrict__\u201d in the generated declaration when `restrict=True`.\nDescription: Constructs a reference type representation, now supporting the `restrict` qualifier for anti\u2011aliasing semantics.",
+  "python": "3.10",
+  "repo": "robotpy/cxxheaderparser",
+  "source": "nebius/SWE-rebench-V2",
+  "test_files": [
+    "tests/test_fn.py"
+  ]
+}

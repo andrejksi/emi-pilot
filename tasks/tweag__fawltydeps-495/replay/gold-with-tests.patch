@@ -1,0 +1,98 @@
+diff --git a/fawltydeps/extract_deps/environment_yml_parser.py b/fawltydeps/extract_deps/environment_yml_parser.py
+index d5a9d0c..bcacd2c 100644
+--- a/fawltydeps/extract_deps/environment_yml_parser.py
++++ b/fawltydeps/extract_deps/environment_yml_parser.py
+@@ -64,7 +64,15 @@ def parse_environment_yml_deps(
+                 yield parse_item(dep_item, source)
+             except ValueError as e:
+                 # InvalidCondaRequirement or packaging.requirements.InvalidRequirement
+-                logger.error(f"{error_msg} {e}")
++                # Skip editable self-dependencies silently:
++                if dep_item.removesuffix("/") in {
++                    "-e .",
++                    "--editable .",
++                    "--editable=.",
++                }:
++                    pass
++                else:
++                    logger.error(f"{error_msg} {e}")
+         elif isinstance(dep_item, dict) and len(dep_item) == 1 and "pip" in dep_item:
+             pip_deps = dep_item.get("pip")
+             yield from parse_environment_yml_deps(
+diff --git a/fawltydeps/extract_deps/requirements_parser.py b/fawltydeps/extract_deps/requirements_parser.py
+index e62a3a9..3d08a38 100644
+--- a/fawltydeps/extract_deps/requirements_parser.py
++++ b/fawltydeps/extract_deps/requirements_parser.py
+@@ -27,7 +27,7 @@ def parse_requirements_txt(path: Path) -> Iterator[DeclaredDependency]:
+     source = Location(path)
+     parsed = RequirementsFile.from_file(path)
+     for dep in parsed.requirements:
+-        if dep.name:
++        if dep.name:  # This transparently skips pip options like '-e .'
+             yield DeclaredDependency(dep.name, source)
+ 
+     if parsed.invalid_lines and logger.isEnabledFor(logging.DEBUG):
+diff --git a/tests/test_extract_deps_environment_yml.py b/tests/test_extract_deps_environment_yml.py
+index c53685d..fd15eb7 100644
+--- a/tests/test_extract_deps_environment_yml.py
++++ b/tests/test_extract_deps_environment_yml.py
+@@ -218,17 +218,40 @@ from fawltydeps.types import DeclaredDependency, Location
+             ],
+             id="cartopy_example",
+         ),
++        pytest.param(
++            """\
++            name: myenv
++            channels:
++              - conda-forge
++            dependencies:
++              # Core Python and conda packages
++              - python=3.12
++              - pip
++              - setuptools
++
++              # Pip packages
++              - pip:
++                - -e ./
++                - -e .
++                - --editable .
++                - --editable=.
++            """,
++            ["pip", "setuptools"],
++            id="ignore_editable_self_dependency",
++        ),
+     ],
+ )
+ def test_parse_environment_yml__wellformed_dependencies__yields_dependencies(
+-    write_tmp_files, environment_yml, expected_deps
++    write_tmp_files, environment_yml, expected_deps, caplog
+ ):
+     tmp_path = write_tmp_files({"environment.yml": environment_yml})
+     path = tmp_path / "environment.yml"
+ 
++    caplog.set_level(logging.ERROR)
+     result = list(parse_environment_yml(path))
+     expected = [DeclaredDependency(dep, Location(path)) for dep in expected_deps]
+     assert result == expected
++    assert caplog.text == ""  # No error messages
+ 
+ 
+ @dataclass
+diff --git a/tests/test_extract_deps_success.py b/tests/test_extract_deps_success.py
+index 0504fdd..267d094 100644
+--- a/tests/test_extract_deps_success.py
++++ b/tests/test_extract_deps_success.py
+@@ -58,10 +58,12 @@ from .utils import (
+         pytest.param(
+             """\
+             -e .
++            --editable .
++            --editable=.
+             click >=1.2
+             """,
+             ["click"],
+-            id="requirements_with_option__ignores_option",
++            id="requirements_with_options__ignores_options",
+         ),
+         pytest.param(
+             """\

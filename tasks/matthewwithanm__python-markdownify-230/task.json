@@ -1,0 +1,73 @@
+{
+  "base_commit": "9b1412aa5b5bca345806068b66d35086cbc88b25",
+  "created_at": "2025-06-29 12:29:32",
+  "install": [
+    "pip install -q -e .",
+    "pip install -q pytest==8 flake8 restructuredtext_lint Pygments"
+  ],
+  "kind": "git",
+  "license": "MIT",
+  "oracle": {
+    "fail_to_pass": [
+      "tests/test_conversions.py::test_code"
+    ],
+    "pass_to_pass": [
+      "tests/test_conversions.py::test_a",
+      "tests/test_conversions.py::test_a_spaces",
+      "tests/test_conversions.py::test_a_with_title",
+      "tests/test_conversions.py::test_a_shortcut",
+      "tests/test_conversions.py::test_a_no_autolinks",
+      "tests/test_conversions.py::test_a_in_code",
+      "tests/test_conversions.py::test_b",
+      "tests/test_conversions.py::test_b_spaces",
+      "tests/test_conversions.py::test_blockquote",
+      "tests/test_conversions.py::test_blockquote_with_nested_paragraph",
+      "tests/test_conversions.py::test_blockquote_with_paragraph",
+      "tests/test_conversions.py::test_blockquote_nested",
+      "tests/test_conversions.py::test_br",
+      "tests/test_conversions.py::test_dl",
+      "tests/test_conversions.py::test_del",
+      "tests/test_conversions.py::test_div_section_article",
+      "tests/test_conversions.py::test_em",
+      "tests/test_conversions.py::test_figcaption",
+      "tests/test_conversions.py::test_header_with_space",
+      "tests/test_conversions.py::test_h1",
+      "tests/test_conversions.py::test_h2",
+      "tests/test_conversions.py::test_hn",
+      "tests/test_conversions.py::test_hn_chained",
+      "tests/test_conversions.py::test_hn_nested_tag_heading_style",
+      "tests/test_conversions.py::test_hn_nested_simple_tag",
+      "tests/test_conversions.py::test_hn_nested_img",
+      "tests/test_conversions.py::test_hn_atx_headings",
+      "tests/test_conversions.py::test_hn_atx_closed_headings",
+      "tests/test_conversions.py::test_hn_newlines",
+      "tests/test_conversions.py::test_head",
+      "tests/test_conversions.py::test_hr",
+      "tests/test_conversions.py::test_i",
+      "tests/test_conversions.py::test_img",
+      "tests/test_conversions.py::test_video",
+      "tests/test_conversions.py::test_kbd",
+      "tests/test_conversions.py::test_p",
+      "tests/test_conversions.py::test_pre",
+      "tests/test_conversions.py::test_q",
+      "tests/test_conversions.py::test_script",
+      "tests/test_conversions.py::test_style",
+      "tests/test_conversions.py::test_s",
+      "tests/test_conversions.py::test_samp",
+      "tests/test_conversions.py::test_strong",
+      "tests/test_conversions.py::test_strong_em_symbol",
+      "tests/test_conversions.py::test_sub",
+      "tests/test_conversions.py::test_sup",
+      "tests/test_conversions.py::test_lang",
+      "tests/test_conversions.py::test_lang_callback",
+      "tests/test_conversions.py::test_spaces"
+    ]
+  },
+  "prompt": "Support backticks inside inline code spans\nWith the version `1.1.0`, the following code\n\n~~~python\nfrom markdownify import markdownify as md\n\nprint(\n    md(\n        '<code>We have to `manage` this.</code>',\n    )\n)\n~~~\n\nshould print\n\n~~~\n``We have to `manage` this.``\n~~~\n\ninstead of\n\n~~~\n`We have to `manage` this.`\n~~~\n\nIn one of my project, I have fixed this using the following lines of code.\n\n~~~python\n    def convert_code(self, el, text, parent_tags = None):\n        if el.parent.name == \"pre\":\n            return text\n\n        code = el.get_text()\n\n        if \"`\" in code:\n            code = f\"`{code}`\"\n\n        return f\"`{code}`\"\n~~~",
+  "python": "3.10",
+  "repo": "matthewwithanm/python-markdownify",
+  "source": "nebius/SWE-rebench-V2",
+  "test_files": [
+    "tests/test_conversions.py"
+  ]
+}

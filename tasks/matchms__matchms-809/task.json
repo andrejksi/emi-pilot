@@ -1,0 +1,38 @@
+{
+  "base_commit": "0b1707bd866f56404e4056df678af12a4bc20141",
+  "created_at": "2025-06-13 09:19:05",
+  "install": [
+    "pip install -q -e .",
+    "pip install -q pytest testfixtures matplotlib lxml pillow networkx numba pickydict pyteomics requests sparsestack tqdm rdkit pyyaml deprecated pubchempy pynndescent"
+  ],
+  "kind": "git",
+  "license": "Apache-2.0",
+  "oracle": {
+    "fail_to_pass": [
+      "tests/importing/test_load_from_msp.py::test_get_peak_values[496\\t7.1E-05-expected0]"
+    ],
+    "pass_to_pass": [
+      "tests/importing/test_load_from_msp.py::test_load_from_msp_spaces_mona_1",
+      "tests/importing/test_load_from_msp.py::test_load_from_msp_spaces_mona_2",
+      "tests/importing/test_load_from_msp.py::test_load_from_msp_spaces_massbank_1",
+      "tests/importing/test_load_from_msp.py::test_load_from_msp_tabs",
+      "tests/importing/test_load_from_msp.py::test_load_from_msp_multiline",
+      "tests/importing/test_load_from_msp.py::test_load_from_msp_diverse_spectrum_collection",
+      "tests/importing/test_load_from_msp.py::test_load_msl",
+      "tests/importing/test_load_from_msp.py::test_load_golm_style_msp",
+      "tests/importing/test_load_from_msp.py::test_load_msp_with_comments_including_quotes",
+      "tests/importing/test_load_from_msp.py::test_load_msp_with_scientific_notation",
+      "tests/importing/test_load_from_msp.py::test_parse_metadata[comments:",
+      "tests/importing/test_load_from_msp.py::test_parse_metadata[name:",
+      "tests/importing/test_load_from_msp.py::test_get_peak_values[496\\t7.1e-05-expected1]",
+      "tests/importing/test_load_from_msp.py::test_get_peak_values[85:201"
+    ]
+  },
+  "prompt": "matchms fails when reading spectra where abundance is in scientific notation\nExample spectrum - spotted in the MSDial EI RI library.\n\nFunny thing is our regex only handles lower case `e` notation while this uses upper case.\n\nMakes me think if we shouldn't just leave the parsing of stuff to python and try to just identify the tokens based on separator?\n\n``` tokens = re.findall(r\"(\\d+(?:\\.\\d+)?(?:e[-+]?\\d+)?)\", peak)```\n```\nNAME: C10 FAME\nEXACTMASS: 186.16198\nFORMULA: C11H22O2\nONTOLOGY: Fatty acid methyl esters\nINCHIKEY: YRHYCMZPEVDGFQ-UHFFFAOYSA-N\nSMILES: CCCCCCCCCC(=O)OC\nRETENTIONINDEX: 1325\nIONMODE: Positive\nINSTRUMENTTYPE: GC-EI-TOF\nCOMMENT: DB#=FiehnLibVolatile0005; origin=Volatile Fiehn Library for Metabolic Profiling\nNum Peaks: 169\n30\t0.629467\n31\t1.545269\n33\t0.272632\n36\t0.02421\n37\t0.313882\n38\t0.539016\n39\t17.716311\n40\t1.915948\n41\t35.4716\n42\t9.51272\n43\t36.860957\n44\t0.788644\n45\t2.384747\n46\t0.104509\n47\t0.031949\n48\t0.035996\n49\t0.052609\n50\t0.529644\n51\t0.838982\n52\t0.365568\n53\t2.854753\n54\t1.750452\n55\t29.439195\n56\t4.268605\n57\t8.867918\n58\t0.591554\n59\t19.854767\n60\t0.49308\n61\t0.379342\n62\t0.260846\n63\t0.557191\n64\t0.08541\n65\t0.63394\n66\t0.192617\n67\t2.198946\n68\t1.443245\n69\t7.300356\n70\t1.714883\n71\t2.948257\n72\t0.322756\n73\t1.743069\n74\t100\n75\t9.275516\n76\t0.745407\n77\t0.361379\n78\t0.038481\n79\t0.615978\n80\t0.123323\n81\t1.452119\n82\t0.612854\n83\t3.739813\n84\t2.643535\n85\t1.788933\n86\t0.278383\n87\t44.905938\n88\t3.900623\n89\t0.580976\n90\t0.037416\n91\t0.023074\n92\t0.025701\n93\t0.21129\n94\t0.043806\n95\t0.774303\n96\t0.156408\n97\t2.040479\n98\t1.468662\n99\t0.256302\n100\t0.217679\n101\t5.157853\n102\t0.416331\n103\t0.024423\n107\t0.071992\n108\t0.018459\n109\t0.002485\n110\t0.228329\n111\t0.387719\n112\t0.390062\n113\t0.245724\n114\t0.05765\n115\t2.589718\n116\t0.396239\n120\t0.001136\n121\t0.032375\n122\t0.007242\n123\t0.027831\n124\t0.013561\n125\t0.150728\n126\t0.114094\n127\t0.07966\n129\t2.578359\n130\t0.256231\n132\t0.005254\n135\t0.102876\n136\t0.03486\n137\t0.071424\n138\t0.021157\n139\t0.314024\n140\t0.065886\n141\t2.280949\n142\t2.305443\n143\t7.497659\n144\t0.656233\n145\t0.026056\n148\t0.005112\n152\t0.034576\n153\t0.069223\n154\t0.035073\n155\t2.668384\n156\t0.291446\n157\t1.242179\n158\t0.131985\n161\t0.008875\n163\t0.018956\n167\t0.000213\n169\t0.00923\n170\t0.000142\n171\t0.011928\n172\t0.001704\n174\t0.002556\n175\t0.000781\n182\t0.003053\n184\t0.000284\n185\t0.008023\n186\t0.458362\n187\t0.050195\n188\t0.004189\n191\t0.000142\n192\t0.000781\n195\t0.000426\n203\t0.000284\n209\t0.00355\n212\t0.000284\n214\t0.000497\n219\t0.000213\n231\t0.000142\n233\t0.000142\n234\t0.000781\n246\t7.1E-05\n249\t0.00284\n250\t0.00142\n251\t0.000355\n257\t0.000639\n263\t0.000639\n266\t0.000213\n270\t0.000142\n283\t0.000284\n295\t0.000568\n297\t0.000355\n314\t0.000213\n315\t0.000142\n321\t0.000426\n327\t0.001207\n329\t0.000994\n342\t0.001633\n348\t0.000355\n380\t0.000142\n390\t0.000497\n398\t0.000213\n401\t0.006674\n402\t0.001775\n403\t0.000923\n427\t0.00071\n455\t0.000213\n468\t0.000355\n474\t0.00071\n495\t0.000213\n496\t7.1E-05\n497\t0.000355\n500\t0.000497\n```\n\nInterface the change must provide:\nFunction: get_peak_values(peak: str) -> Tuple[List[float], List[float]]\nLocation: matchms.importing.load_from_msp.get_peak_values\nInputs: \n- **peak** (str): a line from an MSP file containing alternating m/z and intensity values. Tokens may be separated by whitespace, tabs, or colons and may use scientific notation with either lower\u2011case `e` or upper\u2011case `E`.\nOutputs: \n- Tuple containing two lists:\n  1. List of m/z values as floats.\n  2. List of intensity values as floats.\n- Raises `RuntimeError` if the number of numeric tokens extracted is not even (i.e., malformed peak line).\nDescription: Parses a peak\u2011information line from an MSP file, extracts numeric m/z\u2011intensity pairs, and returns them as separate float lists while supporting both `e` and `E` scientific\u2011notation formats.",
+  "python": "3.10",
+  "repo": "matchms/matchms",
+  "source": "nebius/SWE-rebench-V2",
+  "test_files": [
+    "tests/importing/test_load_from_msp.py"
+  ]
+}

@@ -1,0 +1,2 @@
+{"project": "ledger",
+ "prompt": "The fee is wrong: it should be one percent of the amount, rounded down, but fee() in ledger.py takes two percent. Fix it and add a test."}

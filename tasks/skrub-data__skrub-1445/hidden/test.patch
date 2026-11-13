@@ -1,0 +1,85 @@
+diff --git a/skrub/_dataframe/tests/test_common.py b/skrub/_dataframe/tests/test_common.py
+index 8294400..56f4529 100644
+--- a/skrub/_dataframe/tests/test_common.py
++++ b/skrub/_dataframe/tests/test_common.py
+@@ -232,6 +232,34 @@ def test_concat_vertical(df_module, example_data_dict):
+             pass
+ 
+ 
++def test_concat_series(df_module):
++    df = df_module.example_dataframe
++    col = df_module.example_column
++
++    # Mixing types is not allowed
++    msg = r"got dataframes at position \[0\], series at position \[1\]"
++    with pytest.raises(TypeError, match=msg):
++        ns.concat(df, col)
++
++    msg = r"got dataframes at position \[1\], series at position \[0\]."
++    with pytest.raises(TypeError, match=msg):
++        ns.concat(col, df)
++
++    msg = (
++        r"got dataframes at position \[2\], series at position \[0\], "
++        r"types that are neither dataframes nor series at position \[1 3\]"
++    )
++    with pytest.raises(TypeError, match=msg):
++        ns.concat(col, 0, df, 1)
++
++    # Cols only is allowed
++    for axis in 0, 1:
++        assert (
++            ns.shape(ns.concat(col, col, axis=axis))[axis]
++            == ns.shape(ns.to_frame(col))[axis] * 2
++        )
++
++
+ def test_is_column_list(df_module):
+     assert ns.is_column_list([])
+     assert ns.is_column_list(())
+diff --git a/skrub/_expressions/tests/test_expressions.py b/skrub/_expressions/tests/test_expressions.py
+index 654408e..430131f 100644
+--- a/skrub/_expressions/tests/test_expressions.py
++++ b/skrub/_expressions/tests/test_expressions.py
+@@ -93,6 +93,41 @@ def test_environment_no_values():
+     assert e.skb.eval({"d": 2, "c": 3}) == 6
+ 
+ 
++def test_environment_wrong_values():
++    a = skrub.var(name="a", value=[1, 2, 3])
++    # Testing expr as value
++    with pytest.raises(
++        TypeError, match=r".*`value` of a `skrub.var\(\)` must not contain a skrub.*"
++    ):
++        skrub.var(name="wrongvar", value=a)
++
++    with pytest.raises(
++        TypeError, match=r".*`value` of a `skrub.var\(\)` must not contain a skrub.*"
++    ):
++        skrub.X(value=a)
++
++    with pytest.raises(
++        TypeError, match=r".*`value` of a `skrub.var\(\)` must not contain a skrub.*"
++    ):
++        skrub.y(value=a)
++
++    # Testing choice as value
++    with pytest.raises(
++        TypeError, match=r".*`value` of a `skrub.var\(\)` must not contain a skrub.*"
++    ):
++        skrub.var("wrongvar", skrub.choose_bool())
++
++    with pytest.raises(
++        TypeError, match=r".*`value` of a `skrub.var\(\)` must not contain a skrub.*"
++    ):
++        skrub.X(skrub.choose_bool())
++
++    with pytest.raises(
++        TypeError, match=r".*`value` of a `skrub.var\(\)` must not contain a skrub.*"
++    ):
++        skrub.y(skrub.choose_bool())
++
++
+ def test_choice_in_environment():
+     a = skrub.var("a", 100)
+     b = skrub.var("b", 10)

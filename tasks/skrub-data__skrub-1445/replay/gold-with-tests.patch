@@ -1,0 +1,251 @@
+diff --git a/skrub/_dataframe/_common.py b/skrub/_dataframe/_common.py
+index 8697b72..540a83a 100644
+--- a/skrub/_dataframe/_common.py
++++ b/skrub/_dataframe/_common.py
+@@ -325,13 +325,44 @@ def _all_null_like_polars(col, length=None, dtype=None, name=None):
+     return pl.Series(name, [None] * length, dtype=dtype)
+ 
+ 
++def _check_same_type(objects):
++    is_df = np.array([is_dataframe(obj) for obj in objects])
++    is_col = np.array([is_column(obj) for obj in objects])
++    is_other = ~(is_df | is_col)
++
++    if is_df.all() or is_col.all() or is_other.all():
++        return
++
++    def _indices(array):
++        return np.argwhere(array).ravel()
++
++    prefix = "Mixing types is not allowed, got"
++    hints = []
++    if is_df.any():
++        hints.append(f"dataframes at position {_indices(is_df)}")
++
++    if is_col.any():
++        hints.append(f"series at position {_indices(is_col)}")
++
++    if is_other.any():
++        hints.append(
++            "types that are neither dataframes nor series at position "
++            f"{_indices(is_other)}"
++        )
++
++    msg = prefix + " " + ", ".join(hints) + "."
++
++    raise TypeError(msg)
++
++
+ @dispatch
+ def concat(*dataframes, axis=0):
+     raise NotImplementedError()
+ 
+ 
+-@concat.specialize("pandas")
++@concat.specialize("pandas", argument_type="DataFrame")
+ def _concat_pandas(*dataframes, axis=0):
++    _check_same_type(dataframes)
+     kwargs = {"copy": False} if pandas_version < parse_version("3.0") else {}
+     if axis == 0:
+         return pd.concat(dataframes, axis=0, ignore_index=True, **kwargs)
+@@ -344,8 +375,9 @@ def _concat_pandas(*dataframes, axis=0):
+         return result
+ 
+ 
+-@concat.specialize("polars")
++@concat.specialize("polars", argument_type="DataFrame")
+ def _concat_polars(*dataframes, axis=0):
++    _check_same_type(dataframes)
+     if axis == 0:
+         return pl.concat(dataframes, how="diagonal_relaxed")
+     else:  # axis == 1
+@@ -353,6 +385,18 @@ def _concat_polars(*dataframes, axis=0):
+         return pl.concat(dataframes, how="horizontal")
+ 
+ 
++@concat.specialize("pandas", argument_type="Column")
++def _concat_pandas_cols(*columns, axis=0):
++    _check_same_type(columns)
++    return _concat_pandas(*[to_frame(col) for col in columns], axis=axis)
++
++
++@concat.specialize("polars", argument_type="Column")
++def _concat_polars_cols(*columns, axis=0):
++    _check_same_type(columns)
++    return _concat_polars(*[to_frame(col) for col in columns], axis=axis)
++
++
+ def is_column_list(obj):
+     if not isinstance(obj, Sequence):
+         return False
+diff --git a/skrub/_expressions/_expressions.py b/skrub/_expressions/_expressions.py
+index cfa003b..62f12c3 100644
+--- a/skrub/_expressions/_expressions.py
++++ b/skrub/_expressions/_expressions.py
+@@ -792,8 +792,21 @@ def check_name(name, is_var):
+         )
+ 
+ 
++def _check_var_value(value):
++    """Checking that the value passed to a skrub variable is not an expression
++    or a choice."""
++    from ._evaluation import needs_eval
++
++    if needs_eval(value):
++        raise TypeError(
++            "The `value` of a `skrub.var()` must not contain a skrub "
++            f"expression or skrub choice. Got object {value} of {type(value)}."
++        )
++
++
+ class Var(ExprImpl):
+     "A `skrub.var()` expression."
++
+     _fields = ["name", "value"]
+ 
+     def compute(self, e, mode, environment):
+@@ -843,6 +856,11 @@ def var(name, value=NULL):
+     -------
+     A skrub variable
+ 
++    Raises
++    ------
++    TypeError
++        If the provided value is a skrub expression or a skrub choose_* function.
++
+     See also
+     --------
+     skrub.X :
+@@ -911,6 +929,7 @@ def var(name, value=NULL):
+     gallery.
+     """
+     check_name(name, is_var=True)
++    _check_var_value(value)
+     return Expr(Var(name, value=value))
+ 
+ 
+@@ -936,6 +955,11 @@ def X(value=NULL):
+     -------
+     A skrub variable
+ 
++    Raises
++    ------
++    TypeError
++        If the provided value is a skrub expression or a skrub choose_* function.
++
+     See also
+     --------
+     skrub.y :
+@@ -966,6 +990,7 @@ def X(value=NULL):
+     >>> X.skb.is_X
+     True
+     """
++    _check_var_value(value)
+     return Expr(Var("X", value=value)).skb.mark_as_X()
+ 
+ 
+@@ -992,6 +1017,11 @@ def y(value=NULL):
+     -------
+     A skrub variable
+ 
++    Raises
++    ------
++    TypeError
++        If the provided value is a skrub expression or a skrub choose_* function.
++
+     See also
+     --------
+     skrub.X :
+@@ -1022,6 +1052,7 @@ def y(value=NULL):
+     >>> y.skb.is_y
+     True
+     """
++    _check_var_value(value)
+     return Expr(Var("y", value=value)).skb.mark_as_y()
+ 
+ 
+diff --git a/skrub/_dataframe/tests/test_common.py b/skrub/_dataframe/tests/test_common.py
+index 8294400..56f4529 100644
+--- a/skrub/_dataframe/tests/test_common.py
++++ b/skrub/_dataframe/tests/test_common.py
+@@ -232,6 +232,34 @@ def test_concat_vertical(df_module, example_data_dict):
+             pass
+ 
+ 
++def test_concat_series(df_module):
++    df = df_module.example_dataframe
++    col = df_module.example_column
++
++    # Mixing types is not allowed
++    msg = r"got dataframes at position \[0\], series at position \[1\]"
++    with pytest.raises(TypeError, match=msg):
++        ns.concat(df, col)
++
++    msg = r"got dataframes at position \[1\], series at position \[0\]."
++    with pytest.raises(TypeError, match=msg):
++        ns.concat(col, df)
++
++    msg = (
++        r"got dataframes at position \[2\], series at position \[0\], "
++        r"types that are neither dataframes nor series at position \[1 3\]"
++    )
++    with pytest.raises(TypeError, match=msg):
++        ns.concat(col, 0, df, 1)
++
++    # Cols only is allowed
++    for axis in 0, 1:
++        assert (
++            ns.shape(ns.concat(col, col, axis=axis))[axis]
++            == ns.shape(ns.to_frame(col))[axis] * 2
++        )
++
++
+ def test_is_column_list(df_module):
+     assert ns.is_column_list([])
+     assert ns.is_column_list(())
+diff --git a/skrub/_expressions/tests/test_expressions.py b/skrub/_expressions/tests/test_expressions.py
+index 654408e..430131f 100644
+--- a/skrub/_expressions/tests/test_expressions.py
++++ b/skrub/_expressions/tests/test_expressions.py
+@@ -93,6 +93,41 @@ def test_environment_no_values():
+     assert e.skb.eval({"d": 2, "c": 3}) == 6
+ 
+ 
++def test_environment_wrong_values():
++    a = skrub.var(name="a", value=[1, 2, 3])
++    # Testing expr as value
++    with pytest.raises(
++        TypeError, match=r".*`value` of a `skrub.var\(\)` must not contain a skrub.*"
++    ):
++        skrub.var(name="wrongvar", value=a)
++
++    with pytest.raises(
++        TypeError, match=r".*`value` of a `skrub.var\(\)` must not contain a skrub.*"
++    ):
++        skrub.X(value=a)
++
++    with pytest.raises(
++        TypeError, match=r".*`value` of a `skrub.var\(\)` must not contain a skrub.*"
++    ):
++        skrub.y(value=a)
++
++    # Testing choice as value
++    with pytest.raises(
++        TypeError, match=r".*`value` of a `skrub.var\(\)` must not contain a skrub.*"
++    ):
++        skrub.var("wrongvar", skrub.choose_bool())
++
++    with pytest.raises(
++        TypeError, match=r".*`value` of a `skrub.var\(\)` must not contain a skrub.*"
++    ):
++        skrub.X(skrub.choose_bool())
++
++    with pytest.raises(
++        TypeError, match=r".*`value` of a `skrub.var\(\)` must not contain a skrub.*"
++    ):
++        skrub.y(skrub.choose_bool())
++
++
+ def test_choice_in_environment():
+     a = skrub.var("a", 100)
+     b = skrub.var("b", 10)

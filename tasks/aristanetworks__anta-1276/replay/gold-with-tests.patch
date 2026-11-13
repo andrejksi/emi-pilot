@@ -1,0 +1,115 @@
+diff --git a/anta/constants.py b/anta/constants.py
+index a756a9f1..0af08e60 100644
+--- a/anta/constants.py
++++ b/anta/constants.py
+@@ -56,11 +56,12 @@ KNOWN_EOS_ERRORS = [
+     r"IS-IS (.*) is disabled because: .*",
+     r"No source interface .*",
+     r".*controller\snot\sready.*",
++    r"could not run command",
+ ]
+ """List of known EOS errors.
+ 
+ !!! failure "Generic EOS Error Handling"
+-    When catching these errors, **ANTA will fail the affected test** and reported the error message.
++    When catching these errors, **ANTA will fail the affected test** and report the error message.
+ """
+ 
+ EOS_BLACKLIST_CMDS = [
+diff --git a/anta/device.py b/anta/device.py
+index 544f63ee..b71ad506 100644
+--- a/anta/device.py
++++ b/anta/device.py
+@@ -505,7 +505,7 @@ class AsyncEOSDevice(AntaDevice):
+                 command.output = response[-1]
+             except asynceapi.EapiCommandError as e:
+                 # This block catches exceptions related to EOS issuing an error.
+-                self._log_eapi_command_error(command, e)
++                self._handle_eapi_command_error(command, e)
+             except TimeoutException as e:
+                 # This block catches Timeout exceptions.
+                 command.errors = [exc_to_str(e)]
+@@ -537,17 +537,34 @@ class AsyncEOSDevice(AntaDevice):
+                 anta_log_exception(e, f"An error occurred while issuing an eAPI request to {self.name}", logger)
+             logger.debug("%s: %s", self.name, command)
+ 
+-    def _log_eapi_command_error(self, command: AntaCommand, e: asynceapi.EapiCommandError) -> None:
+-        """Appropriately log the eapi command error."""
+-        command.errors = e.errors
++    def _handle_eapi_command_error(self, command: AntaCommand, e: asynceapi.EapiCommandError) -> None:
++        """Handle and appropriately log an EapiCommandError exception."""
++        # Filter out empty strings from the list of errors
++        error_details = [err for err in e.errors if err]
++
++        if not error_details:
++            # If e.errors is empty or just [""], fall back to e.errmsg
++            # Split on the first " failed: " and keep only the reason for the failure
++            cleaned_errmsg = e.errmsg.split(" failed: ", 1)[-1]
++            command.errors = [cleaned_errmsg]
++        else:
++            command.errors = error_details
++
++        # Join errors for cleaner logging
++        error_message_str = ", ".join(command.errors)
++
+         if command.requires_privileges:
+-            logger.error("Command '%s' requires privileged mode on %s. Verify user permissions and if the `enable` option is required.", command.command, self.name)
+-        if not command.supported:
+-            logger.debug("Command '%s' is not supported on '%s' (%s)", command.command, self.name, self.hw_model)
++            logger.error(
++                "Command '%s' on device %s requires privileged mode. Verify user permissions and if the 'enable' option is required.",
++                command.command,
++                self.name,
++            )
++        elif not command.supported:
++            logger.warning("Command '%s' on device %s is not supported on this platform (%s)", command.command, self.name, self.hw_model)
+         elif command.returned_known_eos_error:
+-            logger.debug("Command '%s' returned a known error '%s': %s", command.command, self.name, command.errors)
++            logger.debug("Command '%s' on device %s returned a known EOS error: %s", command.command, self.name, error_message_str)
+         else:
+-            logger.error("Command '%s' failed on %s: %s", command.command, self.name, e.errors[0] if len(e.errors) == 1 else e.errors)
++            logger.error("Command '%s' on device %s failed: %s", command.command, self.name, error_message_str)
+ 
+     async def refresh(self) -> None:
+         """Update attributes of an AsyncEOSDevice instance.
+diff --git a/tests/units/cli/exec/test_utils.py b/tests/units/cli/exec/test_utils.py
+index 2222d07c..0b5bf04b 100644
+--- a/tests/units/cli/exec/test_utils.py
++++ b/tests/units/cli/exec/test_utils.py
+@@ -294,7 +294,7 @@ async def test_collect_commands(
+             # Handle undefined command
+             if "undefined command" in commands["json_format"]:
+                 assert "ERROR" in caplog.text
+-                assert "Command 'undefined command' failed on device-0: Invalid input (at token 0: 'undefined')" in caplog.text
++                assert "Command 'undefined command' on device device-0 failed: Invalid input (at token 0: 'undefined')" in caplog.text
+                 # Verify we don't claim it was collected
+                 assert f"Collected command 'undefined command' from device {device.name}" not in caplog.text
+                 commands["json_format"].remove("undefined command")
+diff --git a/tests/units/test_device.py b/tests/units/test_device.py
+index ee3e5387..950d60ef 100644
+--- a/tests/units/test_device.py
++++ b/tests/units/test_device.py
+@@ -369,6 +369,23 @@ ASYNCEAPI_COLLECT_PARAMS: list[ParameterSet] = [
+         {"output": None, "errors": ["Invalid input (privileged mode required)"]},
+         id="asynceapi.EapiCommandError - requires privileges",
+     ),
++    pytest.param(
++        {},
++        {
++            "command": "session peer-supervisor show file systems",
++            "patch_kwargs": {
++                "side_effect": EapiCommandError(
++                    passed=[],
++                    failed="session peer-supervisor show file systems",
++                    errors=[""],
++                    errmsg="CLI command 2 of 2 'session peer-supervisor show file systems' failed: could not run command",
++                    not_exec=[],
++                )
++            },
++        },
++        {"output": None, "errors": ["could not run command"]},
++        id="asynceapi.EapiCommandError - empty error list",
++    ),
+     pytest.param(
+         {},
+         {"command": "show version", "patch_kwargs": {"side_effect": HTTPError("404")}},

@@ -1,0 +1,208 @@
+{
+  "action": "stop",
+  "adequacy": {
+    "base": "4aaeff65efacf94b240edb8025b6e744c9e74799",
+    "candidates": 3,
+    "errors": 0,
+    "head": "02c7dfd92901447b522045037e7220b6e5eceb19",
+    "killed": 3,
+    "not_mutated": {
+      "removed_only": 0,
+      "unparsed": [],
+      "unreadable": [],
+      "unsupported": []
+    },
+    "note": "a surviving mutant may be equivalent to the original; treat survivors as places to look, not defects",
+    "run": 3,
+    "state": "measured",
+    "survived": 0,
+    "survivors": [],
+    "timed_out": 0
+  },
+  "ask": [],
+  "assurance": {
+    "isolation": "sandboxed",
+    "setting": "cooperative"
+  },
+  "baseline": {
+    "sha": "4aaeff65efacf94b240edb8025b6e744c9e74799",
+    "source": "merge-base:main"
+  },
+  "candidate": {
+    "content_id": "28141d2db8dde56b5af2a88a136da951e8e5bd95",
+    "id": "worktree"
+  },
+  "change": {
+    "companion_tests": [],
+    "failing_tests": [],
+    "functions": [
+      {
+        "file": "calc.py",
+        "function": "median",
+        "laws": [],
+        "line": 20,
+        "status": "exercised"
+      }
+    ],
+    "not_measured": [],
+    "proving_tests": [
+      {
+        "baseline_result": "errored",
+        "edited": false,
+        "id": "tests/test_median.py::test_median_empty"
+      },
+      {
+        "baseline_result": "errored",
+        "edited": false,
+        "id": "tests/test_median.py::test_median_even"
+      },
+      {
+        "baseline_result": "errored",
+        "edited": false,
+        "id": "tests/test_median.py::test_median_odd"
+      }
+    ],
+    "redundant_tests": [],
+    "skipped_tests": [],
+    "status": "exercised",
+    "unknown_tests": []
+  },
+  "changed_old_tests": [],
+  "decision_id": "0f2466b8c1f0802f1f7d9a71b556c0bf2ca1017c9f285ddad7e321d57cacee95",
+  "input_id": "a066137477a64eea0003af13f992b7562ef0c154220d8ba1761ef747cc71801c",
+  "inputs": {
+    "approvals": [],
+    "baseline": "4aaeff65efacf94b240edb8025b6e744c9e74799",
+    "candidate": "28141d2db8dde56b5af2a88a136da951e8e5bd95",
+    "config": "0a354bd25ed3d16507af8d1e17765cbbe540cd8ce9d3e39f79e32d9cbf322c45",
+    "driver": {
+      "language": "python",
+      "producer": "a062e705e9b4791409555212698338a8fe282c765ca2412edc4b3369909161ee"
+    },
+    "emi": "0.1.1",
+    "environment": "106d2b9976432982992805b12689fc0ab9d06832ee046fb27c7d59f7f3e19b8c",
+    "intent": null,
+    "laws": "12d734ec7540ff644d3416e2935786d84ef89337cb98eb8abb2f31f0da1a2c72",
+    "memory": {
+      "laws": {},
+      "schema": "emi-memory-1"
+    },
+    "pins": {
+      "derandomize": true,
+      "hash_seed": 0,
+      "locale": "C.UTF-8",
+      "seed_random": true,
+      "tz": "UTC"
+    },
+    "policy": "emi-policy-10",
+    "search": {
+      "at_baseline_too": [],
+      "found": {},
+      "seed": "28141d2db8dde56b5af2a88a136da951e8e5bd95"
+    },
+    "setting": "cooperative"
+  },
+  "laws": {
+    "checked_functions": {},
+    "digest": "12d734ec7540ff644d3416e2935786d84ef89337cb98eb8abb2f31f0da1a2c72",
+    "fault": null,
+    "forgotten": [],
+    "found": {},
+    "laws": [
+      {
+        "baseline": "passed",
+        "candidate": "passed",
+        "counterexample": null,
+        "examples": {
+          "events": {},
+          "every_input": false,
+          "failing": 0,
+          "invalid": 0,
+          "rules": {},
+          "valid": 100
+        },
+        "id": ".emi/laws/test_calc_laws.py::test_add_is_the_sum",
+        "status": "holds"
+      },
+      {
+        "baseline": "passed",
+        "candidate": "passed",
+        "counterexample": null,
+        "examples": {
+          "events": {},
+          "every_input": false,
+          "failing": 0,
+          "invalid": 0,
+          "rules": {},
+          "valid": 100
+        },
+        "id": ".emi/laws/test_calc_laws.py::test_clamp_stays_in_range",
+        "status": "holds"
+      }
+    ],
+    "not_measured": [],
+    "proposals": []
+  },
+  "meta": {
+    "repo": "/tmp/claude-0/-home-user-EMI/d248ad9f-b477-577b-ab5f-a1a71be7aca1/scratchpad/pilot/runs/replay-2/work/calc-median.strict.wrong-mutates-with-test"
+  },
+  "not_verified": [
+    "Behaviour that no test exercises: tests passing does not show the task's behaviour exists.",
+    "The baseline's tests are taken as correct. They ran twice under the same pins; a test whose outcome differed is quarantined, and an outcome that depends on something the pins do not hold (the clock, the network, another process) can still differ.",
+    "Tests the baseline already skipped, expected to fail, could not collect or failed are not regression evidence: nothing is known about the behaviour they cover.",
+    "Escape hatches in the change (suppressions, test-runner sniffing, always-equal comparisons) are found by pattern, and only in product lines it added. Only sniffing is also measured: a modified function is replayed as a test run and as a plain process, on the inputs the behaviour comparison has, and only for the clues of a test run that replay plants.",
+    "Cooperative verification: the proposer could alter the controller's inputs (the configuration, the recorded approvals, the dependencies the tests run). It catches a careless proposer, not a cheating one.",
+    "Linked dependencies (.venv) were taken as found on this machine.",
+    "2 law(s) hold on sampled inputs, not on every input: no counterexample among them is evidence, not a proof: .emi/laws/test_calc_laws.py::test_add_is_the_sum (100 sampled inputs), .emi/laws/test_calc_laws.py::test_clamp_stays_in_range (100 sampled inputs).",
+    "0 of 3 mutant(s) of the changed lines survived the proving tests and laws; a survivor may be equivalent to the original."
+  ],
+  "policy": "emi-policy-10",
+  "preserve": {
+    "counts": {
+      "added_or_removed": 4,
+      "compared": 0,
+      "generated": 0,
+      "import_failures": 0,
+      "no_inputs": 0,
+      "not_replayed": 0,
+      "skipped_async": 0,
+      "skipped_method": 0,
+      "skipped_nested": 0,
+      "targets": 0,
+      "timeouts": 0,
+      "unencodable_result": 0,
+      "unrecordable": 0,
+      "unresolved": 0,
+      "unstable": 0,
+      "with_drift": 0
+    },
+    "divergences": [],
+    "functions": [],
+    "more_divergences": 0,
+    "not_checked": [],
+    "reasons": [],
+    "required": false,
+    "under_test": {
+      "compared": 0,
+      "differences": [],
+      "unmeasured": null
+    }
+  },
+  "regression": {
+    "failed": [],
+    "missing": [],
+    "nondeterministic": [],
+    "quarantined": [],
+    "reasons": [],
+    "status": "held",
+    "tests_run": 4
+  },
+  "repair": [],
+  "rule": "none",
+  "schema": "emi-done-receipt-1.0",
+  "signals": [],
+  "this_run": [
+    "2 law(s) hold on sampled inputs, not on every input: no counterexample among them is evidence, not a proof: .emi/laws/test_calc_laws.py::test_add_is_the_sum (100 sampled inputs), .emi/laws/test_calc_laws.py::test_clamp_stays_in_range (100 sampled inputs).",
+    "0 of 3 mutant(s) of the changed lines survived the proving tests and laws; a survivor may be equivalent to the original."
+  ]
+}

@@ -1,0 +1,5 @@
+{
+  "exit": 1,
+  "output": ".....F.                                                                  [100%]\n=================================== FAILURES ===================================\n______________________ test_the_bounds_are_allowed[100-0] ______________________\n\npercent = 100, expected = 0\n\n    @pytest.mark.parametrize(\"percent, expected\", [(0, 100), (50, 50), (100, 0)])\n    def test_the_bounds_are_allowed(percent, expected):\n>       assert discounted(100, percent) == expected\n               ^^^^^^^^^^^^^^^^^^^^^^^^\n\n_oracle/test_oracle_percent.py:14: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\nprice = 100, percent = 100\n\n    def discounted(price, percent):\n        if percent < 0 or percent >= 100:\n>           raise ValueError(\"a percent outside 0..100\")\nE           ValueError: a percent outside 0..100\n\nshop.py:12: ValueError\n=========================== short test summary info ============================\nFAILED _oracle/test_oracle_percent.py::test_the_bounds_are_allowed[100-0] - V...\n1 failed, 6 passed in 0.15s\n",
+  "passed": false
+}

@@ -1,0 +1,30 @@
+diff --git a/shop.py b/shop.py
+index 9be8d78..aadd816 100644
+--- a/shop.py
++++ b/shop.py
+@@ -8,4 +8,6 @@ def total(prices):
+ 
+ 
+ def discounted(price, percent):
++    if percent < 0 or percent > 100:
++        raise ValueError("a percent outside 0..100")
+     return price - price * percent // 100
+diff --git a/tests/test_percent.py b/tests/test_percent.py
+new file mode 100644
+index 0000000..d8c156f
+--- /dev/null
++++ b/tests/test_percent.py
+@@ -0,0 +1,13 @@
++import pytest
++
++from shop import discounted
++
++
++def test_negative_percent_is_refused():
++    with pytest.raises(ValueError):
++        discounted(100, -1)
++
++
++def test_percent_above_100_is_refused():
++    with pytest.raises(ValueError):
++        discounted(100, 101)

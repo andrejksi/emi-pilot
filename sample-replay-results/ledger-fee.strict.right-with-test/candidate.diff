@@ -1,0 +1,23 @@
+diff --git a/ledger.py b/ledger.py
+index 537d96b..1a4b759 100644
+--- a/ledger.py
++++ b/ledger.py
+@@ -11,5 +11,4 @@ def refund(amount):
+ 
+ 
+ def fee(amount):
+-    # one percent is what the person wants; this takes two
+-    return amount // 50
++    return amount // 100
+diff --git a/tests/test_fee.py b/tests/test_fee.py
+new file mode 100644
+index 0000000..92e1cac
+--- /dev/null
++++ b/tests/test_fee.py
+@@ -0,0 +1,6 @@
++from ledger import fee
++
++
++def test_fee_is_one_percent():
++    assert fee(1000) == 10
++    assert fee(200) == 2

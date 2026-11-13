@@ -1,0 +1,105 @@
+diff --git a/yt_dlp/extractor/adobepass.py b/yt_dlp/extractor/adobepass.py
+index 91c40b32e..8c2d9d934 100644
+--- a/yt_dlp/extractor/adobepass.py
++++ b/yt_dlp/extractor/adobepass.py
+@@ -1574,18 +1574,29 @@ def extract_redirect_url(html, url=None, fatal=False):
+                             post_form(mvpd_confirm_page_res, 'Confirming Login')
+                 elif mso_id == 'Philo':
+                     # Philo has very unique authentication method
+-                    self._download_webpage(
+-                        'https://idp.philo.com/auth/init/login_code', video_id, 'Requesting auth code', data=urlencode_postdata({
++                    self._request_webpage(
++                        'https://idp.philo.com/auth/init/login_code', video_id,
++                        'Requesting Philo auth code', data=json.dumps({
+                             'ident': username,
+                             'device': 'web',
+                             'send_confirm_link': False,
+                             'send_token': True,
+-                        }))
++                            'device_ident': f'web-{uuid.uuid4().hex}',
++                            'include_login_link': True,
++                        }).encode(), headers={
++                            'Content-Type': 'application/json',
++                            'Accept': 'application/json',
++                        })
++
+                     philo_code = getpass.getpass('Type auth code you have received [Return]: ')
+-                    self._download_webpage(
+-                        'https://idp.philo.com/auth/update/login_code', video_id, 'Submitting token', data=urlencode_postdata({
+-                            'token': philo_code,
+-                        }))
++                    self._request_webpage(
++                        'https://idp.philo.com/auth/update/login_code', video_id,
++                        'Submitting token', data=json.dumps({'token': philo_code}).encode(),
++                        headers={
++                            'Content-Type': 'application/json',
++                            'Accept': 'application/json',
++                        })
++
+                     mvpd_confirm_page_res = self._download_webpage_handle('https://idp.philo.com/idp/submit', video_id, 'Confirming Philo Login')
+                     post_form(mvpd_confirm_page_res, 'Confirming Login')
+                 elif mso_id == 'Verizon':
+diff --git a/yt_dlp/extractor/common.py b/yt_dlp/extractor/common.py
+index d5607296d..1174bd4f5 100644
+--- a/yt_dlp/extractor/common.py
++++ b/yt_dlp/extractor/common.py
+@@ -1675,9 +1675,9 @@ def extract_video_object(e):
+                 'ext': mimetype2ext(e.get('encodingFormat')),
+                 'title': unescapeHTML(e.get('name')),
+                 'description': unescapeHTML(e.get('description')),
+-                'thumbnails': [{'url': unescapeHTML(url)}
+-                               for url in variadic(traverse_obj(e, 'thumbnailUrl', 'thumbnailURL'))
+-                               if url_or_none(url)],
++                'thumbnails': traverse_obj(e, (('thumbnailUrl', 'thumbnailURL', 'thumbnail_url'), (None, ...), {
++                    'url': ({str}, {unescapeHTML}, {self._proto_relative_url}, {url_or_none}),
++                })),
+                 'duration': parse_duration(e.get('duration')),
+                 'timestamp': unified_timestamp(e.get('uploadDate')),
+                 # author can be an instance of 'Organization' or 'Person' types.
+diff --git a/yt_dlp/extractor/odnoklassniki.py b/yt_dlp/extractor/odnoklassniki.py
+index d27d1c3f0..18eba42e6 100644
+--- a/yt_dlp/extractor/odnoklassniki.py
++++ b/yt_dlp/extractor/odnoklassniki.py
+@@ -273,6 +273,8 @@ def _extract_desktop(self, url):
+             return self._extract_desktop(smuggle_url(url, {'referrer': 'https://boosty.to'}))
+         elif error:
+             raise ExtractorError(error, expected=True)
++        elif '>Access to this video is restricted</div>' in webpage:
++            self.raise_login_required()
+ 
+         player = self._parse_json(
+             unescapeHTML(self._search_regex(
+@@ -429,7 +431,7 @@ def _extract_mobile(self, url):
+         video_id = self._match_id(url)
+ 
+         webpage = self._download_webpage(
+-            f'http://m.ok.ru/video/{video_id}', video_id,
++            f'https://m.ok.ru/video/{video_id}', video_id,
+             note='Downloading mobile webpage')
+ 
+         error = self._search_regex(
+diff --git a/test/test_InfoExtractor.py b/test/test_InfoExtractor.py
+index c6ff6209a..bc89b2955 100644
+--- a/test/test_InfoExtractor.py
++++ b/test/test_InfoExtractor.py
+@@ -314,6 +314,20 @@ def test_search_json_ld_realworld(self):
+                 },
+                 {},
+             ),
++            (
++                # test thumbnail_url key without URL scheme
++                r'''
++<script type="application/ld+json">
++{
++"@context": "https://schema.org",
++"@type": "VideoObject",
++"thumbnail_url": "//www.nobelprize.org/images/12693-landscape-medium-gallery.jpg"
++}</script>''',
++                {
++                    'thumbnails': [{'url': 'https://www.nobelprize.org/images/12693-landscape-medium-gallery.jpg'}],
++                },
++                {},
++            ),
+         ]
+         for html, expected_dict, search_json_ld_kwargs in _TESTS:
+             expect_dict(

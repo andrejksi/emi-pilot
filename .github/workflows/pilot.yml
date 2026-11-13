@@ -1,0 +1,151 @@
+# The EMI pilot: every task x arm x (replayed change | seed), each in its
+# own job, then one job that judges every run with the hidden tests.
+#
+# The agent jobs never have the hidden tests: they delete them, and the
+# repository's git history, before the agent starts, and the checkout keeps
+# no credentials. Keep this repository private, or the agent could fetch
+# them back over the network.
+name: pilot
+
+on:
+  workflow_dispatch:
+    inputs:
+      backend:
+        description: "replay (fixed changes, no model) or chat (a live model)"
+        type: choice
+        options: [replay, chat]
+        default: replay
+      seeds:
+        description: "chat: runs per task and arm"
+        default: "3"
+      base_url:
+        description: "chat: OpenAI-compatible endpoint, e.g. https://host/v1"
+        default: ""
+      model:
+        description: "chat: model name at that endpoint"
+        default: ""
+      tasks:
+        description: "tasks to run: @toy, @a, @b (batches/*.txt) or task ids, space-separated"
+        default: "@toy"
+
+permissions:
+  contents: read
+
+env:
+  EMI_VERSION: "0.1.1"   # one reviewed release for every arm
+
+jobs:
+  plan:
+    runs-on: ubuntu-24.04
+    outputs:
+      runs: ${{ steps.plan.outputs.runs }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - id: plan
+        env:
+          TASKS: ${{ inputs.tasks }}
+          SEEDS: ${{ inputs.seeds }}
+        run: |
+          # shellcheck disable=SC2086 # TASKS is a list of words
+          runs="$(python3 harness/plan.py '${{ inputs.backend }}' --seeds "$SEEDS" ${TASKS:+--tasks $TASKS} --max 256 --json)"
+          echo "runs=$runs" >>"$GITHUB_OUTPUT"
+
+  agent:
+    needs: plan
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      max-parallel: 8   # stay under the model endpoint's rate limit
+      matrix:
+        include: ${{ fromJSON(needs.plan.outputs.runs) }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Remove the hidden tests and the history before the agent starts
+        run: rm -rf .git tasks/*/hidden
+      - name: Sandbox
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq bubblewrap
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+      - name: EMI, uv, and the toy projects' test environment
+        run: |
+          python3 -m venv "$RUNNER_TEMP/tools"
+          "$RUNNER_TEMP/tools/bin/pip" install -q "emicode==$EMI_VERSION" uv
+          echo "$RUNNER_TEMP/tools/bin" >>"$GITHUB_PATH"   # uv builds each real task's environment
+          python3 -m venv "$RUNNER_TEMP/project-venv"
+          "$RUNNER_TEMP/project-venv/bin/pip" install -q 'pytest>=8,<9' 'coverage>=7.9,<8' 'hypothesis>=6,<7'
+      - name: Prepare
+        run: >
+          python3 harness/prepare.py --task '${{ matrix.task }}' --arm '${{ matrix.arm }}'
+          --work "$RUNNER_TEMP/work" --venv "$RUNNER_TEMP/project-venv" --emi "$RUNNER_TEMP/tools/bin/emi"
+      - name: Agent (replay)
+        if: inputs.backend == 'replay'
+        run: >
+          python3 harness/agent.py --task '${{ matrix.task }}' --arm '${{ matrix.arm }}'
+          --work "$RUNNER_TEMP/work" --out 'out/${{ matrix.id }}' --emi "$RUNNER_TEMP/tools/bin/emi"
+          --backend replay --replay '${{ matrix.which }}'
+      - name: Agent (chat)
+        if: inputs.backend == 'chat'
+        env:
+          MODEL_API_KEY: ${{ secrets.MODEL_API_KEY }}
+          # passed through the environment, never pasted into the script
+          MODEL_BASE_URL: ${{ inputs.base_url }}
+          MODEL_NAME: ${{ inputs.model }}
+        run: >
+          python3 harness/agent.py --task '${{ matrix.task }}' --arm '${{ matrix.arm }}'
+          --work "$RUNNER_TEMP/work" --out 'out/${{ matrix.id }}' --emi "$RUNNER_TEMP/tools/bin/emi"
+          --backend chat --seed '${{ matrix.which }}'
+          --base-url "$MODEL_BASE_URL" --model "$MODEL_NAME" --api-key-env MODEL_API_KEY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: run-${{ matrix.id }}
+          path: out/
+          if-no-files-found: error
+
+  judge:
+    needs: agent
+    if: always() && needs.agent.result != 'skipped'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 240   # builds every real task's environment once
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: run-*
+          path: runs/
+          merge-multiple: true
+      - name: Hidden tests
+        run: |
+          python3 -m venv "$RUNNER_TEMP/tools"
+          "$RUNNER_TEMP/tools/bin/pip" install -q uv
+          export PATH="$RUNNER_TEMP/tools/bin:$PATH"
+          python3 -m venv "$RUNNER_TEMP/project-venv"
+          "$RUNNER_TEMP/project-venv/bin/pip" install -q 'pytest>=8,<9' 'coverage>=7.9,<8' 'hypothesis>=6,<7'
+          python3 harness/oracle.py --venv "$RUNNER_TEMP/project-venv" --run runs/*/
+      - name: Table
+        run: python3 harness/table.py --by-run runs/*/ | tee table.md >>"$GITHUB_STEP_SUMMARY"
+      - name: Are the real tasks sound?
+        if: inputs.backend == 'replay'
+        run: |
+          { echo; echo "## Task check"; } >>"$GITHUB_STEP_SUMMARY"
+          python3 harness/check_tasks.py runs/*/ | tee tasks.md >>"$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pilot-results
+          path: |
+            runs/
+            table.md
+            tasks.md
+      - name: Fail if any run failed
+        if: needs.agent.result != 'success'
+        run: |
+          echo "some agent jobs failed; their runs are missing from the table" >&2
+          exit 1

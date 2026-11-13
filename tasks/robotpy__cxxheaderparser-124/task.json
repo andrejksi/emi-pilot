@@ -1,0 +1,46 @@
+{
+  "base_commit": "626cb35eb1f2b0dace5e9032006bf989e68962fa",
+  "created_at": "2025-07-15 00:39:44",
+  "install": [
+    "pip install -q -e .",
+    "pip install -q -r tests/requirements.txt"
+  ],
+  "kind": "git",
+  "license": "custom-check-github",
+  "oracle": {
+    "fail_to_pass": [
+      "tests/test_template.py::test_template_dependent_nontype_default",
+      "tests/test_template.py::test_template_has_typename"
+    ],
+    "pass_to_pass": [
+      "tests/test_template.py::test_template_base_template_ns",
+      "tests/test_template.py::test_template_non_type_various",
+      "tests/test_template.py::test_template_optional_names",
+      "tests/test_template.py::test_template_template_template",
+      "tests/test_template.py::test_template_static_var",
+      "tests/test_template.py::test_template_fn_template",
+      "tests/test_template.py::test_template_fn_param_initializer",
+      "tests/test_template.py::test_template_huge",
+      "tests/test_template.py::test_template_specialized",
+      "tests/test_template.py::test_template_class_defaults",
+      "tests/test_template.py::test_template_many_packs",
+      "tests/test_template.py::test_template_specialized_fn_typename",
+      "tests/test_template.py::test_template_specialized_fn_typename_template",
+      "tests/test_template.py::test_template_instantiation",
+      "tests/test_template.py::test_extern_template",
+      "tests/test_template.py::test_fwd_declared_method",
+      "tests/test_template.py::test_multiple_explicit_member_specialization",
+      "tests/test_template.py::test_member_class_template_specialization",
+      "tests/test_template.py::test_template_deduction_guide",
+      "tests/test_template.py::test_sizeof_pack",
+      "tests/test_template.py::test_deduction_sizeof_pack"
+    ]
+  },
+  "prompt": "[PARSE BUG]: `has_typename` not correctly deduced when contained in function decl template parameters\n### Problem description\n\nIn the example below, the function argument `arg` properly has `has_typename=T` on the `PQName`, but the template declaration does not.  The parser is correctly able to determine that it's a `TemplateNonTypeParam` which would then make the leading `typename` valid to include in the parsing of the typename (vs excluding it for `TemplateTypeParam`)\n\n### C++ code that can't be parsed correctly (please double-check that https://robotpy.github.io/cxxheaderparser/ has the same error)\n\n```text\ntemplate<typename T::Q value>\nvoid func(typename V::U arg) {}\n```\n\nInterface the change must provide:\nFunction: PQName(segments, has_typename=False)\nLocation: Used when constructing qualified names in test expectations, e.g., in `test_template_dependent_nontype_default` and `test_template_has_typename`.\nInputs:\n- **segments**: List of `NameSpecifier` (or other specifier objects) that compose the qualified name.\n- **has_typename** (bool, optional): Flag indicating that the name is prefixed by the C++ keyword `typename`. Defaults to `False`.\nOutputs: Returns a `PQName` instance whose `segments` attribute stores the provided specifiers and whose `has_typename` attribute reflects the presence of the `typename` keyword.\nDescription: Represents a possibly\u2011qualified C++ name, preserving whether it was written with an explicit `typename` prefix. Required for correctly modeling dependent non\u2011type template parameters and function argument types that use `typename`.\n\nFunction: TemplateTypeParam(typekey, name, param_pack=False)\nLocation: Constructed in `test_template_many_packs` when describing a template parameter pack.\nInputs:\n- **typekey**: Str indicating the kind of type parameter (e.g., `\"typename\"` or `\"class\"`).\n- **name**: Identifier string for the template parameter.\n- **param_pack** (bool, optional): Indicates whether the parameter is a pack (`...`). Defaults to `False`.\nOutputs: Returns a `TemplateTypeParam` instance representing a C++ template type parameter, suitable for inclusion in a `TemplateDecl`.\nDescription: Models a C++ template type parameter, supporting the pack syntax (`typename... T`). The changed signature now requires an explicit `typekey` argument to distinguish between `typename` and `class` forms.\n\nFunction: TemplateNonTypeParam(type, name)\nLocation: Used in `test_template_has_typename` to describe a non\u2011type template parameter whose type includes a `PQName` with `has_typename=True`.\nInputs:\n- **type**: A `Type` instance describing the parameter\u2019s type (which may contain a `PQName` with `has_typename`).\n- **name**: Identifier string for the non\u2011type template parameter.\nOutputs: Returns a `TemplateNonTypeParam` instance representing a non\u2011type template parameter.\nDescription: Represents a C++ non\u2011type template parameter, now correctly preserving `has_typename` on its underlying type name when the template declaration uses `typename`.",
+  "python": "3.10",
+  "repo": "robotpy/cxxheaderparser",
+  "source": "nebius/SWE-rebench-V2",
+  "test_files": [
+    "tests/test_template.py"
+  ]
+}

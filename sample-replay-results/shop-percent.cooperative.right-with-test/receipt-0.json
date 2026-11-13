@@ -1,0 +1,166 @@
+{
+  "action": "stop",
+  "adequacy": null,
+  "ask": [],
+  "assurance": {
+    "isolation": "sandboxed",
+    "setting": "cooperative"
+  },
+  "baseline": {
+    "sha": "3f1b9a91873a6091c36e36f9fbce922853c89b8b",
+    "source": "merge-base:main"
+  },
+  "candidate": {
+    "content_id": "85ba0e36e5e0377aea3dfb8c0189e55ea45a7f4a",
+    "id": "worktree"
+  },
+  "change": {
+    "companion_tests": [],
+    "failing_tests": [],
+    "functions": [
+      {
+        "file": "shop.py",
+        "function": "discounted",
+        "laws": [],
+        "line": 10,
+        "status": "exercised"
+      }
+    ],
+    "not_measured": [],
+    "proving_tests": [
+      {
+        "baseline_result": "failed",
+        "edited": false,
+        "id": "tests/test_percent.py::test_negative_percent_is_refused"
+      },
+      {
+        "baseline_result": "failed",
+        "edited": false,
+        "id": "tests/test_percent.py::test_percent_above_100_is_refused"
+      }
+    ],
+    "redundant_tests": [],
+    "skipped_tests": [],
+    "status": "exercised",
+    "unknown_tests": []
+  },
+  "changed_old_tests": [],
+  "decision_id": "4a77db18c5ddbd54cd8a7cd9d82b5e8f2265bb176e43afbcd83a50c87e3dde5e",
+  "input_id": "ff55268af455dc147fabe42a539fe543df83cedc2136406400ebc428560d645c",
+  "inputs": {
+    "approvals": [],
+    "baseline": "3f1b9a91873a6091c36e36f9fbce922853c89b8b",
+    "candidate": "85ba0e36e5e0377aea3dfb8c0189e55ea45a7f4a",
+    "config": "f3268d93bb179739388ba6f94a2fe456fa598c065e5a17cd0ccc9480e841e6f5",
+    "driver": {
+      "language": "python",
+      "producer": "a062e705e9b4791409555212698338a8fe282c765ca2412edc4b3369909161ee"
+    },
+    "emi": "0.1.1",
+    "environment": "106d2b9976432982992805b12689fc0ab9d06832ee046fb27c7d59f7f3e19b8c",
+    "intent": null,
+    "laws": "ee294cd8c21d12be54bd457a59feb24349341c20b8a22d75cf3fffe212d04e64",
+    "memory": {
+      "laws": {},
+      "schema": "emi-memory-1"
+    },
+    "pins": {
+      "derandomize": true,
+      "hash_seed": 0,
+      "locale": "C.UTF-8",
+      "seed_random": true,
+      "tz": "UTC"
+    },
+    "policy": "emi-policy-10",
+    "search": {
+      "at_baseline_too": [],
+      "found": {},
+      "seed": "85ba0e36e5e0377aea3dfb8c0189e55ea45a7f4a"
+    },
+    "setting": "cooperative"
+  },
+  "laws": {
+    "checked_functions": {},
+    "digest": "ee294cd8c21d12be54bd457a59feb24349341c20b8a22d75cf3fffe212d04e64",
+    "fault": null,
+    "forgotten": [],
+    "found": {},
+    "laws": [
+      {
+        "baseline": "passed",
+        "candidate": "passed",
+        "counterexample": null,
+        "examples": null,
+        "id": ".emi/laws/test_shop_rules.py::test_a_negative_price_is_refused",
+        "status": "holds"
+      },
+      {
+        "baseline": "passed",
+        "candidate": "passed",
+        "counterexample": null,
+        "examples": null,
+        "id": ".emi/laws/test_shop_rules.py::test_an_empty_cart_totals_zero",
+        "status": "holds"
+      }
+    ],
+    "not_measured": [],
+    "proposals": []
+  },
+  "meta": {
+    "repo": "/tmp/claude-0/-home-user-EMI/d248ad9f-b477-577b-ab5f-a1a71be7aca1/scratchpad/pilot/runs/replay-2/work/shop-percent.cooperative.right-with-test"
+  },
+  "not_verified": [
+    "Behaviour that no test exercises: tests passing does not show the task's behaviour exists.",
+    "The baseline's tests are taken as correct. They ran twice under the same pins; a test whose outcome differed is quarantined, and an outcome that depends on something the pins do not hold (the clock, the network, another process) can still differ.",
+    "Tests the baseline already skipped, expected to fail, could not collect or failed are not regression evidence: nothing is known about the behaviour they cover.",
+    "Escape hatches in the change (suppressions, test-runner sniffing, always-equal comparisons) are found by pattern, and only in product lines it added. Only sniffing is also measured: a modified function is replayed as a test run and as a plain process, on the inputs the behaviour comparison has, and only for the clues of a test run that replay plants.",
+    "Cooperative verification: the proposer could alter the controller's inputs (the configuration, the recorded approvals, the dependencies the tests run). It catches a careless proposer, not a cheating one.",
+    "Linked dependencies (.venv) were taken as found on this machine."
+  ],
+  "policy": "emi-policy-10",
+  "preserve": {
+    "counts": {
+      "added_or_removed": 2,
+      "compared": 1,
+      "generated": 0,
+      "import_failures": 0,
+      "no_inputs": 0,
+      "not_replayed": 0,
+      "skipped_async": 0,
+      "skipped_method": 0,
+      "skipped_nested": 0,
+      "targets": 1,
+      "timeouts": 0,
+      "unencodable_result": 0,
+      "unrecordable": 0,
+      "unresolved": 0,
+      "unstable": 0,
+      "with_drift": 0
+    },
+    "divergences": [],
+    "functions": [],
+    "more_divergences": 0,
+    "not_checked": [],
+    "reasons": [],
+    "required": false,
+    "under_test": {
+      "compared": 1,
+      "differences": [],
+      "unmeasured": null
+    }
+  },
+  "regression": {
+    "failed": [],
+    "missing": [],
+    "nondeterministic": [],
+    "quarantined": [],
+    "reasons": [],
+    "status": "held",
+    "tests_run": 2
+  },
+  "repair": [],
+  "rule": "none",
+  "schema": "emi-done-receipt-1.0",
+  "signals": [],
+  "this_run": []
+}

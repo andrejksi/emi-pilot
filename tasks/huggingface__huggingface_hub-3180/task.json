@@ -1,0 +1,39 @@
+{
+  "base_commit": "6f9b87ecda5025259c69a1eb0ae6f8ee80d05d33",
+  "created_at": "2025-06-25 15:16:31",
+  "install": [
+    "pip install -e .[testing] --quiet"
+  ],
+  "kind": "git",
+  "license": "Apache-2.0",
+  "oracle": {
+    "fail_to_pass": [
+      "tests/test_xet_utils.py::test_parse_header_file_info_with_endpoint[/api/refresh-/api/refresh]",
+      "tests/test_xet_utils.py::test_parse_header_file_info_with_endpoint[https://huggingface.co/api/refresh-https://xet.example.com/api/refresh]"
+    ],
+    "pass_to_pass": [
+      "tests/test_xet_utils.py::test_parse_valid_headers_file_info",
+      "tests/test_xet_utils.py::test_parse_valid_headers_file_info_with_link",
+      "tests/test_xet_utils.py::test_parse_invalid_headers_file_info",
+      "tests/test_xet_utils.py::test_parse_valid_headers_connection_info",
+      "tests/test_xet_utils.py::test_parse_valid_headers_full",
+      "tests/test_xet_utils.py::test_parse_missing_required_header[X-Xet-Cas-Url]",
+      "tests/test_xet_utils.py::test_parse_missing_required_header[X-Xet-Access-Token]",
+      "tests/test_xet_utils.py::test_parse_missing_required_header[X-Xet-Token-Expiration]",
+      "tests/test_xet_utils.py::test_parse_invalid_expiration",
+      "tests/test_xet_utils.py::test_refresh_metadata_success",
+      "tests/test_xet_utils.py::test_refresh_metadata_custom_endpoint",
+      "tests/test_xet_utils.py::test_refresh_metadata_missing_refresh_route",
+      "tests/test_xet_utils.py::test_fetch_xet_metadata_with_url",
+      "tests/test_xet_utils.py::test_fetch_xet_metadata_with_url_invalid_response",
+      "tests/test_xet_utils.py::test_env_var_hf_hub_disable_xet"
+    ]
+  },
+  "prompt": "[BUG] HF_ENDPOINT not correctly handled in get_hf_file_metadata\n### Describe the bug\n\n### Describe the bug\n\nWhen testing [NanoVLM](https://github.com/huggingface/nanoVLM), I noticed that when xet_file_data is None, `HF_ENDPOINT` works correctly (e.g., for datasets). However, for some models, the metadata response still contains hardcoded `huggingface.co` URLs in `XetFileData.refresh_route`.\n\nExample metadata log :\n```\nurl: https://<HF_ENDPOINT>/HuggingFaceTB/SmolLM2-360M-Instruct/resolve/main/model.safetensors\nxet_file_data: XetFileData(\n    file_hash='a24f4ebae72bd0ae8ea5962912e838391092a7408702fa7c38291ab61026143e',\n    refresh_route='https://huggingface.co/api/models/HuggingFaceTB/SmolLM2-360M-Instruct/xet-read-token/cxx3xx'\n)\n```\n\nSince HF_ENDPOINT is meant to replace all uses of https://huggingface.co, the client should not be receiving hardcoded huggingface.co URLs in metadata fields.\n\n\n### Reproduction\n\n_No response_\n\n### Logs\n\n```shell\n\n```\n\n### System info\n\n```shell\n- huggingface_hub version: 0.33.0\n- Platform: Linux-5.15.0-134-generic-x86_64-with-glibc2.35\n- Python version: 3.12.11\n```\n\nInterface the change must provide:\nFunction: parse_xet_file_data_from_response(response: requests.Response, endpoint: Optional[str] = None) -> Optional[XetFileData]\nLocation: src/huggingface_hub/utils/_xet.py\nInputs:\n- **response** \u2013 an HTTP response object from the `requests` library.\n- **endpoint** \u2013 optional base URL string to replace hard\u2011coded `https://huggingface.co` in the `X-Xet-Refresh-Route` header; defaults to the library\u2019s constant endpoint when omitted.\nOutputs:\n- Returns an `XetFileData` instance containing `file_hash` and a possibly rewritten `refresh_route`, or `None` if the required XET headers are missing.\nDescription:\nParses XET\u2011specific metadata from a response, extracting the file hash and refresh route. If the refresh route starts with the default HuggingFace home URL, it is rewritten to use the provided `endpoint`, ensuring compatibility with custom HUB endpoints.",
+  "python": "3.10",
+  "repo": "huggingface/huggingface_hub",
+  "source": "nebius/SWE-rebench-V2",
+  "test_files": [
+    "tests/test_xet_utils.py"
+  ]
+}
