@@ -107,32 +107,34 @@ Step 2 is the first time the real tasks run anywhere. It also gives the
 first number that means something: how often EMI's arms send back the
 real, right fix (`gold`, `gold-with-tests`).
 
-One workflow run is at most 256 jobs (GitHub's limit), so the 30 real
-tasks are split into batches `@a` and `@b` of 15 (180 jobs each, at 3
-replays or 3 seeds per task and arm). `tasks` also takes task ids,
+The 30 real tasks are split into batches `@a` and `@b` of 15, so a batch
+fits the free plan's 20 jobs at once. `tasks` also takes task ids,
 space-separated; `batches/*.txt` are the batches.
 
 ### What happens
 
-- **plan** lists the runs; **agent** runs each in its own job, 8 at a
-  time (`max-parallel`, for the model's rate limit); **judge** builds each
-  task's environment once and grades every run with the hidden tests.
-- The agent jobs delete `tasks/*/hidden` and `.git` before the agent
-  starts and keep no git credentials. The agent's commands also run
-  sealed (below).
+- **plan** lists the runs. **agent** is one job per task: it builds the
+  task's environment once, then does every run of that task in turn
+  (4 arms x 3 replays or seeds), each in a fresh copy of the repository.
+  **judge** is one job per task that grades its runs with the hidden
+  tests; **table** puts them together.
+- The agent jobs delete `tasks/*/hidden` and `.git` before any run and keep
+  no git credentials. The agent's own commands run sealed (below).
 - The **summary** of the workflow run has the table and the task check;
   the `pilot-results` artifact has every run's record, receipts and diff.
 - A missing key, a failed run or a broken task fails the workflow.
 
 ### Cost
 
-- **Actions minutes:** a real task's job builds its environment (1–5
-  minutes) before it runs, so a batch of 180 jobs is several hundred
-  runner-minutes. A private repository on GitHub's free plan has 2,000 a
-  month (Settings → Billing shows what is left).
-- **Model:** step 3 is 180 agent runs per batch; each can take up to 40
-  steps and 3 rounds back. Try `tasks: tornadoweb__tornado-3521` with
-  `seeds: 1` first, and read its `usage` in `run.json`.
+- **Actions minutes:** a batch is 15 agent jobs and 15 judge jobs. A real
+  task's environment is built with `uv` (the dataset's `pip install` steps
+  through uv's installer) once in each, so a replay batch is roughly 15 x
+  (build + 12 checks) twice over. A private repository on GitHub's free
+  plan has 2,000 minutes a month (Settings → Billing shows what is left).
+- **Model:** a `chat` batch is 180 agent runs; each can take up to 40
+  steps and 3 rounds back. Try one task with `seeds: 1` first and read the
+  `usage` in its `run.json`. The first live run used 4,300–6,400 tokens a
+  run on the toy task.
 
 ## Run it on a machine (optional)
 

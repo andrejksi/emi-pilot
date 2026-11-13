@@ -46,6 +46,7 @@ def main():
     a.add_argument("--seeds", type=int, default=1)
     a.add_argument("--tasks", nargs="*")
     a.add_argument("--json", action="store_true")
+    a.add_argument("--task-list", action="store_true", help="print the plan's task ids as JSON")
     a.add_argument("--max", type=int, help="refuse a plan with more runs (GitHub: 256 jobs)")
     args = a.parse_args()
     args.tasks = expand(args.tasks)
@@ -55,7 +56,10 @@ def main():
         raise SystemExit(f"no such task: {' '.join(sorted(missing))}")
     if args.max and len(runs) > args.max:
         raise SystemExit(f"{len(runs)} runs is more than {args.max}: choose fewer tasks or seeds")
-    if args.json:
+    if args.task_list:
+        # one entry per task, for a matrix of one job per task
+        print(json.dumps(sorted({r["task"] for r in runs})))
+    elif args.json:
         print(json.dumps(runs))
     else:
         for r in runs:

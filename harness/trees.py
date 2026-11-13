@@ -12,6 +12,7 @@ commit, so it cannot find the fix in a later commit or a remote branch.
 
 import fcntl
 import os
+import re
 import shlex
 import shutil
 from pathlib import Path
@@ -96,11 +97,14 @@ def environment(task, given_venv=None):
             check=True, timeout=1800)
         path_env = {"PATH": f"{venv / 'bin'}:{os.environ['PATH']}", "VIRTUAL_ENV": str(venv)}
         for step in task["install"]:
-            code, out = run(["bash", "-c", step], cwd=src, env=path_env, timeout=3600)
+            # the dataset's `pip install ...` steps, through uv's installer:
+            # the same packages, resolved many times faster than pip does
+            fast = re.sub(r"^\s*pip install", f"{shlex.quote(uv)} pip install", step)
+            code, out = run(["bash", "-c", fast], cwd=src, env=path_env, timeout=3600)
             if code != 0:
                 raise SystemExit(f"install step failed: {step}\n{out[-3000:]}")
-        run([str(venv / "bin" / "python"), "-m", "pip", "install", "-q", *EMI_NEEDS], cwd=src,
-            env=path_env, check=True, timeout=1800)
+        run([uv, "pip", "install", "-q", *EMI_NEEDS], cwd=src, env=path_env, check=True,
+            timeout=1800)
         ready.write_text("ok\n")
     return venv
 

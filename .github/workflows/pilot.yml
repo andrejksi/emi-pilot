@@ -1,10 +1,10 @@
-# The EMI pilot: every task x arm x (replayed change | seed), each in its
-# own job, then one job that judges every run with the hidden tests.
+# The EMI pilot. One agent job per task runs every arm x (replayed change |
+# seed) of that task in turn, sharing one environment; one judge job per
+# task grades those runs with the hidden tests; a last job makes the table.
 #
 # The agent jobs never have the hidden tests: they delete them, and the
-# repository's git history, before the agent starts, and the checkout keeps
-# no credentials. Keep this repository private, or the agent could fetch
-# them back over the network.
+# repository's git history, before any run, and the checkout keeps no
+# credentials. The agent's own commands run without network.
 name: pilot
 
 on:
@@ -38,7 +38,7 @@ jobs:
   plan:
     runs-on: ubuntu-24.04
     outputs:
-      runs: ${{ steps.plan.outputs.runs }}
+      tasks: ${{ steps.plan.outputs.tasks }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -49,23 +49,25 @@ jobs:
           SEEDS: ${{ inputs.seeds }}
         run: |
           # shellcheck disable=SC2086 # TASKS is a list of words
-          runs="$(python3 harness/plan.py '${{ inputs.backend }}' --seeds "$SEEDS" ${TASKS:+--tasks $TASKS} --max 256 --json)"
-          echo "runs=$runs" >>"$GITHUB_OUTPUT"
+          python3 harness/plan.py '${{ inputs.backend }}' --seeds "$SEEDS" ${TASKS:+--tasks $TASKS} | tee -a "$GITHUB_STEP_SUMMARY"
+          # shellcheck disable=SC2086
+          tasks="$(python3 harness/plan.py '${{ inputs.backend }}' --seeds "$SEEDS" ${TASKS:+--tasks $TASKS} --task-list)"
+          echo "tasks=$tasks" >>"$GITHUB_OUTPUT"
 
   agent:
     needs: plan
     runs-on: ubuntu-24.04
-    timeout-minutes: 60
+    timeout-minutes: 300
     strategy:
       fail-fast: false
-      max-parallel: 8   # stay under the model endpoint's rate limit
+      max-parallel: 15   # one job per task; under the free plan's 20 at once
       matrix:
-        include: ${{ fromJSON(needs.plan.outputs.runs) }}
+        task: ${{ fromJSON(needs.plan.outputs.tasks) }}
     steps:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-      - name: Remove the hidden tests and the history before the agent starts
+      - name: Remove the hidden tests and the history before any run
         run: rm -rf .git tasks/*/hidden
       - name: Sandbox
         run: |
@@ -78,49 +80,45 @@ jobs:
           echo "$RUNNER_TEMP/tools/bin" >>"$GITHUB_PATH"   # uv builds each real task's environment
           python3 -m venv "$RUNNER_TEMP/project-venv"
           "$RUNNER_TEMP/project-venv/bin/pip" install -q 'pytest>=8,<9' 'coverage>=7.9,<8' 'hypothesis>=6,<7'
-      - name: Prepare
-        run: >
-          python3 harness/prepare.py --task '${{ matrix.task }}' --arm '${{ matrix.arm }}'
-          --work "$RUNNER_TEMP/work" --venv "$RUNNER_TEMP/project-venv" --emi "$RUNNER_TEMP/tools/bin/emi"
-      - name: Agent (replay)
-        if: inputs.backend == 'replay'
-        run: >
-          python3 harness/agent.py --task '${{ matrix.task }}' --arm '${{ matrix.arm }}'
-          --work "$RUNNER_TEMP/work" --out 'out/${{ matrix.id }}' --emi "$RUNNER_TEMP/tools/bin/emi"
-          --backend replay --replay '${{ matrix.which }}'
-      - name: Agent (chat)
-        if: inputs.backend == 'chat'
+      - name: Runs
         env:
-          MODEL_API_KEY: ${{ secrets.MODEL_API_KEY }}
+          EMI: ${{ runner.temp }}/tools/bin/emi
+          VENV: ${{ runner.temp }}/project-venv
+          WORK: ${{ runner.temp }}/work
+          MODEL_API_KEY: ${{ inputs.backend == 'chat' && secrets.MODEL_API_KEY || '' }}
           # passed through the environment, never pasted into the script
           MODEL_BASE_URL: ${{ inputs.base_url }}
           MODEL_NAME: ${{ inputs.model }}
-        run: >
-          python3 harness/agent.py --task '${{ matrix.task }}' --arm '${{ matrix.arm }}'
-          --work "$RUNNER_TEMP/work" --out 'out/${{ matrix.id }}' --emi "$RUNNER_TEMP/tools/bin/emi"
-          --backend chat --seed '${{ matrix.which }}'
-          --base-url "$MODEL_BASE_URL" --model "$MODEL_NAME" --api-key-env MODEL_API_KEY
+          SEEDS: ${{ inputs.seeds }}
+          TASK: ${{ matrix.task }}
+        run: |
+          mkdir -p "$WORK"
+          bash harness/run_task.sh '${{ inputs.backend }}' "$SEEDS" "$TASK" out
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: run-${{ matrix.id }}
+          name: run-${{ matrix.task }}
           path: out/
           if-no-files-found: error
 
   judge:
-    needs: agent
-    if: always() && needs.agent.result != 'skipped'
+    needs: [plan, agent]
+    if: always() && needs.plan.result == 'success'
     runs-on: ubuntu-24.04
-    timeout-minutes: 240   # builds every real task's environment once
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      max-parallel: 15
+      matrix:
+        task: ${{ fromJSON(needs.plan.outputs.tasks) }}
     steps:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
       - uses: actions/download-artifact@v4
         with:
-          pattern: run-*
+          name: run-${{ matrix.task }}
           path: runs/
-          merge-multiple: true
       - name: Hidden tests
         run: |
           python3 -m venv "$RUNNER_TEMP/tools"
@@ -129,6 +127,26 @@ jobs:
           python3 -m venv "$RUNNER_TEMP/project-venv"
           "$RUNNER_TEMP/project-venv/bin/pip" install -q 'pytest>=8,<9' 'coverage>=7.9,<8' 'hypothesis>=6,<7'
           python3 harness/oracle.py --venv "$RUNNER_TEMP/project-venv" --run runs/*/
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: judged-${{ matrix.task }}
+          path: runs/
+          if-no-files-found: error
+
+  table:
+    needs: [agent, judge]
+    if: always() && needs.judge.result != 'skipped'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: judged-*
+          path: runs/
+          merge-multiple: true
       - name: Table
         run: python3 harness/table.py --by-run runs/*/ | tee table.md >>"$GITHUB_STEP_SUMMARY"
       - name: Are the real tasks sound?
@@ -144,8 +162,8 @@ jobs:
             runs/
             table.md
             tasks.md
-      - name: Fail if any run failed
-        if: needs.agent.result != 'success'
+      - name: Fail if any job failed
+        if: needs.agent.result != 'success' || needs.judge.result != 'success'
         run: |
-          echo "some agent jobs failed; their runs are missing from the table" >&2
+          echo "some agent or judge jobs failed; see their logs" >&2
           exit 1

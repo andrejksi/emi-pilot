@@ -88,19 +88,23 @@ def scrubbed_env(secret_name):
 
 
 def sealed(work, command):
-    """The agent's command with no network, and without what would give the
-    answer away: the hidden tests, the cached clones (which hold the commits
-    after the baseline, the fix among them) and the other runs' records."""
+    """The agent's command with no network, and with the whole pilot hidden
+    (the hidden tests, every run's records, the cached clones that hold the
+    commits after the baseline), except its own repository and, read-only,
+    the environment its tests run in."""
     bwrap = shutil.which("bwrap")
     if not bwrap:
         raise SystemExit("the chat backend needs bubblewrap to seal the agent's commands")
-    hide = [PILOT / "tasks", CACHE / "repos", PILOT / "runs"]
+    w = Path(work).resolve()
+    venv = (w / ".venv").resolve()
     cmd = [bwrap, "--dev-bind", "/", "/", "--unshare-net", "--die-with-parent"]
-    for h in hide:
-        if h.exists():
-            cmd += ["--tmpfs", str(h)]
-    w = str(Path(work).resolve())
-    cmd += ["--bind", w, w, "--chdir", w, "bash", "-c", command]
+    for hidden in (PILOT, CACHE):
+        if hidden.exists():
+            cmd += ["--tmpfs", str(hidden)]
+    if venv.exists() and any(h in venv.parents for h in (PILOT, CACHE)):
+        env_home = venv.parent  # a git task's environment and the source it installed from
+        cmd += ["--ro-bind", str(env_home), str(env_home)]
+    cmd += ["--bind", str(w), str(w), "--chdir", str(w), "bash", "-c", command]
     return cmd
 
 
