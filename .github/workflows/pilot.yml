@@ -1,10 +1,10 @@
-# The EMI pilot. One agent job per task runs every arm x (replayed change |
-# seed) of that task in turn, sharing one environment; one judge job per
-# task grades those runs with the hidden tests; a last job makes the table.
+# The EMI pilot. One job per task runs every arm x (replayed change | seed)
+# of that task in turn, sharing one environment, then grades those runs with
+# the hidden tests; a last job makes the table.
 #
-# The agent jobs never have the hidden tests: they delete them, and the
-# repository's git history, before any run, and the checkout keeps no
-# credentials. The agent's own commands run without network.
+# No run has the hidden tests: the job deletes them, and the repository's git
+# history, before any run, keeps no credentials, and fetches them back only
+# after the last run has ended. The agent's own commands run without network.
 name: pilot
 
 on:
@@ -94,49 +94,34 @@ jobs:
         run: |
           mkdir -p "$WORK"
           bash harness/run_task.sh '${{ inputs.backend }}' "$SEEDS" "$TASK" out
-      - uses: actions/upload-artifact@v4
-        if: always()
+      # the oracle runs here, in the same job, so the task's environment is
+      # built once; the hidden tests are fetched only now, after every run
+      # of this task has ended, so no run could have read them
+      - name: Fetch the hidden tests, after every run has ended
+        if: always() && hashFiles('out/**') != ''
+        uses: actions/checkout@v4
         with:
-          name: run-${{ matrix.task }}
-          path: out/
-          if-no-files-found: error
-
-  judge:
-    needs: [plan, agent]
-    if: always() && needs.plan.result == 'success'
-    runs-on: ubuntu-24.04
-    timeout-minutes: 120
-    strategy:
-      fail-fast: false
-      max-parallel: 15
-      matrix:
-        task: ${{ fromJSON(needs.plan.outputs.tasks) }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
+          path: hidden-src
           persist-credentials: false
-      - uses: actions/download-artifact@v4
-        with:
-          name: run-${{ matrix.task }}
-          path: runs/
-      - name: Hidden tests
+          sparse-checkout: tasks/${{ matrix.task }}/hidden
+      - name: Judge with the hidden tests
+        if: always() && hashFiles('out/**') != ''
+        env:
+          TASK: ${{ matrix.task }}
         run: |
-          python3 -m venv "$RUNNER_TEMP/tools"
-          "$RUNNER_TEMP/tools/bin/pip" install -q uv
-          export PATH="$RUNNER_TEMP/tools/bin:$PATH"
-          python3 -m venv "$RUNNER_TEMP/project-venv"
-          "$RUNNER_TEMP/project-venv/bin/pip" install -q 'pytest>=8,<9' 'coverage>=7.9,<8' 'hypothesis>=6,<7'
-          python3 harness/oracle.py --venv "$RUNNER_TEMP/project-venv" --run runs/*/
+          mkdir -p "tasks/$TASK"
+          cp -r "hidden-src/tasks/$TASK/hidden" "tasks/$TASK/hidden"
+          python3 harness/oracle.py --venv "$RUNNER_TEMP/project-venv" --run out/*/
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: judged-${{ matrix.task }}
-          path: runs/
+          path: out/
           if-no-files-found: error
 
   table:
-    needs: [agent, judge]
-    if: always() && needs.judge.result != 'skipped'
+    needs: agent
+    if: always() && needs.agent.result != 'skipped'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
@@ -163,7 +148,7 @@ jobs:
             table.md
             tasks.md
       - name: Fail if any job failed
-        if: needs.agent.result != 'success' || needs.judge.result != 'success'
+        if: needs.agent.result != 'success'
         run: |
-          echo "some agent or judge jobs failed; see their logs" >&2
+          echo "some task jobs failed; see their logs" >&2
           exit 1

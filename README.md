@@ -114,22 +114,21 @@ space-separated; `batches/*.txt` are the batches.
 ### What happens
 
 - **plan** lists the runs. **agent** is one job per task: it builds the
-  task's environment once, then does every run of that task in turn
-  (4 arms x 3 replays or seeds), each in a fresh copy of the repository.
-  **judge** is one job per task that grades its runs with the hidden
-  tests; **table** puts them together.
-- The agent jobs delete `tasks/*/hidden` and `.git` before any run and keep
-  no git credentials. The agent's own commands run sealed (below).
+  task's environment once, does every run of that task in turn (4 arms x 3
+  replays or seeds), each in a fresh copy of the repository, and then
+  grades them with the hidden tests. **table** puts the tasks together.
+- No run has the hidden tests: the job deletes them, and `.git`, before any
+  run and keeps no git credentials; it fetches them back only after the
+  task's last run has ended. The agent's own commands run sealed (below).
 - The **summary** of the workflow run has the table and the task check;
   the `pilot-results` artifact has every run's record, receipts and diff.
 - A missing key, a failed run or a broken task fails the workflow.
 
 ### Cost
 
-- **Actions minutes:** a batch is 15 agent jobs and 15 judge jobs. A real
-  task's environment is built with `uv` (the dataset's `pip install` steps
-  through uv's installer) once in each, so a replay batch is roughly 15 x
-  (build + 12 checks) twice over. A private repository on GitHub's free
+- **Actions minutes:** a batch is 15 jobs, one per task. A real task's
+  environment is built once, with `uv` (the dataset's `pip install` steps
+  through uv's installer); a replay of `@a` took 1 to 23 minutes a task. A private repository on GitHub's free
   plan has 2,000 minutes a month (Settings → Billing shows what is left).
 - **Model:** a `chat` batch is 180 agent runs; each can take up to 40
   steps and 3 rounds back. Try one task with `seeds: 1` first and read the
