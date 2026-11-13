@@ -1,6 +1,9 @@
 """The results: for each arm, every run in one of four cells, by what the
 arm let through and what the hidden tests say.
 
+A run where EMI asked a person and the reviewer (harness/reviewer.py)
+approved shows as `approved>stop`; how often each arm asked is counted.
+
                     hidden tests pass   hidden tests fail
   accepted          done, right         done, WRONG  (a false completion)
   not accepted      flagged, right      flagged, wrong
@@ -36,6 +39,7 @@ def main():
     args = a.parse_args()
     arms = defaultdict(lambda: defaultdict(int))
     cost = defaultdict(lambda: [0.0, 0])
+    asked = defaultdict(lambda: [0, 0])  # runs where EMI asked a person, and where the reviewer approved
     rows = []
     for d in map(Path, args.runs):
         if not (d / "oracle.json").exists():
@@ -46,18 +50,23 @@ def main():
         arms[r["arm"]][c] += 1
         cost[r["arm"]][0] += r["seconds"]
         cost[r["arm"]][1] += r["usage"]["prompt_tokens"] + r["usage"]["completion_tokens"]
-        actions = ",".join(x.get("action") or x["verdict"] for x in r["claims"])
+        reviews = [x["reviewer"] for x in r["claims"] if "reviewer" in x]
+        asked[r["arm"]][0] += bool(reviews)
+        asked[r["arm"]][1] += any("approved" in x for x in reviews)
+        actions = ",".join(("approved>" if "approved" in x.get("reviewer", {}) else "")
+                           + (x.get("action") or x["verdict"]) for x in r["claims"])
         rows.append((r["task"], r.get("replay") or f"seed {r['seed']}", r["arm"], actions, r["final"], c))
     print("| arm | runs | done, right | done, WRONG | flagged, right | flagged, wrong | unjudged "
-          "| false completions (of done) | solved | mean s | tokens |")
-    print("|---|---|---|---|---|---|---|---|---|---|---|")
+          "| false completions (of done) | solved | asked a person (approved) | mean s | tokens |")
+    print("|---|---|---|---|---|---|---|---|---|---|---|---|")
     for arm in [x for x in ARMS if x in arms]:
         c = arms[arm]
         n = sum(c.values())
         done = c["done_right"] + c["done_wrong"]
         print(f"| {arm} | {n} | {c['done_right']} | {c['done_wrong']} | {c['flagged_right']} "
               f"| {c['flagged_wrong']} | {c['unjudged']} | {pct(c['done_wrong'], done)} "
-              f"| {pct(c['done_right'], n)} | {cost[arm][0] / n:.1f} | {cost[arm][1]} |")
+              f"| {pct(c['done_right'], n)} | {asked[arm][0]} ({asked[arm][1]}) "
+              f"| {cost[arm][0] / n:.1f} | {cost[arm][1]} |")
     if args.by_run:
         print("\n| task | run | arm | gate said | final | cell |\n|---|---|---|---|---|---|")
         for row in sorted(rows):

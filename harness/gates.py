@@ -10,6 +10,7 @@ A gate returns (verdict, feedback, record):
 import json
 from pathlib import Path
 
+import reviewer
 from common import run
 from trees import test_command
 
@@ -29,20 +30,40 @@ def naive(work, ctx):
     return "repair", "The tests fail. Fix this, then finish again:\n" + out[-4000:], record
 
 
-def emi(work, ctx):
+def check(work, ctx, approve=()):
+    """One `emi done`; returns (exit code, receipt or None, raw output)."""
     state = Path(work).parent / (Path(work).name + ".emi-state")
-    code, out = run([ctx["emi"], "done", "--format", "json"], cwd=work,
-                    env={"XDG_STATE_HOME": str(state)}, timeout=1200)
+    cmd = [ctx["emi"], "done", "--format", "json"]
+    for item in approve:
+        cmd += ["--approve", item]
+    code, out = run(cmd, cwd=work, env={"XDG_STATE_HOME": str(state)}, timeout=1200)
     try:
         receipt = json.loads(out[out.index("{"):])
     except ValueError:
-        return "flagged", None, {"gate": "emi", "exit": code, "error": out[-2000:]}
+        return code, None, out
     n = len(ctx.setdefault("receipts", []))
     receipt_path = Path(ctx["out_dir"]) / f"receipt-{n}.json"
     receipt_path.write_text(json.dumps(receipt, indent=2) + "\n")
     ctx["receipts"].append(receipt_path.name)
+    return code, receipt, receipt_path.name
+
+
+def emi(work, ctx):
+    code, receipt, name = check(work, ctx)
+    if receipt is None:
+        return "flagged", None, {"gate": "emi", "exit": code, "error": name[-2000:]}
     record = {"gate": "emi", "exit": code, "action": receipt["action"],
-              "rule": receipt.get("rule"), "receipt": receipt_path.name}
+              "rule": receipt.get("rule"), "receipt": name}
+    if receipt["action"] == "ask_person":
+        # the person's part, played by the reviewer's fixed rule
+        items = reviewer.decide(work, receipt)
+        record["reviewer"] = {"approved": items} if items else {"refused": True}
+        if items:
+            code, receipt, name = check(work, ctx, approve=items)
+            if receipt is None:
+                return "flagged", None, {**record, "error": name[-2000:]}
+            record.update({"exit": code, "action": receipt["action"],
+                           "rule": receipt.get("rule"), "receipt": name})
     action = receipt["action"]
     if action == "stop":
         return "accepted", None, record
