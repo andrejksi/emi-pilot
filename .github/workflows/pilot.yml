@@ -27,6 +27,9 @@ on:
       tasks:
         description: "tasks to run: @toy, @a, @b (batches/*.txt) or task ids, space-separated"
         default: "@toy"
+      max_steps:
+        description: "chat: model replies an agent may take before it counts as given up"
+        default: "150"
 
 permissions:
   contents: read
@@ -90,6 +93,7 @@ jobs:
           MODEL_BASE_URL: ${{ inputs.base_url }}
           MODEL_NAME: ${{ inputs.model }}
           SEEDS: ${{ inputs.seeds }}
+          MAX_STEPS: ${{ inputs.max_steps }}
           TASK: ${{ matrix.task }}
         run: |
           mkdir -p "$WORK"

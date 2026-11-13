@@ -205,7 +205,7 @@ def main():
     a.add_argument("--api-key-env", default="MODEL_API_KEY")
     a.add_argument("--seed", type=int, default=0)
     a.add_argument("--temperature", type=float, default=0.2)
-    a.add_argument("--max-steps", type=int, default=40)
+    a.add_argument("--max-steps", type=int, default=150)
     args = a.parse_args()
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)

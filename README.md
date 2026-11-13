@@ -130,7 +130,7 @@ space-separated; `batches/*.txt` are the batches.
   environment is built once, with `uv` (the dataset's `pip install` steps
   through uv's installer); a replay of `@a` took 1 to 23 minutes a task. A private repository on GitHub's free
   plan has 2,000 minutes a month (Settings → Billing shows what is left).
-- **Model:** a `chat` batch is 180 agent runs; each can take up to 40
+- **Model:** a `chat` batch is 180 agent runs; each can take up to `max_steps` (150)
   steps and 3 rounds back. Try one task with `seeds: 1` first and read the
   `usage` in its `run.json`. The first live run used 4,300–6,400 tokens a
   run on the toy task.

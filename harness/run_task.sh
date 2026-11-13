@@ -46,7 +46,8 @@ while read -r t arm which; do
     else
       python3 "$here/harness/agent.py" --task "$t" --arm "$arm" --work "$work/$id" \
         --out "$out/$id" --emi "$emi" --backend chat --seed "$which" \
-        --base-url "${MODEL_BASE_URL:?}" --model "${MODEL_NAME:?}" --api-key-env MODEL_API_KEY
+        --base-url "${MODEL_BASE_URL:?}" --model "${MODEL_NAME:?}" --api-key-env MODEL_API_KEY \
+        --max-steps "${MAX_STEPS:-150}"
     fi
     status=$?
   else
