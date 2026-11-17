@@ -1,0 +1,19 @@
+diff --git a/narwhals/_arrow/series.py b/narwhals/_arrow/series.py
+index e22d20f..5d42af2 100644
+--- a/narwhals/_arrow/series.py
++++ b/narwhals/_arrow/series.py
+@@ -467,8 +467,13 @@ class ArrowSeries(EagerSeries["ChunkedArrayAny"]):
+         # - Missing `replacements` type
+         # - Missing return type
+         pc_replace_with_mask: Incomplete = pc.replace_with_mask
++        # `replace_with_mask` requires `replacements` to have the same length as
++        # the input, so we build a full-length array with the new values in place.
++        replacements = np.zeros(self.len(), dtype=object)
++        replacements[indices_native] = values_native.to_pylist()
++        replacements_native = pa.array(replacements.tolist(), type=self.native.type)
+         return self._with_native(
+-            pc_replace_with_mask(self.native, mask, values_native.take(indices_native))
++            pc_replace_with_mask(self.native, mask, replacements_native)
+         )
+ 
+     def to_list(self) -> list[Any]:

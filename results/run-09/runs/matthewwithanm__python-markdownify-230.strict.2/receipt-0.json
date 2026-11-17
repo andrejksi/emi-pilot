@@ -1,0 +1,178 @@
+{
+  "action": "stop",
+  "adequacy": {
+    "base": "72b394f9d6d087bb00edc14dedd27618565e2641",
+    "candidates": 3,
+    "errors": 0,
+    "head": "0f843c737620aa84a2e77daf84eb25293133ed43",
+    "killed": 3,
+    "not_mutated": {
+      "removed_only": 0,
+      "unparsed": [],
+      "unreadable": [],
+      "unsupported": []
+    },
+    "note": "a surviving mutant may be equivalent to the original; treat survivors as places to look, not defects",
+    "run": 3,
+    "state": "measured",
+    "survived": 0,
+    "survivors": [],
+    "timed_out": 0
+  },
+  "ask": [],
+  "assurance": {
+    "isolation": "sandboxed",
+    "setting": "cooperative"
+  },
+  "baseline": {
+    "sha": "72b394f9d6d087bb00edc14dedd27618565e2641",
+    "source": "merge-base:main"
+  },
+  "candidate": {
+    "content_id": "49645960457404684d8a0635d507632f6f393c26",
+    "id": "worktree"
+  },
+  "change": {
+    "companion_tests": [],
+    "failing_tests": [],
+    "functions": [
+      {
+        "file": "markdownify/__init__.py",
+        "function": "convert_code",
+        "laws": [],
+        "line": 482,
+        "status": "exercised"
+      }
+    ],
+    "not_measured": [],
+    "proving_tests": [
+      {
+        "baseline_result": "failed",
+        "edited": false,
+        "id": "tests/test_conversions.py::test_code_with_backticks"
+      }
+    ],
+    "redundant_tests": [],
+    "skipped_tests": [],
+    "status": "exercised",
+    "unknown_tests": []
+  },
+  "changed_old_tests": [],
+  "decision_id": "0efb8c234832af0f668b4711022b7cdb0c2dc701911d6f2f2c93618a472bdbce",
+  "input_id": "7585d40236e387e8f605ce98fbfff75be32a0433700c2b816b4a733ad6b64cdb",
+  "inputs": {
+    "approvals": [],
+    "baseline": "72b394f9d6d087bb00edc14dedd27618565e2641",
+    "candidate": "49645960457404684d8a0635d507632f6f393c26",
+    "config": "31f1be696bef926fc0aa48afecf1e7cc0a149966bd90db7ebb41ef3c25627e42",
+    "driver": {
+      "language": "python",
+      "producer": "a062e705e9b4791409555212698338a8fe282c765ca2412edc4b3369909161ee"
+    },
+    "emi": "0.1.1",
+    "environment": "822fba4cbad00bdd366fd6e56d3b2611aa7ff309d0b09b1932843059e954a5ba",
+    "intent": null,
+    "laws": null,
+    "memory": {
+      "laws": {},
+      "schema": "emi-memory-1"
+    },
+    "pins": {
+      "derandomize": true,
+      "hash_seed": 0,
+      "locale": "C.UTF-8",
+      "seed_random": true,
+      "tz": "UTC"
+    },
+    "policy": "emi-policy-10",
+    "search": null,
+    "setting": "cooperative"
+  },
+  "laws": {
+    "checked_functions": {},
+    "digest": null,
+    "fault": null,
+    "forgotten": [],
+    "found": {},
+    "laws": [],
+    "not_measured": [],
+    "proposals": []
+  },
+  "meta": {
+    "repo": "/home/runner/work/_temp/work/matthewwithanm__python-markdownify-230.strict.2"
+  },
+  "not_verified": [
+    "Behaviour that no test exercises: tests passing does not show the task's behaviour exists.",
+    "The baseline's tests are taken as correct. They ran twice under the same pins; a test whose outcome differed is quarantined, and an outcome that depends on something the pins do not hold (the clock, the network, another process) can still differ.",
+    "Tests the baseline already skipped, expected to fail, could not collect or failed are not regression evidence: nothing is known about the behaviour they cover.",
+    "Escape hatches in the change (suppressions, test-runner sniffing, always-equal comparisons) are found by pattern, and only in product lines it added. Only sniffing is also measured: a modified function is replayed as a test run and as a plain process, on the inputs the behaviour comparison has, and only for the clues of a test run that replay plants.",
+    "Cooperative verification: the proposer could alter the controller's inputs (the configuration, the recorded approvals, the dependencies the tests run). It catches a careless proposer, not a cheating one.",
+    "Linked dependencies (.venv) were taken as found on this machine.",
+    "No laws: what the change should do is shown only by the proposer's own tests. Laws the person writes in .emi/laws hold every change to them.",
+    "Behaviour was compared with the baseline's on 0 input(s) (0 generated from annotations), as a report that decides nothing, since nobody asked for it to be kept; other inputs are not covered, so this is not a proof of equivalence.",
+    "Not compared: markdownify/__init__.py::MarkdownConverter.convert_code: no_inputs.",
+    "0 of 3 mutant(s) of the changed lines survived the proving tests and laws; a survivor may be equivalent to the original."
+  ],
+  "policy": "emi-policy-10",
+  "preserve": {
+    "counts": {
+      "added_or_removed": 1,
+      "compared": 0,
+      "generated": 0,
+      "import_failures": 0,
+      "no_inputs": 1,
+      "not_replayed": 0,
+      "skipped_async": 0,
+      "skipped_method": 0,
+      "skipped_nested": 0,
+      "targets": 1,
+      "timeouts": 0,
+      "unencodable_result": 0,
+      "unrecordable": 23,
+      "unresolved": 0,
+      "unstable": 0,
+      "with_drift": 0
+    },
+    "divergences": [],
+    "functions": [
+      {
+        "compared": 0,
+        "deterministic": false,
+        "file": "markdownify/__init__.py",
+        "function": "MarkdownConverter.convert_code",
+        "inputs": 0,
+        "status": "no_inputs"
+      }
+    ],
+    "more_divergences": 0,
+    "not_checked": [
+      "markdownify/__init__.py::MarkdownConverter.convert_code: no_inputs"
+    ],
+    "reasons": [],
+    "required": false,
+    "under_test": {
+      "compared": 0,
+      "differences": [],
+      "unmeasured": null
+    }
+  },
+  "regression": {
+    "failed": [],
+    "missing": [],
+    "nondeterministic": [],
+    "quarantined": [],
+    "reasons": [],
+    "status": "held",
+    "tests_run": 50
+  },
+  "repair": [],
+  "rule": "none",
+  "schema": "emi-done-receipt-1.0",
+  "signals": [],
+  "this_run": [
+    "No laws: what the change should do is shown only by the proposer's own tests. Laws the person writes in .emi/laws hold every change to them.",
+    "Behaviour was compared with the baseline's on 0 input(s) (0 generated from annotations), as a report that decides nothing, since nobody asked for it to be kept; other inputs are not covered, so this is not a proof of equivalence.",
+    "Not compared: markdownify/__init__.py::MarkdownConverter.convert_code: no_inputs.",
+    "0 of 3 mutant(s) of the changed lines survived the proving tests and laws; a survivor may be equivalent to the original."
+  ]
+}

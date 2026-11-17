@@ -1,0 +1,53 @@
+diff --git a/conan/tools/scm/git.py b/conan/tools/scm/git.py
+index 48ad9fe..ccf5295 100644
+--- a/conan/tools/scm/git.py
++++ b/conan/tools/scm/git.py
+@@ -87,7 +87,9 @@ class Git:
+         for r in remotes.splitlines():
+             name, url = r.split(maxsplit=1)
+             if name == remote:
+-                url, _ = url.rsplit(None, 1)
++                # The url can be followed by the "(fetch)" or "(push)" token, and in treeless
++                # clones (git >= 2.43) also by a "[tree:0]" token, so just take the first token
++                url = url.split(None, 1)[0]
+                 if os.path.exists(url):  # Windows local directory
+                     url = url.replace("\\", "/")
+                 return url
+diff --git a/test/functional/tools/scm/test_git.py b/test/functional/tools/scm/test_git.py
+index 7e0a46d..4414100 100644
+--- a/test/functional/tools/scm/test_git.py
++++ b/test/functional/tools/scm/test_git.py
+@@ -1253,3 +1253,33 @@ class TestGitShallowTagClone:
+             assert "pkg/0.1: URL: {}".format(url) in c.out
+             assert "pkg/0.1: COMMIT IN REMOTE: False" in c.out
+             assert "pkg/0.1: DIRTY: False" in c.out
++
++
++@pytest.mark.tool("git")
++class TestGitTreelessClone:
++    """ treeless clones (git >= 2.43) add a "[tree:0]" token to the "git remote -v" output
++    https://github.com/conan-io/conan/issues/15768
++    """
++    conanfile = textwrap.dedent("""
++        from conan import ConanFile
++        from conan.tools.scm import Git
++
++        class Pkg(ConanFile):
++            name = "pkg"
++            version = "0.1"
++
++            def export(self):
++                git = Git(self, self.recipe_folder)
++                url = git.get_remote_url()
++                self.output.info("URL: {}".format(url))
++        """)
++
++    def test_treeless_clone_remote_url(self):
++        folder = temp_folder()
++        url, _ = create_local_git_repo(files={"conanfile.py": self.conanfile}, folder=folder)
++
++        c = TestClient()
++        c.run_command('git clone --filter=tree:0 "{}" myclone'.format(folder))
++        with c.chdir("myclone"):
++            c.run("export .")
++            assert "pkg/0.1: URL: {}".format(url) in c.out

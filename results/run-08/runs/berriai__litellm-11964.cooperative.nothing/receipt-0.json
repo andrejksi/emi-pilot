@@ -1,0 +1,131 @@
+{
+  "action": "stop",
+  "adequacy": null,
+  "ask": [],
+  "assurance": {
+    "isolation": "sandboxed",
+    "setting": "cooperative"
+  },
+  "baseline": {
+    "sha": "d8c40a9201299598cc2cef93b91bc1d697d9ecd4",
+    "source": "merge-base:main"
+  },
+  "candidate": {
+    "content_id": "d19a784d79c78a6de8749868d3bf545d5e16dba7",
+    "id": "worktree"
+  },
+  "change": {
+    "companion_tests": [],
+    "failing_tests": [],
+    "functions": [],
+    "not_measured": [],
+    "proving_tests": [],
+    "redundant_tests": [],
+    "skipped_tests": [],
+    "status": "none",
+    "unknown_tests": []
+  },
+  "changed_old_tests": [],
+  "decision_id": "1b1e0d8d9874c027e3a751bd60363b8fa276ed034ecbc8a046338a9ff4697b7e",
+  "input_id": "e312053d8a300e7141f60465200d7dfc1bb8981f00fd54074783a4540a071d9c",
+  "inputs": {
+    "approvals": [],
+    "baseline": "d8c40a9201299598cc2cef93b91bc1d697d9ecd4",
+    "candidate": "d19a784d79c78a6de8749868d3bf545d5e16dba7",
+    "config": "937b0c4c8aa4efc84ad97939e45ae35911bfae6400fd69b9cd26fccfd7b6aa21",
+    "driver": {
+      "language": "python",
+      "producer": "a062e705e9b4791409555212698338a8fe282c765ca2412edc4b3369909161ee"
+    },
+    "emi": "0.1.1",
+    "environment": "8882cddc57b762303add61102df0d35a2c55305c7a18ec3471b2039753b83228",
+    "intent": null,
+    "laws": null,
+    "memory": {
+      "laws": {},
+      "schema": "emi-memory-1"
+    },
+    "pins": {
+      "derandomize": true,
+      "hash_seed": 0,
+      "locale": "C.UTF-8",
+      "seed_random": true,
+      "tz": "UTC"
+    },
+    "policy": "emi-policy-10",
+    "search": null,
+    "setting": "cooperative"
+  },
+  "laws": {
+    "checked_functions": {},
+    "digest": null,
+    "fault": null,
+    "forgotten": [],
+    "found": {},
+    "laws": [],
+    "not_measured": [],
+    "proposals": []
+  },
+  "meta": {
+    "repo": "/home/runner/work/_temp/work/berriai__litellm-11964.cooperative.nothing"
+  },
+  "not_verified": [
+    "Behaviour that no test exercises: tests passing does not show the task's behaviour exists.",
+    "The baseline's tests are taken as correct. They ran twice under the same pins; a test whose outcome differed is quarantined, and an outcome that depends on something the pins do not hold (the clock, the network, another process) can still differ.",
+    "Tests the baseline already skipped, expected to fail, could not collect or failed are not regression evidence: nothing is known about the behaviour they cover.",
+    "Escape hatches in the change (suppressions, test-runner sniffing, always-equal comparisons) are found by pattern, and only in product lines it added. Only sniffing is also measured: a modified function is replayed as a test run and as a plain process, on the inputs the behaviour comparison has, and only for the clues of a test run that replay plants.",
+    "Cooperative verification: the proposer could alter the controller's inputs (the configuration, the recorded approvals, the dependencies the tests run). It catches a careless proposer, not a cheating one.",
+    "Linked dependencies (.venv) were taken as found on this machine.",
+    "No laws: what the change should do is shown only by the proposer's own tests. Laws the person writes in .emi/laws hold every change to them."
+  ],
+  "policy": "emi-policy-10",
+  "preserve": {
+    "counts": {
+      "added_or_removed": 0,
+      "compared": 0,
+      "generated": 0,
+      "import_failures": 0,
+      "no_inputs": 0,
+      "not_replayed": 0,
+      "skipped_async": 0,
+      "skipped_method": 0,
+      "skipped_nested": 0,
+      "targets": 0,
+      "timeouts": 0,
+      "unencodable_result": 0,
+      "unrecordable": 0,
+      "unresolved": 0,
+      "unstable": 0,
+      "with_drift": 0
+    },
+    "divergences": [],
+    "functions": [],
+    "more_divergences": 0,
+    "not_checked": [],
+    "reasons": [],
+    "required": false,
+    "under_test": {
+      "compared": 0,
+      "differences": [],
+      "unmeasured": null
+    }
+  },
+  "regression": {
+    "failed": [],
+    "missing": [],
+    "nondeterministic": [],
+    "quarantined": [],
+    "reasons": [
+      "3 test(s) already failed at the baseline and are not regression evidence"
+    ],
+    "status": "held",
+    "tests_run": 106
+  },
+  "repair": [],
+  "rule": "none",
+  "schema": "emi-done-receipt-1.0",
+  "signals": [],
+  "this_run": [
+    "No laws: what the change should do is shown only by the proposer's own tests. Laws the person writes in .emi/laws hold every change to them."
+  ]
+}

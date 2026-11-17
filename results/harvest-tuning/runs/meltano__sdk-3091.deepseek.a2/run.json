@@ -1,0 +1,16 @@
+{
+  "arm": "control",
+  "backend": "chat",
+  "claims": [],
+  "final": "gave_up",
+  "model": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+  "repair_rounds": 0,
+  "replay": null,
+  "seconds": 429.6,
+  "seed": 2,
+  "task": "meltano__sdk-3091",
+  "usage": {
+    "completion_tokens": 23186,
+    "prompt_tokens": 4699611
+  }
+}

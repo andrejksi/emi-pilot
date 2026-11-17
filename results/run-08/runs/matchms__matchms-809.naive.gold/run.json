@@ -1,0 +1,22 @@
+{
+  "arm": "naive",
+  "backend": "replay",
+  "claims": [
+    {
+      "exit": 0,
+      "gate": "pytest",
+      "verdict": "accepted"
+    }
+  ],
+  "final": "accepted",
+  "model": null,
+  "repair_rounds": 0,
+  "replay": "gold",
+  "seconds": 17.3,
+  "seed": 0,
+  "task": "matchms__matchms-809",
+  "usage": {
+    "completion_tokens": 0,
+    "prompt_tokens": 0
+  }
+}

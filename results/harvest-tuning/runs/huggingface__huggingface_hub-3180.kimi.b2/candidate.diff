@@ -1,0 +1,161 @@
+diff --git a/src/huggingface_hub/file_download.py b/src/huggingface_hub/file_download.py
+index 98748fd..c813cff 100644
+--- a/src/huggingface_hub/file_download.py
++++ b/src/huggingface_hub/file_download.py
+@@ -1407,6 +1407,7 @@ def get_hf_file_metadata(
+     library_version: Optional[str] = None,
+     user_agent: Union[Dict, str, None] = None,
+     headers: Optional[Dict[str, str]] = None,
++    endpoint: Optional[str] = None,
+ ) -> HfFileMetadata:
+     """Fetch metadata of a file versioned on the Hub for a given url.
+ 
+@@ -1432,6 +1433,8 @@ def get_hf_file_metadata(
+             The user-agent info in the form of a dictionary or a string.
+         headers (`dict`, *optional*):
+             Additional headers to be sent with the request.
++        endpoint (`str`, *optional*):
++            The endpoint to use for the Xet refresh route. Defaults to the Hub endpoint.
+ 
+     Returns:
+         A [`HfFileMetadata`] object containing metadata such as location, etag, size and
+@@ -1471,7 +1474,7 @@ def get_hf_file_metadata(
+         size=_int_or_none(
+             r.headers.get(constants.HUGGINGFACE_HEADER_X_LINKED_SIZE) or r.headers.get("Content-Length")
+         ),
+-        xet_file_data=parse_xet_file_data_from_response(r),  # type: ignore
++        xet_file_data=parse_xet_file_data_from_response(r, endpoint=endpoint),  # type: ignore
+     )
+ 
+ 
+@@ -1531,7 +1534,7 @@ def _get_metadata_or_catch_error(
+         try:
+             try:
+                 metadata = get_hf_file_metadata(
+-                    url=url, proxies=proxies, timeout=etag_timeout, headers=headers, token=token
++                    url=url, proxies=proxies, timeout=etag_timeout, headers=headers, token=token, endpoint=endpoint
+                 )
+             except EntryNotFoundError as http_error:
+                 if storage_folder is not None and relative_filename is not None:
+diff --git a/src/huggingface_hub/hf_api.py b/src/huggingface_hub/hf_api.py
+index e53fcfb..f9596c2 100644
+--- a/src/huggingface_hub/hf_api.py
++++ b/src/huggingface_hub/hf_api.py
+@@ -2992,7 +2992,7 @@ class HfApi:
+         try:
+             if token is None:
+                 token = self.token
+-            get_hf_file_metadata(url, token=token)
++            get_hf_file_metadata(url, token=token, endpoint=self.endpoint)
+             return True
+         except GatedRepoError:  # raise specifically on gated repo
+             raise
+@@ -5392,6 +5392,7 @@ class HfApi:
+             library_name=self.library_name,
+             library_version=self.library_version,
+             user_agent=self.user_agent,
++            endpoint=self.endpoint,
+         )
+ 
+     @validate_hf_hub_args
+diff --git a/src/huggingface_hub/utils/_xet.py b/src/huggingface_hub/utils/_xet.py
+index e80b0e8..ad5b6ca 100644
+--- a/src/huggingface_hub/utils/_xet.py
++++ b/src/huggingface_hub/utils/_xet.py
+@@ -26,7 +26,9 @@ class XetConnectionInfo:
+     endpoint: str
+ 
+ 
+-def parse_xet_file_data_from_response(response: requests.Response) -> Optional[XetFileData]:
++def parse_xet_file_data_from_response(
++    response: requests.Response, endpoint: Optional[str] = None
++) -> Optional[XetFileData]:
+     """
+     Parse XET file metadata from an HTTP response.
+ 
+@@ -36,6 +38,8 @@ def parse_xet_file_data_from_response(response: requests.Response) -> Optional[X
+     Args:
+         response (`requests.Response`):
+             The HTTP response object containing headers dict and links dict to extract the XET metadata from.
++        endpoint (`str`, *optional*):
++            The endpoint to use for the refresh route. Defaults to the Hub endpoint.
+     Returns:
+         `Optional[XetFileData]`:
+             An instance of `XetFileData` containing the file hash and refresh route if the metadata
+@@ -53,6 +57,10 @@ def parse_xet_file_data_from_response(response: requests.Response) -> Optional[X
+     except KeyError:
+         return None
+ 
++    endpoint = endpoint if endpoint is not None else constants.ENDPOINT
++    if refresh_route.startswith(constants.HUGGINGFACE_CO_URL_HOME):
++        refresh_route = endpoint.rstrip("/") + refresh_route[len(constants.HUGGINGFACE_CO_URL_HOME) - 1 :]
++
+     return XetFileData(
+         file_hash=file_hash,
+         refresh_route=refresh_route,
+diff --git a/tests/test_xet_utils.py b/tests/test_xet_utils.py
+index 893ad1e..f271e82 100644
+--- a/tests/test_xet_utils.py
++++ b/tests/test_xet_utils.py
+@@ -44,6 +44,61 @@ def test_parse_valid_headers_file_info_with_link() -> None:
+     assert file_data.file_hash == "sha256:abcdef"
+ 
+ 
++@pytest.mark.parametrize("use_link", [False, True])
++def test_parse_file_info_rewrites_default_refresh_route(use_link: bool) -> None:
++    refresh_route = "https://huggingface.co/api/models/username/repo_name/xet-read-token/token"
++    mock_response = MagicMock()
++    mock_response.headers = {"X-Xet-Hash": "sha256:abcdef"}
++    mock_response.links = {}
++    if use_link:
++        mock_response.links = {"xet-auth": {"url": refresh_route}}
++    else:
++        mock_response.headers["X-Xet-Refresh-Route"] = refresh_route
++
++    file_data = parse_xet_file_data_from_response(mock_response, endpoint="https://hf-mirror.example/")
++
++    assert file_data is not None
++    assert file_data.file_hash == "sha256:abcdef"
++    assert file_data.refresh_route == "https://hf-mirror.example/api/models/username/repo_name/xet-read-token/token"
++
++
++@pytest.mark.parametrize(
++    "refresh_route",
++    [
++        "/api/refresh",
++        "https://custom.example/api/refresh",
++        "https://huggingface.co.evil.example/api/refresh",
++    ],
++)
++def test_parse_file_info_preserves_non_default_refresh_route(refresh_route: str) -> None:
++    mock_response = MagicMock()
++    mock_response.headers = {
++        "X-Xet-Hash": "sha256:abcdef",
++        "X-Xet-Refresh-Route": refresh_route,
++    }
++    mock_response.links = {}
++
++    file_data = parse_xet_file_data_from_response(mock_response, endpoint="https://hf-mirror.example")
++
++    assert file_data is not None
++    assert file_data.refresh_route == refresh_route
++
++
++def test_parse_file_info_uses_configured_endpoint_by_default(mocker) -> None:
++    mocker.patch.object(constants, "ENDPOINT", "https://hf-mirror.example")
++    mock_response = MagicMock()
++    mock_response.headers = {
++        "X-Xet-Hash": "sha256:abcdef",
++        "X-Xet-Refresh-Route": "https://huggingface.co/api/refresh",
++    }
++    mock_response.links = {}
++
++    file_data = parse_xet_file_data_from_response(mock_response)
++
++    assert file_data is not None
++    assert file_data.refresh_route == "https://hf-mirror.example/api/refresh"
++
++
+ def test_parse_invalid_headers_file_info() -> None:
+     mock_response = MagicMock()
+     mock_response.headers = {"X-foo": "bar"}

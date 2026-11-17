@@ -1,0 +1,21 @@
+{
+  "arm": "control",
+  "backend": "chat",
+  "claims": [
+    {
+      "gate": "none",
+      "verdict": "accepted"
+    }
+  ],
+  "final": "accepted",
+  "model": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+  "repair_rounds": 0,
+  "replay": null,
+  "seconds": 704.1,
+  "seed": 3,
+  "task": "cs-si__eodag-1717",
+  "usage": {
+    "completion_tokens": 16921,
+    "prompt_tokens": 3965454
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "exit": 1,
+  "fail_to_pass": 2,
+  "fail_to_pass_passed": 0,
+  "failure_lines": [
+    "ERROR    bluesky:run_engine.py:1767 Run aborted",
+    "ERROR    bluesky:run_engine.py:1767 Run aborted",
+    "ERROR    bluesky:run_engine.py:1759 Run aborted",
+    "ERROR    bluesky:run_engine.py:1759 Run aborted",
+    "ERROR    bluesky:run_engine.py:1759 Run aborted",
+    "ERROR    bluesky:run_engine.py:1759 Run aborted",
+    "ERROR    bluesky:run_engine.py:1767 Run aborted",
+    "ERROR    bluesky:run_engine.py:1767 Run aborted",
+    "ERROR    bluesky:run_engine.py:1474 Failed to stop SynAxis(prefix='', name='motor2', read_attrs=['readback', 'setpoint'], configuration_attrs=['velocity', 'acceleration']).",
+    "ERROR    bluesky:run_engine.py:1474 Failed to stop SynAxis(prefix='', name='motor2', read_attrs=['readback', 'setpoint'], configuration_attrs=['velocity', 'acceleration']).",
+    "ERROR    bluesky:run_engine.py:1474 Failed to stop SynAxis(prefix='', name='motor2', read_attrs=['readback', 'setpoint'], configuration_attrs=['velocity', 'acceleration']).",
+    "ERROR    bluesky:run_engine.py:1474 Failed to stop SynAxis(prefix='', name='motor2', read_attrs=['readback', 'setpoint'], configuration_attrs=['velocity', 'acceleration']).",
+    "ERROR    bluesky:run_engine.py:1474 Failed to stop SynAxis(prefix='', name='motor2', read_attrs=['readback', 'setpoint'], configuration_attrs=['velocity', 'acceleration']).",
+    "ERROR    bluesky:run_engine.py:1474 Failed to stop SynAxis(prefix='', name='motor2', read_attrs=['readback', 'setpoint'], configuration_attrs=['velocity', 'acceleration']).",
+    "ERROR    bluesky:run_engine.py:1474 Failed to stop SynAxis(prefix='', name='motor2', read_attrs=['readback', 'setpoint'], configuration_attrs=['velocity', 'acceleration']).",
+    "ERROR    bluesky:run_engine.py:1474 Failed to stop SynAxis(prefix='', name='motor2', read_attrs=['readback', 'setpoint'], configuration_attrs=['velocity', 'acceleration']).",
+    "ERROR    bluesky:run_engine.py:1767 Run aborted",
+    "ERROR    bluesky:run_engine.py:1767 Run aborted",
+    "ERROR    bluesky:run_engine.py:1767 Run aborted",
+    "ERROR    bluesky:run_engine.py:1767 Run aborted"
+  ],
+  "not_passing": [
+    "src/bluesky/tests/test_run_engine.py::test_descriptor_order[False]",
+    "src/bluesky/tests/test_run_engine.py::test_descriptor_order[True]"
+  ],
+  "not_passing_count": 2,
+  "output_tail": "rce_stop_exit_status[True-halt-abort]\nPASSED src/bluesky/tests/test_run_engine.py::test_exceptions_exit_status[False]\nPASSED src/bluesky/tests/test_run_engine.py::test_exceptions_exit_status[True]\nPASSED src/bluesky/tests/test_run_engine.py::test_plan_return[True]\nPASSED src/bluesky/tests/test_run_engine.py::test_plan_return_resume[True]\nPASSED src/bluesky/tests/test_run_engine.py::test_drop[False]\nPASSED src/bluesky/tests/test_run_engine.py::test_drop[True]\nPASSED src/bluesky/tests/test_run_engine.py::test_failing_describe_callback[False]\nPASSED src/bluesky/tests/test_run_engine.py::test_failing_describe_callback[True]\nPASSED src/bluesky/tests/test_run_engine.py::test_print_commands[False]\nPASSED src/bluesky/tests/test_run_engine.py::test_print_commands[True]\nPASSED src/bluesky/tests/test_run_engine.py::test_broken_read_exception[False]\nPASSED src/bluesky/tests/test_run_engine.py::test_broken_read_exception[True]\nPASSED src/bluesky/tests/test_run_engine.py::test_self_describe[False]\nPASSED src/bluesky/tests/test_run_engine.py::test_self_describe[True]\nPASSED src/bluesky/tests/test_run_engine.py::test_thread_name[False]\nPASSED src/bluesky/tests/test_run_engine.py::test_thread_name[True]\nPASSED src/bluesky/tests/test_run_engine.py::test_unsubscribe[False]\nPASSED src/bluesky/tests/test_run_engine.py::test_unsubscribe[True]\nPASSED src/bluesky/tests/test_run_engine.py::test_wait_with_timeout[False-True]\nPASSED src/bluesky/tests/test_run_engine.py::test_wait_with_timeout[False-False]\nPASSED src/bluesky/tests/test_run_engine.py::test_wait_with_timeout[True-True]\nPASSED src/bluesky/tests/test_run_engine.py::test_wait_with_timeout[True-False]\nPASSED src/bluesky/tests/test_run_engine.py::test_wait_with_planstub_coroutine[False]\nPASSED src/bluesky/tests/test_run_engine.py::test_wait_with_planstub_coroutine[True]\nPASSED src/bluesky/tests/test_run_engine.py::test_wait_with_planstub_status[False]\nPASSED src/bluesky/tests/test_run_engine.py::test_wait_with_planstub_status[True]\nPASSED src/bluesky/tests/test_run_engine.py::test_wait_with_planstub_timeout[False]\nPASSED src/bluesky/tests/test_run_engine.py::test_wait_with_planstub_timeout[True]\nPASSED src/bluesky/tests/test_run_engine.py::test_1event_rewind[False]\nPASSED src/bluesky/tests/test_run_engine.py::test_1event_rewind[True]\nPASSED src/bluesky/tests/test_run_engine.py::test_configure_multiple_descritpors[False]\nPASSED src/bluesky/tests/test_run_engine.py::test_configure_multiple_descritpors[True]\nPASSED src/bluesky/tests/test_run_engine.py::test_sync_scan_id_source[False]\nPASSED src/bluesky/tests/test_run_engine.py::test_sync_scan_id_source[True]\nPASSED src/bluesky/tests/test_run_engine.py::test_async_scan_id_source[False]\nPASSED src/bluesky/tests/test_run_engine.py::test_async_scan_id_source[True]\nSKIPPED [2] src/bluesky/tests/test_run_engine.py:789: hangs tests on exit\nSKIPPED [2] src/bluesky/tests/test_run_engine.py:1637: Databroker v2 still missing temp.\nSKIPPED [4] src/bluesky/tests/test_run_engine.py:1662: Databroker v2 still missing temp.\nSKIPPED [1] src/bluesky/tests/test_run_engine.py:1770: Skipped\nSKIPPED [1] src/bluesky/tests/test_run_engine.py:1784: Skipped\nFAILED src/bluesky/tests/test_run_engine.py::test_descriptor_order[False] - AssertionError: assert ['i1930_alpha', 'i1930_bravo', 'i1930_charlie'] == ['i1930_alpha', 'i1930_charlie', 'i1930_bravo']\n  \n  At index 1 diff: 'i1930_bravo' != 'i1930_charlie'\n  \n  Full diff:\n    [\n        'i1930_alpha',\n  +     'i1930_bravo',\n        'i1930_charlie',\n  -     'i1930_bravo',\n    ]\nFAILED src/bluesky/tests/test_run_engine.py::test_descriptor_order[True] - AssertionError: assert ['i1930_alpha', 'i1930_charlie', 'i1930_bravo'] == ['i1930_alpha', 'i1930_bravo', 'i1930_charlie']\n  \n  At index 1 diff: 'i1930_charlie' != 'i1930_bravo'\n  \n  Full diff:\n    [\n        'i1930_alpha',\n  +     'i1930_charlie',\n        'i1930_bravo',\n  -     'i1930_charlie',\n    ]\n================== 2 failed, 218 passed, 10 skipped in 35.86s ==================\n",
+  "passed": false
+}

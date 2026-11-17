@@ -1,0 +1,214 @@
+{
+  "action": "repair",
+  "adequacy": {
+    "base": "eb957a11596d27eb6f7db588dff4b79784fd69d5",
+    "candidates": 2,
+    "errors": 0,
+    "head": "54c4f475b690d6575cd8d96658d051bdca9037ba",
+    "killed": 1,
+    "not_mutated": {
+      "removed_only": 0,
+      "unparsed": [],
+      "unreadable": [],
+      "unsupported": []
+    },
+    "note": "a surviving mutant may be equivalent to the original; treat survivors as places to look, not defects",
+    "run": 2,
+    "state": "measured",
+    "survived": 1,
+    "survivors": [
+      {
+        "file": "src/huggingface_hub/inference/_providers/hf_inference.py",
+        "function": "_build_chat_completion_url",
+        "line": 144,
+        "original": "+",
+        "replacement": "-"
+      }
+    ],
+    "timed_out": 0
+  },
+  "ask": [],
+  "assurance": {
+    "isolation": "sandboxed",
+    "setting": "cooperative"
+  },
+  "baseline": {
+    "sha": "eb957a11596d27eb6f7db588dff4b79784fd69d5",
+    "source": "merge-base:main"
+  },
+  "candidate": {
+    "content_id": "fe32fd78b29dd6f86ff82229c7103cfbb3d51c44",
+    "id": "worktree"
+  },
+  "change": {
+    "companion_tests": [],
+    "failing_tests": [],
+    "functions": [
+      {
+        "file": "src/huggingface_hub/inference/_providers/hf_inference.py",
+        "function": "_build_chat_completion_url",
+        "laws": [],
+        "line": 128,
+        "status": "exercised"
+      }
+    ],
+    "not_measured": [
+      "src/huggingface_hub/inference/_client.py: 4 changed line(s) outside any function (module or class level); whether a test runs them is not measured",
+      "src/huggingface_hub/inference/_generated/_async_client.py: 4 changed line(s) outside any function (module or class level); whether a test runs them is not measured",
+      "src/huggingface_hub/inference/_providers/hf_inference.py: 1 changed line(s) outside any function (module or class level); whether a test runs them is not measured"
+    ],
+    "proving_tests": [
+      {
+        "baseline_result": "failed",
+        "edited": false,
+        "id": "tests/test_inference_client.py::test_resolve_chat_completion_url[https://rur2d6yoccusjxgn.us-east-1.aws.endpoints.huggingface.cloud/?api-version=1-https://rur2d6yoccusjxgn.us-east-1.aws.endpoints.huggingface.cloud/v1/chat/completions?api-version=1]"
+      },
+      {
+        "baseline_result": "failed",
+        "edited": false,
+        "id": "tests/test_inference_client.py::test_resolve_chat_completion_url[https://rur2d6yoccusjxgn.us-east-1.aws.endpoints.huggingface.cloud/chat/completions?api-version=1-https://rur2d6yoccusjxgn.us-east-1.aws.endpoints.huggingface.cloud/chat/completions?api-version=1]"
+      },
+      {
+        "baseline_result": "failed",
+        "edited": false,
+        "id": "tests/test_inference_client.py::test_resolve_chat_completion_url[https://rur2d6yoccusjxgn.us-east-1.aws.endpoints.huggingface.cloud/v1/chat/completions?api-version=1-https://rur2d6yoccusjxgn.us-east-1.aws.endpoints.huggingface.cloud/v1/chat/completions?api-version=1]"
+      },
+      {
+        "baseline_result": "failed",
+        "edited": false,
+        "id": "tests/test_inference_client.py::test_resolve_chat_completion_url[https://rur2d6yoccusjxgn.us-east-1.aws.endpoints.huggingface.cloud/v1?api-version=1-https://rur2d6yoccusjxgn.us-east-1.aws.endpoints.huggingface.cloud/v1/chat/completions?api-version=1]"
+      },
+      {
+        "baseline_result": "failed",
+        "edited": false,
+        "id": "tests/test_inference_client.py::test_resolve_chat_completion_url[https://rur2d6yoccusjxgn.us-east-1.aws.endpoints.huggingface.cloud?api-version=1-https://rur2d6yoccusjxgn.us-east-1.aws.endpoints.huggingface.cloud/v1/chat/completions?api-version=1]"
+      }
+    ],
+    "redundant_tests": [],
+    "skipped_tests": [],
+    "status": "exercised",
+    "unknown_tests": []
+  },
+  "changed_old_tests": [],
+  "decision_id": "0014f26123a6e25b837e87f461135274988f5c1a971bba7eb2c0a29ae331dd17",
+  "input_id": "733baefc97b40f8c9f7059266ff277229000b6273ad0fc855f2fd64e59261f49",
+  "inputs": {
+    "approvals": [],
+    "baseline": "eb957a11596d27eb6f7db588dff4b79784fd69d5",
+    "candidate": "fe32fd78b29dd6f86ff82229c7103cfbb3d51c44",
+    "config": "495a144558166d3172fcb16da2fe21cb65fdb1d5b271f265f27809793a73da61",
+    "driver": {
+      "language": "python",
+      "producer": "a062e705e9b4791409555212698338a8fe282c765ca2412edc4b3369909161ee"
+    },
+    "emi": "0.1.1",
+    "environment": "549935ee62d49f7743526f7a197871892c3c442292b202661d8917c6fbaaec2b",
+    "intent": null,
+    "laws": null,
+    "memory": {
+      "laws": {},
+      "schema": "emi-memory-1"
+    },
+    "pins": {
+      "derandomize": true,
+      "hash_seed": 0,
+      "locale": "C.UTF-8",
+      "seed_random": true,
+      "tz": "UTC"
+    },
+    "policy": "emi-policy-10",
+    "search": null,
+    "setting": "cooperative"
+  },
+  "laws": {
+    "checked_functions": {},
+    "digest": null,
+    "fault": null,
+    "forgotten": [],
+    "found": {},
+    "laws": [],
+    "not_measured": [],
+    "proposals": []
+  },
+  "meta": {
+    "repo": "/home/runner/work/_temp/work/huggingface__huggingface_hub-3200.strict.gold-with-tests"
+  },
+  "not_verified": [
+    "Behaviour that no test exercises: tests passing does not show the task's behaviour exists.",
+    "The baseline's tests are taken as correct. They ran twice under the same pins; a test whose outcome differed is quarantined, and an outcome that depends on something the pins do not hold (the clock, the network, another process) can still differ.",
+    "Tests the baseline already skipped, expected to fail, could not collect or failed are not regression evidence: nothing is known about the behaviour they cover.",
+    "Escape hatches in the change (suppressions, test-runner sniffing, always-equal comparisons) are found by pattern, and only in product lines it added. Only sniffing is also measured: a modified function is replayed as a test run and as a plain process, on the inputs the behaviour comparison has, and only for the clues of a test run that replay plants.",
+    "Cooperative verification: the proposer could alter the controller's inputs (the configuration, the recorded approvals, the dependencies the tests run). It catches a careless proposer, not a cheating one.",
+    "Linked dependencies (.venv) were taken as found on this machine.",
+    "No laws: what the change should do is shown only by the proposer's own tests. Laws the person writes in .emi/laws hold every change to them.",
+    "Behaviour was compared with the baseline's on 198 input(s) (398 generated from annotations), as a report that decides nothing, since nobody asked for it to be kept; other inputs are not covered, so this is not a proof of equivalence.",
+    "the test command on the base commit exited with 1: loop_scope\" is unset.\nThe event loop scope for asynchronous fixtures will default to the fixture caching scope. Future versions of pytest-asyncio will default the loop scope for asynchronous fixtures to function scope. Set the default fixture loop scope explicitly in order to avoid unexpected behavior in the future. Valid fixture loop scopes are: \"function\", \"class\", \"module\", \"package\", \"session\"; the recorded inputs may be incomplete",
+    "1 of 2 mutant(s) of the changed lines survived the proving tests and laws; a survivor may be equivalent to the original."
+  ],
+  "policy": "emi-policy-10",
+  "preserve": {
+    "counts": {
+      "added_or_removed": 0,
+      "compared": 2,
+      "generated": 398,
+      "import_failures": 0,
+      "no_inputs": 0,
+      "not_replayed": 0,
+      "skipped_async": 0,
+      "skipped_method": 0,
+      "skipped_nested": 0,
+      "targets": 2,
+      "timeouts": 0,
+      "unencodable_result": 0,
+      "unrecordable": 0,
+      "unresolved": 0,
+      "unstable": 0,
+      "with_drift": 1
+    },
+    "divergences": [],
+    "functions": [
+      {
+        "compared": 198,
+        "deterministic": true,
+        "file": "tests/test_inference_client.py",
+        "function": "test_resolve_chat_completion_url",
+        "inputs": 198,
+        "status": "compared"
+      }
+    ],
+    "more_divergences": 30,
+    "not_checked": [],
+    "reasons": [
+      "the test command on the base commit exited with 1: loop_scope\" is unset.\nThe event loop scope for asynchronous fixtures will default to the fixture caching scope. Future versions of pytest-asyncio will default the loop scope for asynchronous fixtures to function scope. Set the default fixture loop scope explicitly in order to avoid unexpected behavior in the future. Valid fixture loop scopes are: \"function\", \"class\", \"module\", \"package\", \"session\"; the recorded inputs may be incomplete"
+    ],
+    "required": false,
+    "under_test": {
+      "compared": 410,
+      "differences": [],
+      "unmeasured": null
+    }
+  },
+  "regression": {
+    "failed": [],
+    "missing": [],
+    "nondeterministic": [],
+    "quarantined": [],
+    "reasons": [
+      "10 test(s) already failed at the baseline and are not regression evidence"
+    ],
+    "status": "held",
+    "tests_run": 41
+  },
+  "repair": [
+    "src/huggingface_hub/inference/_providers/hf_inference.py:144 in _build_chat_completion_url: changing `+` to `-` breaks no proving test or law; add a test that fails when that line goes wrong."
+  ],
+  "rule": "policy_repair",
+  "schema": "emi-done-receipt-1.0",
+  "signals": [],
+  "this_run": [
+    "No laws: what the change should do is shown only by the proposer's own tests. Laws the person writes in .emi/laws hold every change to them.",
+    "Behaviour was compared with the baseline's on 198 input(s) (398 generated from annotations), as a report that decides nothing, since nobody asked for it to be kept; other inputs are not covered, so this is not a proof of equivalence.",
+    "the test command on the base commit exited with 1: loop_scope\" is unset.\nThe event loop scope for asynchronous fixtures will default to the fixture caching scope. Future versions of pytest-asyncio will default the loop scope for asynchronous fixtures to function scope. Set the default fixture loop scope explicitly in order to avoid unexpected behavior in the future. Valid fixture loop scopes are: \"function\", \"class\", \"module\", \"package\", \"session\"; the recorded inputs may be incomplete",
+    "1 of 2 mutant(s) of the changed lines survived the proving tests and laws; a survivor may be equivalent to the original."
+  ]
+}

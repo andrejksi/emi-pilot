@@ -1,0 +1,60 @@
+diff --git a/anta/custom_types.py b/anta/custom_types.py
+index a83756c..84f52df 100644
+--- a/anta/custom_types.py
++++ b/anta/custom_types.py
+@@ -16,8 +16,8 @@ REGEXP_INTERFACE_ID = r"\d+(\/\d+)*(\.\d+)?"
+ """Match Interface ID lilke 1/1.1."""
+ REGEXP_TYPE_EOS_INTERFACE = r"^(Dps|Ethernet|Fabric|Loopback|Management|Port-Channel|Recirc-Channel|Tunnel|Vlan|Vxlan)[0-9]+(\/[0-9]+)*(\.[0-9]+)?$"
+ """Match EOS interface types like Ethernet1/1, Vlan1, Loopback1, etc."""
+-REGEXP_TYPE_VXLAN_SRC_INTERFACE = r"^(Loopback)([0-9]|[1-9][0-9]{1,2}|[1-7][0-9]{3}|8[01][0-9]{2}|819[01])$"
+-"""Match Vxlan source interface like Loopback10."""
++REGEXP_TYPE_VXLAN_SRC_INTERFACE = r"^(Dps|Loopback)([0-9]|[1-9][0-9]{1,2}|[1-7][0-9]{3}|8[01][0-9]{2}|819[01])$"
++"""Match Vxlan source interface like Loopback10 or Dps1."""
+ REGEX_TYPE_PORTCHANNEL = r"^Port-Channel[0-9]{1,6}$"
+ """Match Port Channel interface like Port-Channel5."""
+ REGEXP_EOS_INTERFACE_TYPE = r"^(Dps|Ethernet|Fabric|Loopback|Management|Port-Channel|Recirc-Channel|Tunnel|Vlan|Vxlan)$"
+diff --git a/anta/tests/vxlan.py b/anta/tests/vxlan.py
+index 8c04d64..95265b2 100644
+--- a/anta/tests/vxlan.py
++++ b/anta/tests/vxlan.py
+@@ -237,7 +237,7 @@ class VerifyVxlan1ConnSettings(AntaTest):
+         """Input model for the VerifyVxlan1ConnSettings test."""
+ 
+         source_interface: VxlanSrcIntf
+-        """Source loopback interface of vxlan1 interface."""
++        """Source interface of vxlan1 interface (Loopback or Dps)."""
+         udp_port: int = Field(ge=1024, le=65335)
+         """UDP port used for vxlan1 interface."""
+ 
+diff --git a/tests/units/anta_tests/test_vxlan.py b/tests/units/anta_tests/test_vxlan.py
+index e99c812..e4125ed 100644
+--- a/tests/units/anta_tests/test_vxlan.py
++++ b/tests/units/anta_tests/test_vxlan.py
+@@ -321,6 +321,11 @@ DATA: AntaUnitTestDataDict = {
+         "inputs": {"source_interface": "Loopback1", "udp_port": 4789},
+         "expected": {"result": AntaTestStatus.SUCCESS},
+     },
++    (VerifyVxlan1ConnSettings, "success-dps-source-interface"): {
++        "eos_data": [{"interfaces": {"Vxlan1": {"srcIpIntf": "Dps1", "udpPort": 4789}}}],
++        "inputs": {"source_interface": "Dps1", "udp_port": 4789},
++        "expected": {"result": AntaTestStatus.SUCCESS},
++    },
+     (VerifyVxlan1ConnSettings, "skipped"): {
+         "eos_data": [{"interfaces": {}}],
+         "inputs": {"source_interface": "Loopback1", "udp_port": 4789},
+diff --git a/tests/units/test_custom_types.py b/tests/units/test_custom_types.py
+index 8c1121d..17f3779 100644
+--- a/tests/units/test_custom_types.py
++++ b/tests/units/test_custom_types.py
+@@ -98,9 +98,11 @@ def test_regexp_type_vxlan_src_interface() -> None:
+     assert re.match(REGEXP_TYPE_VXLAN_SRC_INTERFACE, "Loopback100") is not None
+     assert re.match(REGEXP_TYPE_VXLAN_SRC_INTERFACE, "Loopback8190") is not None
+     assert re.match(REGEXP_TYPE_VXLAN_SRC_INTERFACE, "Loopback8199") is not None
++    assert re.match(REGEXP_TYPE_VXLAN_SRC_INTERFACE, "Dps1") is not None
+ 
+     # Test strings that should not match the pattern
+     assert re.match(REGEXP_TYPE_VXLAN_SRC_INTERFACE, "Loopback") is None
++    assert re.match(REGEXP_TYPE_VXLAN_SRC_INTERFACE, "Dps") is None
+     assert re.match(REGEXP_TYPE_VXLAN_SRC_INTERFACE, "Loopback9001") is None
+     assert re.match(REGEXP_TYPE_VXLAN_SRC_INTERFACE, "Loopback9000") is None
+ 

@@ -1,0 +1,131 @@
+{
+  "action": "incomplete",
+  "adequacy": null,
+  "ask": [],
+  "assurance": {
+    "isolation": "sandboxed",
+    "setting": "cooperative"
+  },
+  "baseline": {
+    "sha": "141dc1768de96fa91f674fb6c5d5698815cce165",
+    "source": "merge-base:main"
+  },
+  "candidate": {
+    "content_id": "75c20733bdcd9b9f78fcbb50fe98b0ea50c4c58f",
+    "id": "worktree"
+  },
+  "change": {
+    "companion_tests": [],
+    "failing_tests": [],
+    "functions": [],
+    "not_measured": [],
+    "proving_tests": [],
+    "redundant_tests": [],
+    "skipped_tests": [],
+    "status": "none",
+    "unknown_tests": []
+  },
+  "changed_old_tests": [],
+  "decision_id": "7f6d36f5518f74067d1a4acd5165ce66319ba03b7b13aec56784fba2f196ce4a",
+  "input_id": "1a36cf64acb7c4769b194a3dea45db64519996a226c541c7bbb6e1ce7d8b20c0",
+  "inputs": {
+    "approvals": [],
+    "baseline": "141dc1768de96fa91f674fb6c5d5698815cce165",
+    "candidate": "75c20733bdcd9b9f78fcbb50fe98b0ea50c4c58f",
+    "config": "1d26d1eb7f966c734077aceb4d6f17859f81b220e955b7c589781fe63da32d83",
+    "driver": {
+      "language": "python",
+      "producer": "a062e705e9b4791409555212698338a8fe282c765ca2412edc4b3369909161ee"
+    },
+    "emi": "0.1.1",
+    "environment": "2e2645d30af34859dc1ac18c2cfac2e11486a5ce565839f8aeb03fa97e1fc943",
+    "intent": null,
+    "laws": null,
+    "memory": {
+      "laws": {},
+      "schema": "emi-memory-1"
+    },
+    "pins": {
+      "derandomize": true,
+      "hash_seed": 0,
+      "locale": "C.UTF-8",
+      "seed_random": true,
+      "tz": "UTC"
+    },
+    "policy": "emi-policy-10",
+    "search": null,
+    "setting": "cooperative"
+  },
+  "laws": {
+    "checked_functions": {},
+    "digest": null,
+    "fault": null,
+    "forgotten": [],
+    "found": {},
+    "laws": [],
+    "not_measured": [],
+    "proposals": []
+  },
+  "meta": {
+    "repo": "/home/runner/work/_temp/work/deshaw__pyflyby-391.cooperative.nothing"
+  },
+  "not_verified": [
+    "Behaviour that no test exercises: tests passing does not show the task's behaviour exists.",
+    "The baseline's tests are taken as correct. They ran twice under the same pins; a test whose outcome differed is quarantined, and an outcome that depends on something the pins do not hold (the clock, the network, another process) can still differ.",
+    "Tests the baseline already skipped, expected to fail, could not collect or failed are not regression evidence: nothing is known about the behaviour they cover.",
+    "Escape hatches in the change (suppressions, test-runner sniffing, always-equal comparisons) are found by pattern, and only in product lines it added. Only sniffing is also measured: a modified function is replayed as a test run and as a plain process, on the inputs the behaviour comparison has, and only for the clues of a test run that replay plants.",
+    "Cooperative verification: the proposer could alter the controller's inputs (the configuration, the recorded approvals, the dependencies the tests run). It catches a careless proposer, not a cheating one.",
+    "Linked dependencies (.venv) were taken as found on this machine.",
+    "No laws: what the change should do is shown only by the proposer's own tests. Laws the person writes in .emi/laws hold every change to them."
+  ],
+  "policy": "emi-policy-10",
+  "preserve": {
+    "counts": {
+      "added_or_removed": 0,
+      "compared": 0,
+      "generated": 0,
+      "import_failures": 0,
+      "no_inputs": 0,
+      "not_replayed": 0,
+      "skipped_async": 0,
+      "skipped_method": 0,
+      "skipped_nested": 0,
+      "targets": 0,
+      "timeouts": 0,
+      "unencodable_result": 0,
+      "unrecordable": 0,
+      "unresolved": 0,
+      "unstable": 0,
+      "with_drift": 0
+    },
+    "divergences": [],
+    "functions": [],
+    "more_divergences": 0,
+    "not_checked": [],
+    "reasons": [],
+    "required": false,
+    "under_test": {
+      "compared": 0,
+      "differences": [],
+      "unmeasured": null
+    }
+  },
+  "regression": {
+    "failed": [],
+    "missing": [],
+    "nondeterministic": [],
+    "quarantined": [],
+    "reasons": [
+      "pytest execution has no complete readable result summary: see https://docs.pytest.org/en/latest/deprecations.html#py-path-local-arguments-for-hooks-replaced-with-pathlib-path"
+    ],
+    "status": "unknown",
+    "tests_run": null
+  },
+  "repair": [],
+  "rule": "fault",
+  "schema": "emi-done-receipt-1.0",
+  "signals": [],
+  "this_run": [
+    "No laws: what the change should do is shown only by the proposer's own tests. Laws the person writes in .emi/laws hold every change to them."
+  ]
+}

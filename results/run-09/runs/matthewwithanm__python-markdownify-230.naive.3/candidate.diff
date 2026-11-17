@@ -1,0 +1,48 @@
+diff --git a/markdownify/__init__.py b/markdownify/__init__.py
+index 72c5214..8a2273e 100644
+--- a/markdownify/__init__.py
++++ b/markdownify/__init__.py
+@@ -482,8 +482,22 @@ class MarkdownConverter(object):
+     def convert_code(self, el, text, parent_tags):
+         if 'pre' in parent_tags:
+             return text
+-        converter = abstract_inline_conversion(lambda self: '`')
+-        return converter(self, el, text, parent_tags)
++        if '_noformat' in parent_tags:
++            return text
++        prefix, suffix, text = chomp(text)
++        if not text:
++            return ''
++        # If the code contains backticks, use a longer backtick fence (one
++        # longer than the longest run of backticks in the text) and pad the
++        # content with spaces, per the CommonMark spec for code spans.
++        max_backticks = max((len(m) for m in re.findall(r'`+', text)), default=0)
++        if max_backticks:
++            fence = '`' * (max_backticks + 1)
++            if text.startswith('`') or text.endswith('`'):
++                text = ' ' + text + ' '
++        else:
++            fence = '`'
++        return '%s%s%s%s%s' % (prefix, fence, text, fence, suffix)
+ 
+     convert_del = abstract_inline_conversion(lambda self: '~~')
+ 
+diff --git a/tests/test_conversions.py b/tests/test_conversions.py
+index 825559b..7852b73 100644
+--- a/tests/test_conversions.py
++++ b/tests/test_conversions.py
+@@ -101,6 +101,14 @@ def test_code():
+     assert md('<code>foo<s> bar </s>baz</code>') == '`foo bar baz`'
+     assert md('<code>foo<sup>bar</sup>baz</code>', sup_symbol='^') == '`foobarbaz`'
+     assert md('<code>foo<sub>bar</sub>baz</code>', sub_symbol='^') == '`foobarbaz`'
++    # backticks inside code spans require a longer fence
++    assert md('<code>We have to `manage` this.</code>') == '``We have to `manage` this.``'
++    assert md('<kbd>We have to `manage` this.</kbd>') == '``We have to `manage` this.``'
++    assert md('<samp>We have to `manage` this.</samp>') == '``We have to `manage` this.``'
++    assert md('<code>`foo`</code>') == '`` `foo` ``'
++    assert md('<code>``foo``</code>') == '``` ``foo`` ```'
++    assert md('<code>a `` b</code>') == '```a `` b```'
++    assert md('<code>foo<code> `bar` </code>baz</code>') == '``foo `bar` baz``'
+ 
+ 
+ def test_dl():

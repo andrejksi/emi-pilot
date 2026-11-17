@@ -1,0 +1,91 @@
+diff --git a/narwhals/_arrow/series.py b/narwhals/_arrow/series.py
+index e22d20f..1d969a2 100644
+--- a/narwhals/_arrow/series.py
++++ b/narwhals/_arrow/series.py
+@@ -444,6 +444,9 @@ class ArrowSeries(EagerSeries["ChunkedArrayAny"]):
+         if isinstance(indices, int):
+             indices_native = pa.array([indices])
+             values_native = pa.array([values])
++            if not 0 <= indices < self.len():
++                msg = f"indices must be in the range [0, {self.len()}), got {indices}"
++                raise IndexError(msg)
+         else:
+             # TODO(unassigned): we may also want to let `indices` be a Series.
+             # https://github.com/narwhals-dev/narwhals/issues/2155
+@@ -459,17 +462,23 @@ class ArrowSeries(EagerSeries["ChunkedArrayAny"]):
+         indices_native = indices_native.take(sorting_indices)
+         values_native = values_native.take(sorting_indices)
+ 
++        indices_np = indices_native.to_numpy()
++        if (indices_np < 0).any() or (indices_np >= self.len()).any():
++            msg = (
++                f"indices must be in the range [0, {self.len()}), "
++                f"got {indices_np.tolist()}"
++            )
++            raise IndexError(msg)
++
+         mask: _1DArray = np.zeros(self.len(), dtype=bool)
+-        mask[indices_native] = True
++        mask[indices_np] = True
+         # NOTE: Multiple issues
+         # - Missing `values` type
+         # - `mask` accepts a `np.ndarray`, but not mentioned in stubs
+         # - Missing `replacements` type
+         # - Missing return type
+         pc_replace_with_mask: Incomplete = pc.replace_with_mask
+-        return self._with_native(
+-            pc_replace_with_mask(self.native, mask, values_native.take(indices_native))
+-        )
++        return self._with_native(pc_replace_with_mask(self.native, mask, values_native))
+ 
+     def to_list(self) -> list[Any]:
+         return self.native.to_pylist()
+diff --git a/tests/series_only/scatter_test.py b/tests/series_only/scatter_test.py
+index 2e5cbaa..5935e71 100644
+--- a/tests/series_only/scatter_test.py
++++ b/tests/series_only/scatter_test.py
+@@ -1,6 +1,7 @@
+ from __future__ import annotations
+ 
+ import pandas as pd
++import pytest
+ 
+ import narwhals as nw
+ from tests.utils import ConstructorEager, assert_equal_data
+@@ -61,3 +62,36 @@ def test_scatter_unordered_indices(constructor_eager: ConstructorEager) -> None:
+     df = nw.from_native(constructor_eager(data))
+     result = df["a"].scatter(indices, df["a"])
+     assert_equal_data({"a": result}, {"a": [10, 12, 5, 6, 2, 9, 16]})
++
++
++def test_scatter_non_zero_indices(constructor_eager: ConstructorEager) -> None:
++    df = nw.from_native(
++        constructor_eager({"a": [1, 2, 3], "b": [142, 124, 132]}), eager_only=True
++    )
++    s = df["a"]
++    assert_equal_data({"a": s.scatter(1, 999)}, {"a": [1, 999, 3]})
++    assert_equal_data({"a": s.scatter([0, 2], [999, 888])}, {"a": [999, 2, 888]})
++    assert_equal_data({"a": s.scatter([2, 0], [888, 999])}, {"a": [999, 2, 888]})
++    assert_equal_data({"a": s.scatter([1], [7])}, {"a": [1, 7, 3]})
++    # original series is unchanged
++    assert_equal_data({"a": s}, {"a": [1, 2, 3]})
++
++
++def test_scatter_out_of_bounds() -> None:
++    # Arrow-only: other backends have their own out-of-bounds behaviour.
++    pa = pytest.importorskip("pyarrow")
++    s = nw.from_native(pa.table({"a": [1, 2, 3]}), eager_only=True)["a"]
++    # Only the upper bound is violated.
++    with pytest.raises(IndexError):
++        s.scatter([3], [999])
++    # Only the lower bound is violated.
++    with pytest.raises(IndexError):
++        s.scatter([-1], [999])
++    # Both bounds are violated at once.
++    with pytest.raises(IndexError):
++        s.scatter([-1, 3], [999, 888])
++    # Scalar form.
++    with pytest.raises(IndexError):
++        s.scatter(3, 999)
++    with pytest.raises(IndexError):
++        s.scatter(-1, 999)

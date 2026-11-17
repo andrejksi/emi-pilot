@@ -1,0 +1,62 @@
+diff --git a/markdownify/__init__.py b/markdownify/__init__.py
+index 72c5214..9112857 100644
+--- a/markdownify/__init__.py
++++ b/markdownify/__init__.py
+@@ -23,6 +23,9 @@ re_make_convert_fn_name = re.compile(r'[\[\]:-]')
+ # (functionally equivalent to r'^(\n*)(.*?)(\n*)$', but greedy is faster than reluctant here)
+ re_extract_newlines = re.compile(r'^(\n*)((?:.*[^\n])?)(\n*)$', flags=re.DOTALL)
+ 
++# Find runs of backticks (used to determine the code span delimiter length)
++re_code_backtick_run = re.compile(r'`+')
++
+ # Escape miscellaneous special Markdown characters
+ re_escape_misc_chars = re.compile(r'([]\\&<`[>~=+|])')
+ 
+@@ -482,8 +485,23 @@ class MarkdownConverter(object):
+     def convert_code(self, el, text, parent_tags):
+         if 'pre' in parent_tags:
+             return text
+-        converter = abstract_inline_conversion(lambda self: '`')
+-        return converter(self, el, text, parent_tags)
++        if '_noformat' in parent_tags:
++            return text
++        prefix, suffix, text = chomp(text)
++        if not text:
++            return ''
++        # If the text contains backticks, use a longer delimiter (one more
++        # backtick than the longest run of backticks in the text) so that the
++        # code span is not terminated prematurely.
++        longest_backtick_run = max((len(m) for m in re_code_backtick_run.findall(text)), default=0)
++        if longest_backtick_run:
++            markup = '`' * (longest_backtick_run + 1)
++            # pad with spaces if the text starts or ends with a backtick
++            if text.startswith('`') or text.endswith('`'):
++                text = ' %s ' % text
++        else:
++            markup = '`'
++        return '%s%s%s%s%s' % (prefix, markup, text, markup, suffix)
+ 
+     convert_del = abstract_inline_conversion(lambda self: '~~')
+ 
+diff --git a/tests/test_conversions.py b/tests/test_conversions.py
+index 825559b..9e281cd 100644
+--- a/tests/test_conversions.py
++++ b/tests/test_conversions.py
+@@ -101,6 +101,17 @@ def test_code():
+     assert md('<code>foo<s> bar </s>baz</code>') == '`foo bar baz`'
+     assert md('<code>foo<sup>bar</sup>baz</code>', sup_symbol='^') == '`foobarbaz`'
+     assert md('<code>foo<sub>bar</sub>baz</code>', sub_symbol='^') == '`foobarbaz`'
++    # backticks inside code spans require a longer delimiter
++    assert md('<code>We have to `manage` this.</code>') == '``We have to `manage` this.``'
++    assert md('<kbd>We have to `manage` this.</kbd>') == '``We have to `manage` this.``'
++    assert md('<samp>We have to `manage` this.</samp>') == '``We have to `manage` this.``'
++    assert md('<code>a ``b`` c</code>') == '```a ``b`` c```'
++    assert md('<code>`foo`</code>') == '`` `foo` ``'
++    # padding is needed when the text starts OR ends with a backtick
++    assert md('<code>`foo</code>') == '`` `foo ``'
++    assert md('<code>foo`</code>') == '`` foo` ``'
++    assert md('<code>foo<code>a `b`</code>baz</code>') == '``fooa `b`baz``'
++    assert md('<pre><code>a `b`</code></pre>') == '\n\n```\na `b`\n```\n\n'
+ 
+ 
+ def test_dl():

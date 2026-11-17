@@ -1,0 +1,22 @@
+{
+  "arm": "naive",
+  "backend": "replay",
+  "claims": [
+    {
+      "exit": 1,
+      "gate": "pytest",
+      "verdict": "repair"
+    }
+  ],
+  "final": "flagged",
+  "model": null,
+  "repair_rounds": 1,
+  "replay": "nothing",
+  "seconds": 6.7,
+  "seed": 0,
+  "task": "berriai__litellm-11964",
+  "usage": {
+    "completion_tokens": 0,
+    "prompt_tokens": 0
+  }
+}

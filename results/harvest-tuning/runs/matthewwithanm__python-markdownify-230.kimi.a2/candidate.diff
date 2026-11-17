@@ -1,0 +1,52 @@
+diff --git a/markdownify/__init__.py b/markdownify/__init__.py
+index 72c5214..757d575 100644
+--- a/markdownify/__init__.py
++++ b/markdownify/__init__.py
+@@ -482,8 +482,23 @@ class MarkdownConverter(object):
+     def convert_code(self, el, text, parent_tags):
+         if 'pre' in parent_tags:
+             return text
+-        converter = abstract_inline_conversion(lambda self: '`')
+-        return converter(self, el, text, parent_tags)
++        if '_noformat' in parent_tags:
++            return text
++
++        prefix, suffix, text = chomp(text)
++        if not text:
++            return ''
++
++        # Use a delimiter longer than any backtick run in the code so that
++        # backticks in the code cannot accidentally close the code span.
++        backtick_runs = re.findall(r'`+', text)
++        delimiter = '`' * (max(map(len, backtick_runs), default=0) + 1)
++
++        # Markdown requires padding when the code starts or ends with a
++        # backtick; otherwise that backtick would become part of the delimiter.
++        padding = ' ' if text.startswith('`') or text.endswith('`') else ''
++        return '%s%s%s%s%s%s%s' % (
++            prefix, delimiter, padding, text, padding, delimiter, suffix)
+ 
+     convert_del = abstract_inline_conversion(lambda self: '~~')
+ 
+diff --git a/tests/test_conversions.py b/tests/test_conversions.py
+index 825559b..d892771 100644
+--- a/tests/test_conversions.py
++++ b/tests/test_conversions.py
+@@ -103,6 +103,17 @@ def test_code():
+     assert md('<code>foo<sub>bar</sub>baz</code>', sub_symbol='^') == '`foobarbaz`'
+ 
+ 
++def test_code_with_backticks():
++    assert md('<code>We have to `manage` this.</code>') == '``We have to `manage` this.``'
++    assert md('<code>Use ``two backticks`` here.</code>') == '```Use ``two backticks`` here.```'
++    assert md('<code>`manage`</code>') == '`` `manage` ``'
++    assert md('<code>``manage``</code>') == '``` ``manage`` ```'
++    assert md('<code>foo <b>`bar`</b> baz</code>') == '``foo `bar` baz``'
++    assert md('<kbd>We have to `manage` this.</kbd>') == '``We have to `manage` this.``'
++    assert md('<samp>We have to `manage` this.</samp>') == '``We have to `manage` this.``'
++    assert md('<pre><code>We have to `manage` this.</code></pre>') == '\n\n```\nWe have to `manage` this.\n```\n\n'
++
++
+ def test_dl():
+     assert md('<dl><dt>term</dt><dd>definition</dd></dl>') == '\n\nterm\n:   definition\n\n'
+     assert md('<dl><dt><p>te</p><p>rm</p></dt><dd>definition</dd></dl>') == '\n\nte rm\n:   definition\n\n'

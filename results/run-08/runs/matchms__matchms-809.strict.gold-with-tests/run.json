@@ -1,0 +1,30 @@
+{
+  "arm": "strict",
+  "backend": "replay",
+  "claims": [
+    {
+      "action": "stop",
+      "exit": 0,
+      "gate": "emi",
+      "receipt": "receipt-1.json",
+      "reviewer": {
+        "approved": [
+          "old-test:tests/importing/test_load_from_msp.py"
+        ]
+      },
+      "rule": "none",
+      "verdict": "accepted"
+    }
+  ],
+  "final": "accepted",
+  "model": null,
+  "repair_rounds": 0,
+  "replay": "gold-with-tests",
+  "seconds": 296.0,
+  "seed": 0,
+  "task": "matchms__matchms-809",
+  "usage": {
+    "completion_tokens": 0,
+    "prompt_tokens": 0
+  }
+}

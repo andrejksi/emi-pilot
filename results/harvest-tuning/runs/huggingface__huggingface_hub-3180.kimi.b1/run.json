@@ -1,0 +1,21 @@
+{
+  "arm": "control",
+  "backend": "chat",
+  "claims": [
+    {
+      "gate": "none",
+      "verdict": "accepted"
+    }
+  ],
+  "final": "accepted",
+  "model": "moonshotai/Kimi-K3.1-Pro",
+  "repair_rounds": 0,
+  "replay": null,
+  "seconds": 211.8,
+  "seed": 1,
+  "task": "huggingface__huggingface_hub-3180",
+  "usage": {
+    "completion_tokens": 9960,
+    "prompt_tokens": 288469
+  }
+}

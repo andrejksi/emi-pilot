@@ -1,0 +1,158 @@
+{
+  "action": "stop",
+  "adequacy": null,
+  "ask": [],
+  "assurance": {
+    "isolation": "sandboxed",
+    "setting": "cooperative"
+  },
+  "baseline": {
+    "sha": "648d479ce1f00c80184a717c89a7b3593b3a28ac",
+    "source": "merge-base:main"
+  },
+  "candidate": {
+    "content_id": "1e1f5ec4bb92aba61ab746d21bd0661ac50a3696",
+    "id": "worktree"
+  },
+  "change": {
+    "companion_tests": [],
+    "failing_tests": [],
+    "functions": [
+      {
+        "file": "markdownify/__init__.py",
+        "function": "convert_code",
+        "laws": [],
+        "line": 482,
+        "status": "exercised"
+      }
+    ],
+    "not_measured": [],
+    "proving_tests": [
+      {
+        "baseline_result": "failed",
+        "edited": false,
+        "id": "tests/test_conversions.py::test_code_with_backticks"
+      }
+    ],
+    "redundant_tests": [],
+    "skipped_tests": [],
+    "status": "exercised",
+    "unknown_tests": []
+  },
+  "changed_old_tests": [],
+  "decision_id": "f964edf52341f61c712adb80e3edcf0943c9f49e0eb13a76d2af8412b53ed7c7",
+  "input_id": "14107bd4901ff3576aad268c9113456e0921f87ff80a4e3367e4152e4033c23f",
+  "inputs": {
+    "approvals": [],
+    "baseline": "648d479ce1f00c80184a717c89a7b3593b3a28ac",
+    "candidate": "1e1f5ec4bb92aba61ab746d21bd0661ac50a3696",
+    "config": "a50775db554517373738bf70cf3cbc55171e6d399965d078af1ce74bcbfe6136",
+    "driver": {
+      "language": "python",
+      "producer": "a062e705e9b4791409555212698338a8fe282c765ca2412edc4b3369909161ee"
+    },
+    "emi": "0.1.1",
+    "environment": "822fba4cbad00bdd366fd6e56d3b2611aa7ff309d0b09b1932843059e954a5ba",
+    "intent": null,
+    "laws": null,
+    "memory": {
+      "laws": {},
+      "schema": "emi-memory-1"
+    },
+    "pins": {
+      "derandomize": true,
+      "hash_seed": 0,
+      "locale": "C.UTF-8",
+      "seed_random": true,
+      "tz": "UTC"
+    },
+    "policy": "emi-policy-10",
+    "search": null,
+    "setting": "cooperative"
+  },
+  "laws": {
+    "checked_functions": {},
+    "digest": null,
+    "fault": null,
+    "forgotten": [],
+    "found": {},
+    "laws": [],
+    "not_measured": [],
+    "proposals": []
+  },
+  "meta": {
+    "repo": "/home/runner/work/_temp/work/matthewwithanm__python-markdownify-230.cooperative.1"
+  },
+  "not_verified": [
+    "Behaviour that no test exercises: tests passing does not show the task's behaviour exists.",
+    "The baseline's tests are taken as correct. They ran twice under the same pins; a test whose outcome differed is quarantined, and an outcome that depends on something the pins do not hold (the clock, the network, another process) can still differ.",
+    "Tests the baseline already skipped, expected to fail, could not collect or failed are not regression evidence: nothing is known about the behaviour they cover.",
+    "Escape hatches in the change (suppressions, test-runner sniffing, always-equal comparisons) are found by pattern, and only in product lines it added. Only sniffing is also measured: a modified function is replayed as a test run and as a plain process, on the inputs the behaviour comparison has, and only for the clues of a test run that replay plants.",
+    "Cooperative verification: the proposer could alter the controller's inputs (the configuration, the recorded approvals, the dependencies the tests run). It catches a careless proposer, not a cheating one.",
+    "Linked dependencies (.venv) were taken as found on this machine.",
+    "No laws: what the change should do is shown only by the proposer's own tests. Laws the person writes in .emi/laws hold every change to them.",
+    "Behaviour was compared with the baseline's on 0 input(s) (0 generated from annotations), as a report that decides nothing, since nobody asked for it to be kept; other inputs are not covered, so this is not a proof of equivalence.",
+    "Not compared: markdownify/__init__.py::MarkdownConverter.convert_code: no_inputs."
+  ],
+  "policy": "emi-policy-10",
+  "preserve": {
+    "counts": {
+      "added_or_removed": 1,
+      "compared": 0,
+      "generated": 0,
+      "import_failures": 0,
+      "no_inputs": 1,
+      "not_replayed": 0,
+      "skipped_async": 0,
+      "skipped_method": 0,
+      "skipped_nested": 0,
+      "targets": 1,
+      "timeouts": 0,
+      "unencodable_result": 0,
+      "unrecordable": 23,
+      "unresolved": 0,
+      "unstable": 0,
+      "with_drift": 0
+    },
+    "divergences": [],
+    "functions": [
+      {
+        "compared": 0,
+        "deterministic": false,
+        "file": "markdownify/__init__.py",
+        "function": "MarkdownConverter.convert_code",
+        "inputs": 0,
+        "status": "no_inputs"
+      }
+    ],
+    "more_divergences": 0,
+    "not_checked": [
+      "markdownify/__init__.py::MarkdownConverter.convert_code: no_inputs"
+    ],
+    "reasons": [],
+    "required": false,
+    "under_test": {
+      "compared": 0,
+      "differences": [],
+      "unmeasured": null
+    }
+  },
+  "regression": {
+    "failed": [],
+    "missing": [],
+    "nondeterministic": [],
+    "quarantined": [],
+    "reasons": [],
+    "status": "held",
+    "tests_run": 50
+  },
+  "repair": [],
+  "rule": "none",
+  "schema": "emi-done-receipt-1.0",
+  "signals": [],
+  "this_run": [
+    "No laws: what the change should do is shown only by the proposer's own tests. Laws the person writes in .emi/laws hold every change to them.",
+    "Behaviour was compared with the baseline's on 0 input(s) (0 generated from annotations), as a report that decides nothing, since nobody asked for it to be kept; other inputs are not covered, so this is not a proof of equivalence.",
+    "Not compared: markdownify/__init__.py::MarkdownConverter.convert_code: no_inputs."
+  ]
+}

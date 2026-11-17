@@ -1,0 +1,21 @@
+{
+  "arm": "control",
+  "backend": "chat",
+  "claims": [
+    {
+      "gate": "none",
+      "verdict": "accepted"
+    }
+  ],
+  "final": "accepted",
+  "model": "moonshotai/Kimi-K3.1-Pro",
+  "repair_rounds": 0,
+  "replay": null,
+  "seconds": 90.0,
+  "seed": 3,
+  "task": "aristanetworks__anta-1250",
+  "usage": {
+    "completion_tokens": 4272,
+    "prompt_tokens": 219528
+  }
+}

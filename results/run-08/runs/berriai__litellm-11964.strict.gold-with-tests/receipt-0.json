@@ -1,0 +1,199 @@
+{
+  "action": "stop",
+  "adequacy": {
+    "base": "89cfb6e23d79bdf2e51f0655bdb51f0c1d5810d6",
+    "candidates": 0,
+    "errors": null,
+    "head": "10aaf272ad90c4f76b416554b112e6c28f605e44",
+    "killed": null,
+    "not_mutated": {
+      "removed_only": 0,
+      "unparsed": [],
+      "unreadable": [],
+      "unsupported": []
+    },
+    "note": "a surviving mutant may be equivalent to the original; treat survivors as places to look, not defects",
+    "run": 0,
+    "state": "nothing_to_mutate",
+    "survived": null,
+    "survivors": null,
+    "timed_out": null
+  },
+  "ask": [],
+  "assurance": {
+    "isolation": "sandboxed",
+    "setting": "cooperative"
+  },
+  "baseline": {
+    "sha": "89cfb6e23d79bdf2e51f0655bdb51f0c1d5810d6",
+    "source": "merge-base:main"
+  },
+  "candidate": {
+    "content_id": "d54352695c9389608d9848485c750203a5844dd1",
+    "id": "worktree"
+  },
+  "change": {
+    "companion_tests": [],
+    "failing_tests": [],
+    "functions": [
+      {
+        "file": "litellm/litellm_core_utils/prompt_templates/common_utils.py",
+        "function": "unpack_defs",
+        "laws": [],
+        "line": 498,
+        "status": "exercised"
+      },
+      {
+        "file": "litellm/litellm_core_utils/prompt_templates/common_utils.py",
+        "function": "_walk_and_resolve",
+        "laws": [],
+        "line": 521,
+        "status": "exercised"
+      }
+    ],
+    "not_measured": [
+      "litellm/litellm_core_utils/prompt_templates/common_utils.py: 1 changed line(s) outside any function (module or class level); whether a test runs them is not measured"
+    ],
+    "proving_tests": [
+      {
+        "baseline_result": "failed",
+        "edited": false,
+        "id": "tests/test_litellm/litellm_core_utils/prompt_templates/test_litellm_core_utils_prompt_templates_factory.py::test_unpack_defs_resolves_nested_ref_inside_anyof_items"
+      }
+    ],
+    "redundant_tests": [],
+    "skipped_tests": [],
+    "status": "exercised",
+    "unknown_tests": []
+  },
+  "changed_old_tests": [],
+  "decision_id": "59c9e7b136a6aa21a962242473d0083d56148ad51b3f098e90869a4f54490e1d",
+  "input_id": "d1b2fef98e7a8c4e1a95f6878e3e89c058a184c73bf65284ce19bc16083c655b",
+  "inputs": {
+    "approvals": [],
+    "baseline": "89cfb6e23d79bdf2e51f0655bdb51f0c1d5810d6",
+    "candidate": "d54352695c9389608d9848485c750203a5844dd1",
+    "config": "5d2f22bf5021d9f3ff2e0f6ecf842f5d7cd2821462977634853ceee08e9dfc39",
+    "driver": {
+      "language": "python",
+      "producer": "a062e705e9b4791409555212698338a8fe282c765ca2412edc4b3369909161ee"
+    },
+    "emi": "0.1.1",
+    "environment": "8882cddc57b762303add61102df0d35a2c55305c7a18ec3471b2039753b83228",
+    "intent": null,
+    "laws": null,
+    "memory": {
+      "laws": {},
+      "schema": "emi-memory-1"
+    },
+    "pins": {
+      "derandomize": true,
+      "hash_seed": 0,
+      "locale": "C.UTF-8",
+      "seed_random": true,
+      "tz": "UTC"
+    },
+    "policy": "emi-policy-10",
+    "search": null,
+    "setting": "cooperative"
+  },
+  "laws": {
+    "checked_functions": {},
+    "digest": null,
+    "fault": null,
+    "forgotten": [],
+    "found": {},
+    "laws": [],
+    "not_measured": [],
+    "proposals": []
+  },
+  "meta": {
+    "repo": "/home/runner/work/_temp/work/berriai__litellm-11964.strict.gold-with-tests"
+  },
+  "not_verified": [
+    "Behaviour that no test exercises: tests passing does not show the task's behaviour exists.",
+    "The baseline's tests are taken as correct. They ran twice under the same pins; a test whose outcome differed is quarantined, and an outcome that depends on something the pins do not hold (the clock, the network, another process) can still differ.",
+    "Tests the baseline already skipped, expected to fail, could not collect or failed are not regression evidence: nothing is known about the behaviour they cover.",
+    "Escape hatches in the change (suppressions, test-runner sniffing, always-equal comparisons) are found by pattern, and only in product lines it added. Only sniffing is also measured: a modified function is replayed as a test run and as a plain process, on the inputs the behaviour comparison has, and only for the clues of a test run that replay plants.",
+    "Cooperative verification: the proposer could alter the controller's inputs (the configuration, the recorded approvals, the dependencies the tests run). It catches a careless proposer, not a cheating one.",
+    "Linked dependencies (.venv) were taken as found on this machine.",
+    "No laws: what the change should do is shown only by the proposer's own tests. Laws the person writes in .emi/laws hold every change to them.",
+    "Not compared: litellm/litellm_core_utils/prompt_templates/common_utils.py::unpack_defs: no_inputs.",
+    "the test command on the base commit exited with 1; the recorded inputs may be incomplete",
+    "2 escape-hatch signal(s) in the change's product code, found by pattern (first: litellm/litellm_core_utils/prompt_templates/common_utils.py:521 suppression); a pass with one that says the code may behave one way under test goes to a person in the enforced setting."
+  ],
+  "policy": "emi-policy-10",
+  "preserve": {
+    "counts": {
+      "added_or_removed": 2,
+      "compared": 0,
+      "generated": 0,
+      "import_failures": 0,
+      "no_inputs": 1,
+      "not_replayed": 0,
+      "skipped_async": 0,
+      "skipped_method": 0,
+      "skipped_nested": 0,
+      "targets": 1,
+      "timeouts": 0,
+      "unencodable_result": 0,
+      "unrecordable": 0,
+      "unresolved": 0,
+      "unstable": 0,
+      "with_drift": 0
+    },
+    "divergences": [],
+    "functions": [],
+    "more_divergences": 0,
+    "not_checked": [
+      "litellm/litellm_core_utils/prompt_templates/common_utils.py::unpack_defs: no_inputs"
+    ],
+    "reasons": [
+      "the test command on the base commit exited with 1; the recorded inputs may be incomplete"
+    ],
+    "required": false,
+    "under_test": {
+      "compared": 0,
+      "differences": [],
+      "unmeasured": null
+    }
+  },
+  "regression": {
+    "failed": [],
+    "missing": [],
+    "nondeterministic": [],
+    "quarantined": [],
+    "reasons": [
+      "3 test(s) already failed at the baseline and are not regression evidence"
+    ],
+    "status": "held",
+    "tests_run": 106
+  },
+  "repair": [],
+  "rule": "none",
+  "schema": "emi-done-receipt-1.0",
+  "signals": [
+    {
+      "assurance": "pattern",
+      "file": "litellm/litellm_core_utils/prompt_templates/common_utils.py",
+      "kind": "suppression",
+      "line": 521,
+      "means": "switches a checker off for this line",
+      "text": "def _walk_and_resolve(node: Any, active_defs: dict, seen: Set[int]):  # type: ignore[name-defined]"
+    },
+    {
+      "assurance": "pattern",
+      "file": "litellm/litellm_core_utils/prompt_templates/common_utils.py",
+      "kind": "suppression",
+      "line": 586,
+      "means": "switches a checker off for this line",
+      "text": "schema[\"__resolved_value__\"] = resolved_root  # type: ignore"
+    }
+  ],
+  "this_run": [
+    "No laws: what the change should do is shown only by the proposer's own tests. Laws the person writes in .emi/laws hold every change to them.",
+    "Not compared: litellm/litellm_core_utils/prompt_templates/common_utils.py::unpack_defs: no_inputs.",
+    "the test command on the base commit exited with 1; the recorded inputs may be incomplete",
+    "2 escape-hatch signal(s) in the change's product code, found by pattern (first: litellm/litellm_core_utils/prompt_templates/common_utils.py:521 suppression); a pass with one that says the code may behave one way under test goes to a person in the enforced setting."
+  ]
+}

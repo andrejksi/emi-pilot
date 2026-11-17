@@ -1,0 +1,149 @@
+{
+  "action": "repair",
+  "adequacy": {
+    "note": "no proving test or passing law to run the mutants against",
+    "state": "nothing_to_run"
+  },
+  "ask": [],
+  "assurance": {
+    "isolation": "sandboxed",
+    "setting": "cooperative"
+  },
+  "baseline": {
+    "sha": "01c41fe088528b41d6df52e65fbcfd559176b980",
+    "source": "merge-base:main"
+  },
+  "candidate": {
+    "content_id": "5176595aca91da4b5ee8a266e5ff5d7b894ce252",
+    "id": "worktree"
+  },
+  "change": {
+    "companion_tests": [],
+    "failing_tests": [],
+    "functions": [],
+    "not_measured": [
+      "anta/custom_types.py: 4 changed line(s) outside any function (module or class level); whether a test runs them is not measured"
+    ],
+    "proving_tests": [],
+    "redundant_tests": [],
+    "skipped_tests": [],
+    "status": "none",
+    "unknown_tests": [
+      {
+        "id": "tests/units/test_custom_types.py::test_validate_regex_valid[^(Dps1|Loopback(0|[1-9]\\\\d{0,2}|[1-7]\\\\d{3}|80[0-9]{2}|81[0-8]\\\\d|819[01]))$]",
+        "reason": "at the baseline: the run did not report the test"
+      }
+    ]
+  },
+  "changed_old_tests": [],
+  "decision_id": "593d07a234687964a482c99bbba1716d58ffd893a8b68fb48b801246a14114c6",
+  "input_id": "8280e8b1260dfdc6fa2edf307d7a8d0db63563cb2ed05ac80c3067f6aa6d79c1",
+  "inputs": {
+    "approvals": [],
+    "baseline": "01c41fe088528b41d6df52e65fbcfd559176b980",
+    "candidate": "5176595aca91da4b5ee8a266e5ff5d7b894ce252",
+    "config": "ba5a772868e883b73ab9a9fb7849ffd5493e7fad5838bd43aa415c858b5f83ba",
+    "driver": {
+      "language": "python",
+      "producer": "a062e705e9b4791409555212698338a8fe282c765ca2412edc4b3369909161ee"
+    },
+    "emi": "0.1.1",
+    "environment": "bb903a2fab018573b36f990fb6acbd99d9d9b1c564c0bd25ae7effff94109632",
+    "intent": null,
+    "laws": null,
+    "memory": {
+      "laws": {},
+      "schema": "emi-memory-1"
+    },
+    "pins": {
+      "derandomize": true,
+      "hash_seed": 0,
+      "locale": "C.UTF-8",
+      "seed_random": true,
+      "tz": "UTC"
+    },
+    "policy": "emi-policy-10",
+    "search": null,
+    "setting": "cooperative"
+  },
+  "laws": {
+    "checked_functions": {},
+    "digest": null,
+    "fault": null,
+    "forgotten": [],
+    "found": {},
+    "laws": [],
+    "not_measured": [],
+    "proposals": []
+  },
+  "meta": {
+    "repo": "/home/runner/work/_temp/work/aristanetworks__anta-1250.strict.gold"
+  },
+  "not_verified": [
+    "Behaviour that no test exercises: tests passing does not show the task's behaviour exists.",
+    "The baseline's tests are taken as correct. They ran twice under the same pins; a test whose outcome differed is quarantined, and an outcome that depends on something the pins do not hold (the clock, the network, another process) can still differ.",
+    "Tests the baseline already skipped, expected to fail, could not collect or failed are not regression evidence: nothing is known about the behaviour they cover.",
+    "Escape hatches in the change (suppressions, test-runner sniffing, always-equal comparisons) are found by pattern, and only in product lines it added. Only sniffing is also measured: a modified function is replayed as a test run and as a plain process, on the inputs the behaviour comparison has, and only for the clues of a test run that replay plants.",
+    "Cooperative verification: the proposer could alter the controller's inputs (the configuration, the recorded approvals, the dependencies the tests run). It catches a careless proposer, not a cheating one.",
+    "Linked dependencies (.venv) were taken as found on this machine.",
+    "No laws: what the change should do is shown only by the proposer's own tests. Laws the person writes in .emi/laws hold every change to them."
+  ],
+  "policy": "emi-policy-10",
+  "preserve": {
+    "counts": {
+      "added_or_removed": 0,
+      "compared": 0,
+      "generated": 0,
+      "import_failures": 0,
+      "no_inputs": 0,
+      "not_replayed": 0,
+      "skipped_async": 0,
+      "skipped_method": 0,
+      "skipped_nested": 0,
+      "targets": 0,
+      "timeouts": 0,
+      "unencodable_result": 0,
+      "unrecordable": 0,
+      "unresolved": 0,
+      "unstable": 0,
+      "with_drift": 0
+    },
+    "divergences": [],
+    "functions": [],
+    "more_divergences": 0,
+    "not_checked": [],
+    "reasons": [],
+    "required": false,
+    "under_test": {
+      "compared": 0,
+      "differences": [],
+      "unmeasured": null
+    }
+  },
+  "regression": {
+    "failed": [
+      "tests/units/test_custom_types.py::test_regexp_type_vxlan_src_interface"
+    ],
+    "missing": [
+      "tests/units/test_custom_types.py::test_validate_regex_valid[^(Loopback)([0-9]|[1-9][0-9]{1,2}|[1-7][0-9]{3}|8[01][0-9]{2}|819[01])$]"
+    ],
+    "nondeterministic": [],
+    "quarantined": [],
+    "reasons": [
+      "1 test(s) failed among those the candidate did not change",
+      "1 baseline test(s) are missing from the candidate's run"
+    ],
+    "status": "broken",
+    "tests_run": 73
+  },
+  "repair": [
+    "tests/units/test_custom_types.py::test_regexp_type_vxlan_src_interface fails; fix the code (an edited or deleted test is run in its original form). It failed with:\n    AssertionError: assert None is not None\n    + where None = <function match at 0x...>('^(Dps1|Loopback(0|[1-9]\\\\d{0,2}|[1-7]\\\\d{3}|80[0-9]{2}|81[0-8]\\\\d|819[01]))$', 'Loopback8199')\n    + where <function match at 0x...> = re.match",
+    "tests/units/test_custom_types.py::test_validate_regex_valid[^(Loopback)([0-9]|[1-9][0-9]{1,2}|[1-7][0-9]{3}|8[01][0-9]{2}|819[01])$] no longer runs; restore it."
+  ],
+  "rule": "broken",
+  "schema": "emi-done-receipt-1.0",
+  "signals": [],
+  "this_run": [
+    "No laws: what the change should do is shown only by the proposer's own tests. Laws the person writes in .emi/laws hold every change to them."
+  ]
+}

@@ -1,0 +1,43 @@
+diff --git a/markdownify/__init__.py b/markdownify/__init__.py
+index 72c5214..22e30d1 100644
+--- a/markdownify/__init__.py
++++ b/markdownify/__init__.py
+@@ -482,8 +482,20 @@ class MarkdownConverter(object):
+     def convert_code(self, el, text, parent_tags):
+         if 'pre' in parent_tags:
+             return text
+-        converter = abstract_inline_conversion(lambda self: '`')
+-        return converter(self, el, text, parent_tags)
++        if '_noformat' in parent_tags:
++            return text
++        prefix, suffix, text = chomp(text)
++        if not text:
++            return ''
++        # Use a delimiter of backticks longer than any run of backticks in the
++        # text, so that backticks inside the code span are preserved.
++        longest_run = max((len(m) for m in re.findall(r'`+', text)), default=0)
++        delimiter = '`' * (longest_run + 1)
++        # Pad with spaces if the text starts or ends with a backtick, so that
++        # the delimiters are not merged with the content.
++        if text[0] == '`' or text[-1] == '`':
++            text = ' %s ' % text
++        return '%s%s%s%s%s' % (prefix, delimiter, text, delimiter, suffix)
+ 
+     convert_del = abstract_inline_conversion(lambda self: '~~')
+ 
+diff --git a/tests/test_conversions.py b/tests/test_conversions.py
+index 825559b..ed479a2 100644
+--- a/tests/test_conversions.py
++++ b/tests/test_conversions.py
+@@ -101,6 +101,11 @@ def test_code():
+     assert md('<code>foo<s> bar </s>baz</code>') == '`foo bar baz`'
+     assert md('<code>foo<sup>bar</sup>baz</code>', sup_symbol='^') == '`foobarbaz`'
+     assert md('<code>foo<sub>bar</sub>baz</code>', sub_symbol='^') == '`foobarbaz`'
++    assert md('<code>We have to `manage` this.</code>') == '``We have to `manage` this.``'
++    assert md('<code>a ``b`` c</code>') == '```a ``b`` c```'
++    assert md('<code>`foo`</code>') == '`` `foo` ``'
++    assert md('<kbd>a `b`</kbd>') == '`` a `b` ``'
++    assert md('<samp>a `b`</samp>') == '`` a `b` ``'
+ 
+ 
+ def test_dl():

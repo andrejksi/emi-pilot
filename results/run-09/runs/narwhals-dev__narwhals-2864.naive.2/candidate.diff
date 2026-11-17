@@ -1,0 +1,18 @@
+diff --git a/narwhals/_arrow/series.py b/narwhals/_arrow/series.py
+index e22d20f..e9345fb 100644
+--- a/narwhals/_arrow/series.py
++++ b/narwhals/_arrow/series.py
+@@ -467,8 +467,12 @@ class ArrowSeries(EagerSeries["ChunkedArrayAny"]):
+         # - Missing `replacements` type
+         # - Missing return type
+         pc_replace_with_mask: Incomplete = pc.replace_with_mask
++        # `replace_with_mask` expects `replacements` to be the same length as the
++        # number of `True` values in `mask`, so we need to select the values which
++        # correspond to the (sorted) masked positions.
++        mask_indices = np.flatnonzero(mask)
+         return self._with_native(
+-            pc_replace_with_mask(self.native, mask, values_native.take(indices_native))
++            pc_replace_with_mask(self.native, mask, values_native.take(mask_indices))
+         )
+ 
+     def to_list(self) -> list[Any]:

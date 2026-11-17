@@ -1,0 +1,168 @@
+{
+  "action": "stop",
+  "adequacy": null,
+  "ask": [],
+  "assurance": {
+    "isolation": "sandboxed",
+    "setting": "cooperative"
+  },
+  "baseline": {
+    "sha": "f0f63cf5ab3283cd32c4cdf0d1af0c5966cd600d",
+    "source": "merge-base:main"
+  },
+  "candidate": {
+    "content_id": "3127f6b222b824a61df6fc066899baf99242e9cb",
+    "id": "worktree"
+  },
+  "change": {
+    "companion_tests": [],
+    "failing_tests": [],
+    "functions": [
+      {
+        "file": "singer_sdk/singerlib/schema.py",
+        "function": "_resolve_schema_references",
+        "laws": [],
+        "line": 255,
+        "status": "exercised"
+      }
+    ],
+    "not_measured": [
+      "singer_sdk/singerlib/schema.py: 1 changed line(s) outside any function (module or class level); whether a test runs them is not measured"
+    ],
+    "proving_tests": [
+      {
+        "baseline_result": "failed",
+        "edited": false,
+        "id": "tests/singerlib/test_schema.py::test_resolve_schema_references[resolve_schema_references_with_duplicate_circular_references]"
+      },
+      {
+        "baseline_result": "failed",
+        "edited": false,
+        "id": "tests/singerlib/test_schema.py::test_resolve_schema_references[resolve_schema_references_with_duplicate_references]"
+      }
+    ],
+    "redundant_tests": [],
+    "skipped_tests": [],
+    "status": "exercised",
+    "unknown_tests": []
+  },
+  "changed_old_tests": [],
+  "decision_id": "92617d27029bc9f62fb9fc55a7a569905f14e26c9c447ee1f9372a799eafd12d",
+  "input_id": "7436c4042d5433468d11c58b6974fe751a4176c9df5e45bb3f4594350f2af11e",
+  "inputs": {
+    "approvals": [],
+    "baseline": "f0f63cf5ab3283cd32c4cdf0d1af0c5966cd600d",
+    "candidate": "3127f6b222b824a61df6fc066899baf99242e9cb",
+    "config": "ff947a7c44222174feed07a3aa2cfa1ac5f5a8dc220da2bfffff7c9cc77eabc1",
+    "driver": {
+      "language": "python",
+      "producer": "a062e705e9b4791409555212698338a8fe282c765ca2412edc4b3369909161ee"
+    },
+    "emi": "0.1.1",
+    "environment": "898e91f7c8738a838065f86d446fd7a447cdd179122c204677262575c00ba6d9",
+    "intent": null,
+    "laws": null,
+    "memory": {
+      "laws": {},
+      "schema": "emi-memory-1"
+    },
+    "pins": {
+      "derandomize": true,
+      "hash_seed": 0,
+      "locale": "C.UTF-8",
+      "seed_random": true,
+      "tz": "UTC"
+    },
+    "policy": "emi-policy-10",
+    "search": null,
+    "setting": "cooperative"
+  },
+  "laws": {
+    "checked_functions": {},
+    "digest": null,
+    "fault": null,
+    "forgotten": [],
+    "found": {},
+    "laws": [],
+    "not_measured": [],
+    "proposals": []
+  },
+  "meta": {
+    "repo": "/home/runner/work/_temp/work/meltano__sdk-3091.cooperative.3"
+  },
+  "not_verified": [
+    "Behaviour that no test exercises: tests passing does not show the task's behaviour exists.",
+    "The baseline's tests are taken as correct. They ran twice under the same pins; a test whose outcome differed is quarantined, and an outcome that depends on something the pins do not hold (the clock, the network, another process) can still differ.",
+    "Tests the baseline already skipped, expected to fail, could not collect or failed are not regression evidence: nothing is known about the behaviour they cover.",
+    "Escape hatches in the change (suppressions, test-runner sniffing, always-equal comparisons) are found by pattern, and only in product lines it added. Only sniffing is also measured: a modified function is replayed as a test run and as a plain process, on the inputs the behaviour comparison has, and only for the clues of a test run that replay plants.",
+    "Cooperative verification: the proposer could alter the controller's inputs (the configuration, the recorded approvals, the dependencies the tests run). It catches a careless proposer, not a cheating one.",
+    "Linked dependencies (.venv) were taken as found on this machine.",
+    "No laws: what the change should do is shown only by the proposer's own tests. Laws the person writes in .emi/laws hold every change to them.",
+    "Behaviour was compared with the baseline's on 0 input(s) (0 generated from annotations), as a report that decides nothing, since nobody asked for it to be kept; other inputs are not covered, so this is not a proof of equivalence.",
+    "Not compared: singer_sdk/singerlib/schema.py::_resolve_schema_references: no_inputs.",
+    "Not compared: tests/singerlib/test_schema.py::test_resolve_schema_references: no_inputs."
+  ],
+  "policy": "emi-policy-10",
+  "preserve": {
+    "counts": {
+      "added_or_removed": 0,
+      "compared": 0,
+      "generated": 0,
+      "import_failures": 0,
+      "no_inputs": 2,
+      "not_replayed": 0,
+      "skipped_async": 0,
+      "skipped_method": 0,
+      "skipped_nested": 0,
+      "targets": 2,
+      "timeouts": 0,
+      "unencodable_result": 0,
+      "unrecordable": 60,
+      "unresolved": 0,
+      "unstable": 0,
+      "with_drift": 0
+    },
+    "divergences": [],
+    "functions": [
+      {
+        "compared": 0,
+        "deterministic": false,
+        "file": "tests/singerlib/test_schema.py",
+        "function": "test_resolve_schema_references",
+        "inputs": 0,
+        "status": "no_inputs"
+      }
+    ],
+    "more_divergences": 0,
+    "not_checked": [
+      "singer_sdk/singerlib/schema.py::_resolve_schema_references: no_inputs",
+      "tests/singerlib/test_schema.py::test_resolve_schema_references: no_inputs"
+    ],
+    "reasons": [],
+    "required": false,
+    "under_test": {
+      "compared": 0,
+      "differences": [],
+      "unmeasured": null
+    }
+  },
+  "regression": {
+    "failed": [],
+    "missing": [],
+    "nondeterministic": [],
+    "quarantined": [],
+    "reasons": [],
+    "status": "held",
+    "tests_run": 20
+  },
+  "repair": [],
+  "rule": "none",
+  "schema": "emi-done-receipt-1.0",
+  "signals": [],
+  "this_run": [
+    "No laws: what the change should do is shown only by the proposer's own tests. Laws the person writes in .emi/laws hold every change to them.",
+    "Behaviour was compared with the baseline's on 0 input(s) (0 generated from annotations), as a report that decides nothing, since nobody asked for it to be kept; other inputs are not covered, so this is not a proof of equivalence.",
+    "Not compared: singer_sdk/singerlib/schema.py::_resolve_schema_references: no_inputs.",
+    "Not compared: tests/singerlib/test_schema.py::test_resolve_schema_references: no_inputs."
+  ]
+}

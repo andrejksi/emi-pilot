@@ -1,0 +1,21 @@
+{
+  "arm": "control",
+  "backend": "chat",
+  "claims": [
+    {
+      "gate": "none",
+      "verdict": "accepted"
+    }
+  ],
+  "final": "accepted",
+  "model": "moonshotai/Kimi-K3.1-Pro",
+  "repair_rounds": 0,
+  "replay": null,
+  "seconds": 802.1,
+  "seed": 2,
+  "task": "cs-si__eodag-1717",
+  "usage": {
+    "completion_tokens": 32029,
+    "prompt_tokens": 6289038
+  }
+}

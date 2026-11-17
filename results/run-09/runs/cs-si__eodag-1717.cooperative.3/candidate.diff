@@ -1,0 +1,145 @@
+diff --git a/eodag/plugins/download/base.py b/eodag/plugins/download/base.py
+index b286a77..712fb39 100644
+--- a/eodag/plugins/download/base.py
++++ b/eodag/plugins/download/base.py
+@@ -213,6 +213,25 @@ class Download(PluginTopic):
+         fs_dir_path = (
+             fs_path.replace(output_extension, "") if output_extension else fs_path
+         )
++        # the product may have been downloaded without any output extension
++        # (e.g. when its extension is unknown before download), or with an extension
++        # different from the configured one (e.g. ".zip" instead of ".tar")
++        fs_paths = [fs_path]
++        if output_extension:
++            fs_paths.append(
++                os.path.join(
++                    prefix,
++                    f"{sanitize(product.properties['title'])}{collision_avoidance_suffix}",
++                )
++            )
++        fs_dir_paths = [fs_dir_path]
++        if output_extension:
++            fs_dir_paths.append(
++                os.path.join(
++                    prefix,
++                    f"{sanitize(product.properties['title'])}{collision_avoidance_suffix}",
++                )
++            )
+         download_records_dir = os.path.join(prefix, ".downloaded")
+         try:
+             os.makedirs(download_records_dir)
+@@ -232,26 +251,35 @@ class Download(PluginTopic):
+         )
+         if os.path.isfile(old_record_filename):
+             os.rename(old_record_filename, record_filename)
+-        if os.path.isfile(record_filename) and os.path.isfile(fs_path):
+-            logger.info(
+-                f"Product already downloaded: {fs_path}",
+-            )
+-            return (
+-                self._finalize(fs_path, progress_callback=progress_callback, **kwargs),
+-                None,
+-            )
+-        elif os.path.isfile(record_filename) and os.path.isdir(fs_dir_path):
+-            logger.info(
+-                f"Product already downloaded: {fs_dir_path}",
+-            )
+-            return (
+-                self._finalize(
+-                    fs_dir_path, progress_callback=progress_callback, **kwargs
+-                ),
+-                None,
+-            )
++        if os.path.isfile(record_filename):
++            for existing_fs_path in fs_paths:
++                if os.path.isfile(existing_fs_path):
++                    logger.info(
++                        f"Product already downloaded: {existing_fs_path}",
++                    )
++                    return (
++                        self._finalize(
++                            existing_fs_path,
++                            progress_callback=progress_callback,
++                            **kwargs,
++                        ),
++                        None,
++                    )
++            for existing_fs_dir_path in fs_dir_paths:
++                if os.path.isdir(existing_fs_dir_path):
++                    logger.info(
++                        f"Product already downloaded: {existing_fs_dir_path}",
++                    )
++                    return (
++                        self._finalize(
++                            existing_fs_dir_path,
++                            progress_callback=progress_callback,
++                            **kwargs,
++                        ),
++                        None,
++                    )
+         # Remove the record file if fs_path is absent (e.g. it was deleted while record wasn't)
+-        elif os.path.isfile(record_filename):
++        if os.path.isfile(record_filename):
+             logger.debug(
+                 f"Record file found ({record_filename}) but not the actual file",
+             )
+diff --git a/tests/units/test_repro_tmp.py b/tests/units/test_repro_tmp.py
+new file mode 100644
+index 0000000..ed03c3e
+--- /dev/null
++++ b/tests/units/test_repro_tmp.py
+@@ -0,0 +1,54 @@
++import os
++from unittest import mock
++
++from tests.context import EOProduct, ProgressCallback
++from tests.units.test_download_plugins import BaseDownloadPluginTest
++
++
++class TestRepro(BaseDownloadPluginTest):
++    @mock.patch("eodag.plugins.download.http.HTTPDownload._stream_download", autospec=True)
++    @mock.patch("eodag.plugins.download.http.HTTPDownload.stream", create=True)
++    def test_twice(self, mock_stream, mock_stream_download):
++        product = EOProduct(
++            "meteoblue",
++            dict(geometry="POINT (0 0)", title="dummy_product", id="dummy"),
++        )
++        product.filename = "dummy_product.nc"
++        mock_stream_download.return_value = [b"a"]
++        plugin = self.get_download_plugin(product)
++        product.location = product.remote_location = "http://somewhere"
++        product.properties["id"] = "someproduct"
++        progress_callback = ProgressCallback(disable=True)
++
++        path = plugin.download(product, output_dir=self.output_dir, progress_callback=progress_callback)
++        print("first", path, os.listdir(self.output_dir))
++        # simulate a new search result: location back to remote
++        product.location = product.remote_location
++        path2 = plugin.download(product, output_dir=self.output_dir, progress_callback=progress_callback)
++        print("second", path2, os.listdir(self.output_dir))
++        print("calls", mock_stream_download.call_count)
++        assert mock_stream_download.call_count == 1, mock_stream_download.call_count
++        assert path == path2
++
++    @mock.patch("eodag.plugins.download.http.HTTPDownload._stream_download", autospec=True)
++    @mock.patch("eodag.plugins.download.http.HTTPDownload.stream", create=True)
++    def test_twice_zip(self, mock_stream, mock_stream_download):
++        product = EOProduct(
++            "peps",
++            dict(geometry="POINT (0 0)", title="dummy_product", id="dummy"),
++        )
++        product.filename = "dummy_product.zip"
++        mock_stream_download.return_value = [b"a"]
++        plugin = self.get_download_plugin(product)
++        product.location = product.remote_location = "http://somewhere"
++        product.properties["id"] = "someproduct"
++        progress_callback = ProgressCallback(disable=True)
++
++        path = plugin.download(product, output_dir=self.output_dir, progress_callback=progress_callback, extract=False)
++        print("first", path, os.listdir(self.output_dir))
++        product.location = product.remote_location
++        path2 = plugin.download(product, output_dir=self.output_dir, progress_callback=progress_callback, extract=False)
++        print("second", path2, os.listdir(self.output_dir))
++        print("calls", mock_stream_download.call_count)
++        assert mock_stream_download.call_count == 1, mock_stream_download.call_count
++        assert path == path2

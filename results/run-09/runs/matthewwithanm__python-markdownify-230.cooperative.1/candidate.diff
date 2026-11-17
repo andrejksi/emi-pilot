@@ -1,0 +1,44 @@
+diff --git a/markdownify/__init__.py b/markdownify/__init__.py
+index 72c5214..0341127 100644
+--- a/markdownify/__init__.py
++++ b/markdownify/__init__.py
+@@ -482,6 +482,18 @@ class MarkdownConverter(object):
+     def convert_code(self, el, text, parent_tags):
+         if 'pre' in parent_tags:
+             return text
++
++        # If the text contains backticks, use a longer sequence of backticks
++        # as the delimiter (with space padding, if needed), so that the
++        # backticks in the text are not interpreted as delimiters.
++        # See https://spec.commonmark.org/0.31.2/#code-spans
++        if '`' in text:
++            longest_backtick_run = max(len(run) for run in re.findall(r'`+', text))
++            delimiter = '`' * (longest_backtick_run + 1)
++            if text.startswith('`') or text.endswith('`'):
++                text = ' %s ' % text
++            return delimiter + text + delimiter
++
+         converter = abstract_inline_conversion(lambda self: '`')
+         return converter(self, el, text, parent_tags)
+ 
+diff --git a/tests/test_conversions.py b/tests/test_conversions.py
+index 825559b..9cbb5fe 100644
+--- a/tests/test_conversions.py
++++ b/tests/test_conversions.py
+@@ -103,6 +103,16 @@ def test_code():
+     assert md('<code>foo<sub>bar</sub>baz</code>', sub_symbol='^') == '`foobarbaz`'
+ 
+ 
++def test_code_with_backticks():
++    assert md('<code>We have to `manage` this.</code>') == '``We have to `manage` this.``'
++    assert md('<code>`foo`</code>') == '`` `foo` ``'
++    assert md('<code>foo``bar</code>') == '```foo``bar```'
++    assert md('<code>foo```bar`baz</code>') == '````foo```bar`baz````'
++    assert md('<kbd>foo`bar</kbd>') == '``foo`bar``'
++    assert md('<samp>foo`bar</samp>') == '``foo`bar``'
++    assert md('<pre><code>foo`bar</code></pre>') == '\n\n```\nfoo`bar\n```\n\n'
++
++
+ def test_dl():
+     assert md('<dl><dt>term</dt><dd>definition</dd></dl>') == '\n\nterm\n:   definition\n\n'
+     assert md('<dl><dt><p>te</p><p>rm</p></dt><dd>definition</dd></dl>') == '\n\nte rm\n:   definition\n\n'

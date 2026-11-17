@@ -1,0 +1,21 @@
+{
+  "arm": "control",
+  "backend": "chat",
+  "claims": [
+    {
+      "gate": "none",
+      "verdict": "accepted"
+    }
+  ],
+  "final": "accepted",
+  "model": "moonshotai/Kimi-K3.1-Pro",
+  "repair_rounds": 0,
+  "replay": null,
+  "seconds": 25.1,
+  "seed": 3,
+  "task": "more-itertools__more-itertools-1028",
+  "usage": {
+    "completion_tokens": 1815,
+    "prompt_tokens": 58527
+  }
+}

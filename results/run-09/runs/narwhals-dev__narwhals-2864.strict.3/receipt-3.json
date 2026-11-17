@@ -1,0 +1,197 @@
+{
+  "action": "repair",
+  "adequacy": {
+    "base": "3c0389f879a9c4b185de19f31fc958694189b4c6",
+    "candidates": 6,
+    "errors": 0,
+    "head": "1b7cdcdd70c4c1a294434063f6dc380e8abbf0b8",
+    "killed": 5,
+    "not_mutated": {
+      "removed_only": 0,
+      "unparsed": [],
+      "unreadable": [],
+      "unsupported": []
+    },
+    "note": "a surviving mutant may be equivalent to the original; treat survivors as places to look, not defects",
+    "run": 6,
+    "state": "measured",
+    "survived": 1,
+    "survivors": [
+      {
+        "file": "narwhals/_arrow/series.py",
+        "function": "scatter",
+        "line": 466,
+        "original": "or",
+        "replacement": "and"
+      }
+    ],
+    "timed_out": 0
+  },
+  "ask": [],
+  "assurance": {
+    "isolation": "sandboxed",
+    "setting": "cooperative"
+  },
+  "baseline": {
+    "sha": "3c0389f879a9c4b185de19f31fc958694189b4c6",
+    "source": "merge-base:main"
+  },
+  "candidate": {
+    "content_id": "1b81c6d10c3a652ef5c956e3bf9af23bb2a29c31",
+    "id": "worktree"
+  },
+  "change": {
+    "companion_tests": [
+      "tests/series_only/scatter_test.py::test_scatter_non_zero_indices[pandas[pyarrow]]",
+      "tests/series_only/scatter_test.py::test_scatter_non_zero_indices[pandas]",
+      "tests/series_only/scatter_test.py::test_scatter_non_zero_indices[polars[eager]]"
+    ],
+    "failing_tests": [],
+    "functions": [
+      {
+        "file": "narwhals/_arrow/series.py",
+        "function": "scatter",
+        "laws": [],
+        "line": 440,
+        "status": "exercised"
+      }
+    ],
+    "not_measured": [],
+    "proving_tests": [
+      {
+        "baseline_result": "failed",
+        "edited": false,
+        "id": "tests/series_only/scatter_test.py::test_scatter_non_zero_indices[pyarrow]"
+      }
+    ],
+    "redundant_tests": [
+      {
+        "id": "tests/series_only/scatter_test.py::test_scatter_out_of_bounds",
+        "reason": "passes at the baseline"
+      }
+    ],
+    "skipped_tests": [],
+    "status": "exercised",
+    "unknown_tests": []
+  },
+  "changed_old_tests": [],
+  "decision_id": "08dba434e95ce37ac2684b1c0ca75fa150189c9e256974274ef2568e06cc4630",
+  "input_id": "c59fb3bdd204d779ef36b0c4b1141345cfc6023328f6d54ab72d03b06aa1991f",
+  "inputs": {
+    "approvals": [],
+    "baseline": "3c0389f879a9c4b185de19f31fc958694189b4c6",
+    "candidate": "1b81c6d10c3a652ef5c956e3bf9af23bb2a29c31",
+    "config": "bffc6d2e13aff7b9b046bed2f9556777a4c98b2020fa5a791d4c27cb24e07cbd",
+    "driver": {
+      "language": "python",
+      "producer": "a062e705e9b4791409555212698338a8fe282c765ca2412edc4b3369909161ee"
+    },
+    "emi": "0.1.1",
+    "environment": "eacede7ff1db21ad81319ba1d580db9667581ae2501f4528cb2793c566f4c053",
+    "intent": null,
+    "laws": null,
+    "memory": {
+      "laws": {},
+      "schema": "emi-memory-1"
+    },
+    "pins": {
+      "derandomize": true,
+      "hash_seed": 0,
+      "locale": "C.UTF-8",
+      "seed_random": true,
+      "tz": "UTC"
+    },
+    "policy": "emi-policy-10",
+    "search": null,
+    "setting": "cooperative"
+  },
+  "laws": {
+    "checked_functions": {},
+    "digest": null,
+    "fault": null,
+    "forgotten": [],
+    "found": {},
+    "laws": [],
+    "not_measured": [],
+    "proposals": []
+  },
+  "meta": {
+    "repo": "/home/runner/work/_temp/work/narwhals-dev__narwhals-2864.strict.3"
+  },
+  "not_verified": [
+    "Behaviour that no test exercises: tests passing does not show the task's behaviour exists.",
+    "The baseline's tests are taken as correct. They ran twice under the same pins; a test whose outcome differed is quarantined, and an outcome that depends on something the pins do not hold (the clock, the network, another process) can still differ.",
+    "Tests the baseline already skipped, expected to fail, could not collect or failed are not regression evidence: nothing is known about the behaviour they cover.",
+    "Escape hatches in the change (suppressions, test-runner sniffing, always-equal comparisons) are found by pattern, and only in product lines it added. Only sniffing is also measured: a modified function is replayed as a test run and as a plain process, on the inputs the behaviour comparison has, and only for the clues of a test run that replay plants.",
+    "Cooperative verification: the proposer could alter the controller's inputs (the configuration, the recorded approvals, the dependencies the tests run). It catches a careless proposer, not a cheating one.",
+    "Linked dependencies (.venv) were taken as found on this machine.",
+    "No laws: what the change should do is shown only by the proposer's own tests. Laws the person writes in .emi/laws hold every change to them.",
+    "Behaviour was compared with the baseline's on 0 input(s) (0 generated from annotations), as a report that decides nothing, since nobody asked for it to be kept; other inputs are not covered, so this is not a proof of equivalence.",
+    "Not compared: narwhals/_arrow/series.py::ArrowSeries.scatter: no_inputs.",
+    "1 of 6 mutant(s) of the changed lines survived the proving tests and laws; a survivor may be equivalent to the original."
+  ],
+  "policy": "emi-policy-10",
+  "preserve": {
+    "counts": {
+      "added_or_removed": 2,
+      "compared": 0,
+      "generated": 0,
+      "import_failures": 0,
+      "no_inputs": 1,
+      "not_replayed": 0,
+      "skipped_async": 0,
+      "skipped_method": 0,
+      "skipped_nested": 0,
+      "targets": 1,
+      "timeouts": 0,
+      "unencodable_result": 0,
+      "unrecordable": 7,
+      "unresolved": 0,
+      "unstable": 0,
+      "with_drift": 0
+    },
+    "divergences": [],
+    "functions": [
+      {
+        "compared": 0,
+        "deterministic": false,
+        "file": "narwhals/_arrow/series.py",
+        "function": "ArrowSeries.scatter",
+        "inputs": 0,
+        "status": "no_inputs"
+      }
+    ],
+    "more_divergences": 0,
+    "not_checked": [
+      "narwhals/_arrow/series.py::ArrowSeries.scatter: no_inputs"
+    ],
+    "reasons": [],
+    "required": false,
+    "under_test": {
+      "compared": 0,
+      "differences": [],
+      "unmeasured": null
+    }
+  },
+  "regression": {
+    "failed": [],
+    "missing": [],
+    "nondeterministic": [],
+    "quarantined": [],
+    "reasons": [],
+    "status": "held",
+    "tests_run": 21
+  },
+  "repair": [
+    "tests/series_only/scatter_test.py::test_scatter_out_of_bounds passes without your change, so it does not show the change works; make it fail on the old code, or remove it."
+  ],
+  "rule": "policy_repair",
+  "schema": "emi-done-receipt-1.0",
+  "signals": [],
+  "this_run": [
+    "No laws: what the change should do is shown only by the proposer's own tests. Laws the person writes in .emi/laws hold every change to them.",
+    "Behaviour was compared with the baseline's on 0 input(s) (0 generated from annotations), as a report that decides nothing, since nobody asked for it to be kept; other inputs are not covered, so this is not a proof of equivalence.",
+    "Not compared: narwhals/_arrow/series.py::ArrowSeries.scatter: no_inputs.",
+    "1 of 6 mutant(s) of the changed lines survived the proving tests and laws; a survivor may be equivalent to the original."
+  ]
+}

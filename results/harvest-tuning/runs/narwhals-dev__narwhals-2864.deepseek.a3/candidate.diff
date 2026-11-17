@@ -1,0 +1,88 @@
+diff --git a/narwhals/_arrow/series.py b/narwhals/_arrow/series.py
+index e22d20f..0eae7d9 100644
+--- a/narwhals/_arrow/series.py
++++ b/narwhals/_arrow/series.py
+@@ -440,35 +440,38 @@ class ArrowSeries(EagerSeries["ChunkedArrayAny"]):
+     def scatter(self, indices: int | Sequence[int], values: Any) -> Self:
+         import numpy as np  # ignore-banned-import
+ 
+-        values_native: ArrayAny
+         if isinstance(indices, int):
+-            indices_native = pa.array([indices])
+-            values_native = pa.array([values])
++            indices = [indices]
++        indices = list(indices)
++        if not indices:
++            return self._with_native(self.native)
++
++        n = len(self)
++        if any((i < 0) or (i >= n) for i in indices):
++            msg = f"Index out of bounds: indices must be in range [0, {n})."
++            raise IndexError(msg)
++
++        values_native: Any
++        if isinstance(values, self.__class__):
++            values_native = values.native.combine_chunks()
++        elif is_numpy_array_1d(values) or isinstance(values, (list, tuple)):
++            values_native = pa.array(values)
+         else:
+-            # TODO(unassigned): we may also want to let `indices` be a Series.
+-            # https://github.com/narwhals-dev/narwhals/issues/2155
+-            indices_native = pa.array(indices)
+-            if isinstance(values, self.__class__):
+-                values_native = values.native.combine_chunks()
+-            else:
+-                # NOTE: Requires fixes in https://github.com/zen-xu/pyarrow-stubs/pull/209
+-                pa_array: Incomplete = pa.array
+-                values_native = pa_array(values)
+-
+-        sorting_indices = pc.sort_indices(indices_native)
+-        indices_native = indices_native.take(sorting_indices)
+-        values_native = values_native.take(sorting_indices)
+-
+-        mask: _1DArray = np.zeros(self.len(), dtype=bool)
+-        mask[indices_native] = True
+-        # NOTE: Multiple issues
+-        # - Missing `values` type
+-        # - `mask` accepts a `np.ndarray`, but not mentioned in stubs
+-        # - Missing `replacements` type
+-        # - Missing return type
+-        pc_replace_with_mask: Incomplete = pc.replace_with_mask
++            values_native = values
++
++        # `pc.replace_with_mask` requires the mask to be in ascending order and
++        # `values` to be aligned with the sorted indices, so we sort here.
++        order = np.argsort(indices, kind="stable")
++        sorted_indices = [indices[i] for i in order]
++        if isinstance(values_native, (pa.Array, pa.ChunkedArray)):
++            values_native = values_native.take(order)
++        elif isinstance(values_native, (list, tuple)):
++            values_native = [values_native[i] for i in order]
++
++        mask = np.zeros(n, dtype=bool)
++        mask[sorted_indices] = True
+         return self._with_native(
+-            pc_replace_with_mask(self.native, mask, values_native.take(indices_native))
++            pc.replace_with_mask(self.native, pa.array(mask), values_native)
+         )
+ 
+     def to_list(self) -> list[Any]:
+diff --git a/tests/series_only/scatter_test.py b/tests/series_only/scatter_test.py
+index 2e5cbaa..947def4 100644
+--- a/tests/series_only/scatter_test.py
++++ b/tests/series_only/scatter_test.py
+@@ -61,3 +61,14 @@ def test_scatter_unordered_indices(constructor_eager: ConstructorEager) -> None:
+     df = nw.from_native(constructor_eager(data))
+     result = df["a"].scatter(indices, df["a"])
+     assert_equal_data({"a": result}, {"a": [10, 12, 5, 6, 2, 9, 16]})
++
++
++def test_scatter_non_zero_indices(constructor_eager: ConstructorEager) -> None:
++    df = nw.from_native(
++        constructor_eager({"a": [1, 2, 3], "b": [142, 124, 132]}), eager_only=True
++    )
++    s = df["a"]
++    assert_equal_data({"a": s.scatter(1, 999)}, {"a": [1, 999, 3]})
++    assert_equal_data({"a": s.scatter([0, 2], [999, 888])}, {"a": [999, 2, 888]})
++    assert_equal_data({"a": s.scatter([2, 0], [999, 888])}, {"a": [888, 2, 999]})
++    assert_equal_data({"a": s.scatter([2, 0], [888, 999])}, {"a": [999, 2, 888]})

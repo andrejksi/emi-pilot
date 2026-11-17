@@ -1,0 +1,56 @@
+diff --git a/more_itertools/more.py b/more_itertools/more.py
+index 3cd42e8..28c17d2 100755
+--- a/more_itertools/more.py
++++ b/more_itertools/more.py
+@@ -283,7 +283,7 @@ def last(iterable, default=_marker):
+         if isinstance(iterable, Sequence):
+             return iterable[-1]
+         # Work around https://bugs.python.org/issue38525
+-        if hasattr(iterable, '__reversed__'):
++        if getattr(iterable, '__reversed__', None) is not None:
+             return next(reversed(iterable))
+         return deque(iterable, maxlen=1)[-1]
+     except (IndexError, TypeError, StopIteration):
+diff --git a/tests/test_more.py b/tests/test_more.py
+index b964312..b5f2ac5 100644
+--- a/tests/test_more.py
++++ b/tests/test_more.py
+@@ -180,6 +180,38 @@ class LastTests(TestCase):
+                 with self.assertRaises(ValueError):
+                     mi.last(iterable)
+ 
++    def test_reversed_is_none(self):
++        # ``Mapping`` subclasses set ``__reversed__`` to ``None``
++        class MyMapping(abc.Mapping):
++            def __getitem__(self, key):
++                return 1
++
++            def __iter__(self):
++                return iter([1])
++
++            def __len__(self):
++                return 1
++
++        class EmptyMapping(MyMapping):
++            def __iter__(self):
++                return iter([])
++
++            def __len__(self):
++                return 0
++
++        class ReversedNone:
++            __reversed__ = None
++
++            def __iter__(self):
++                return iter([1, 2, 3])
++
++        self.assertIsNone(MyMapping.__reversed__)
++        self.assertEqual(mi.last(MyMapping()), 1)
++        self.assertEqual(mi.last(ReversedNone()), 3)
++        self.assertEqual(mi.last(EmptyMapping(), 'default'), 'default')
++        with self.assertRaises(ValueError):
++            mi.last(EmptyMapping())
++
+ 
+ class NthOrLastTests(TestCase):
+     """Tests for ``nth_or_last()``"""

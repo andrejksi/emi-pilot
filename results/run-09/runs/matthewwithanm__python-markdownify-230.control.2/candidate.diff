@@ -1,0 +1,71 @@
+diff --git a/markdownify/__init__.py b/markdownify/__init__.py
+index 72c5214..e3630f5 100644
+--- a/markdownify/__init__.py
++++ b/markdownify/__init__.py
+@@ -23,6 +23,9 @@ re_make_convert_fn_name = re.compile(r'[\[\]:-]')
+ # (functionally equivalent to r'^(\n*)(.*?)(\n*)$', but greedy is faster than reluctant here)
+ re_extract_newlines = re.compile(r'^(\n*)((?:.*[^\n])?)(\n*)$', flags=re.DOTALL)
+ 
++# Match a run of one or more backticks
++re_backticks = re.compile(r'`+')
++
+ # Escape miscellaneous special Markdown characters
+ re_escape_misc_chars = re.compile(r'([]\\&<`[>~=+|])')
+ 
+@@ -89,13 +92,17 @@ def chomp(text):
+     return (prefix, suffix, text)
+ 
+ 
+-def abstract_inline_conversion(markup_fn):
++def abstract_inline_conversion(markup_fn, markup_fn_suffix=None):
+     """
+     This abstracts all simple inline tags like b, em, del, ...
+     Returns a function that wraps the chomped text in a pair of the string
+     that is returned by markup_fn, with '/' inserted in the string used after
+     the text if it looks like an HTML tag. markup_fn is necessary to allow for
+     references to self.strong_em_symbol etc.
++
++    If markup_fn_suffix is given, it is called with the (chomped) text and
++    returns the string used after the text; otherwise the same string as the
++    prefix is used.
+     """
+     def implementation(self, el, text, parent_tags):
+         markup_prefix = markup_fn(self)
+@@ -108,10 +115,28 @@ def abstract_inline_conversion(markup_fn):
+         prefix, suffix, text = chomp(text)
+         if not text:
+             return ''
++        if markup_fn_suffix is not None:
++            markup_suffix = markup_fn_suffix(self, text)
+         return '%s%s%s%s%s' % (prefix, markup_prefix, text, markup_suffix, suffix)
+     return implementation
+ 
+ 
++def _code_span_markup(self):
++    """Return the opening backtick sequence for an inline code span."""
++    return '`'
++
++
++def _code_span_markup_suffix(self, text):
++    """
++    Return the closing backtick sequence for an inline code span.
++
++    The sequence is one backtick longer than the longest run of backticks
++    inside the text, so that the span is not terminated prematurely.
++    """
++    longest_run = max((len(m) for m in re_backticks.findall(text)), default=0)
++    return '`' * (longest_run + 1)
++
++
+ def _todict(obj):
+     return dict((k, getattr(obj, k)) for k in dir(obj) if not k.startswith('_'))
+ 
+@@ -482,7 +507,7 @@ class MarkdownConverter(object):
+     def convert_code(self, el, text, parent_tags):
+         if 'pre' in parent_tags:
+             return text
+-        converter = abstract_inline_conversion(lambda self: '`')
++        converter = abstract_inline_conversion(_code_span_markup, _code_span_markup_suffix)
+         return converter(self, el, text, parent_tags)
+ 
+     convert_del = abstract_inline_conversion(lambda self: '~~')

@@ -1,0 +1,33 @@
+{
+  "arm": "strict",
+  "backend": "chat",
+  "claims": [
+    {
+      "action": "repair",
+      "exit": 3,
+      "gate": "emi",
+      "receipt": "receipt-0.json",
+      "rule": "policy_repair",
+      "verdict": "repair"
+    },
+    {
+      "action": "stop",
+      "exit": 0,
+      "gate": "emi",
+      "receipt": "receipt-1.json",
+      "rule": "none",
+      "verdict": "accepted"
+    }
+  ],
+  "final": "accepted",
+  "model": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+  "repair_rounds": 1,
+  "replay": null,
+  "seconds": 206.1,
+  "seed": 1,
+  "task": "narwhals-dev__narwhals-2864",
+  "usage": {
+    "completion_tokens": 2509,
+    "prompt_tokens": 143101
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "arm": "naive",
+  "backend": "chat",
+  "claims": [
+    {
+      "exit": 0,
+      "gate": "pytest",
+      "verdict": "accepted"
+    }
+  ],
+  "final": "accepted",
+  "model": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+  "repair_rounds": 0,
+  "replay": null,
+  "seconds": 43.0,
+  "seed": 1,
+  "task": "more-itertools__more-itertools-1028",
+  "usage": {
+    "completion_tokens": 1010,
+    "prompt_tokens": 20481
+  }
+}
