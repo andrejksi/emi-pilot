@@ -16,7 +16,12 @@ cost of false blocks and approval time that people accept?
 - **Tuning set, 10 tasks.** The 5 tasks of pilot run 9, so their 60 live
   candidates count, and 5 more drawn from the pilot's other real tasks that
   a replay shows sound, by `random.Random(20261117).sample(sorted(ids), 5)`.
-  Anything may be tried on the tuning set, as often as needed.
+  Anything may be tried on the tuning set, as often as needed. The replay
+  (`results/pilot-soundness/`) showed 23 of the pilot's 30 real tasks
+  sound, 18 of them outside run 9; the draw gave `aristanetworks__anta-1250`,
+  `bluesky__bluesky-1932`, `conan-io__conan-18444`,
+  `huggingface__huggingface_hub-3180` and `trinodb__trino-python-client-564`.
+  The ten are `batches/tuning.txt`.
 - **Held-out set, 30 tasks.** Mined by the `mine` workflow from pull
   requests merged on or after 2026-10-24: after the release of both models
   below, since neither maker states a training cutoff. A task qualifies when
