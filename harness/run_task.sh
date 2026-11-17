@@ -5,8 +5,9 @@
 #
 #   harness/run_task.sh MODE SEEDS TASK OUT
 #
-# MODE is replay or chat. EMI (default `emi`) and VENV (the toy projects'
-# virtualenv) come from the environment; chat also needs MODEL_BASE_URL,
+# MODE is replay or chat. EMI (default `emi`), VENV (the toy projects'
+# virtualenv) and ARMS (space-separated; default every arm) come from the
+# environment; chat also needs MODEL_BASE_URL,
 # MODEL_NAME and MODEL_API_KEY. Exits 1 if any run failed.
 set -uo pipefail
 
@@ -59,6 +60,7 @@ while read -r t arm which; do
     failed=1
   fi
   rm -rf "${work:?}/$id" "$work/$id.emi-state"
-done < <(python3 "$here/harness/plan.py" "$mode" --seeds "$seeds" --tasks "$task")
+# shellcheck disable=SC2086 # ARMS is a list of words
+done < <(python3 "$here/harness/plan.py" "$mode" --seeds "$seeds" --tasks "$task" ${ARMS:+--arms $ARMS})
 
 exit "$failed"

@@ -27,6 +27,9 @@ on:
       tasks:
         description: "tasks to run: @toy, @a, @b (batches/*.txt) or task ids, space-separated"
         default: "@toy"
+      arms:
+        description: "arms to run, space-separated (control naive cooperative strict); empty = every arm"
+        default: ""
       max_steps:
         description: "chat: model replies an agent may take before it counts as given up"
         default: "150"
@@ -50,11 +53,12 @@ jobs:
         env:
           TASKS: ${{ inputs.tasks }}
           SEEDS: ${{ inputs.seeds }}
+          ARMS: ${{ inputs.arms }}
         run: |
-          # shellcheck disable=SC2086 # TASKS is a list of words
-          python3 harness/plan.py '${{ inputs.backend }}' --seeds "$SEEDS" ${TASKS:+--tasks $TASKS} | tee -a "$GITHUB_STEP_SUMMARY"
+          # shellcheck disable=SC2086 # TASKS and ARMS are lists of words
+          python3 harness/plan.py '${{ inputs.backend }}' --seeds "$SEEDS" ${TASKS:+--tasks $TASKS} ${ARMS:+--arms $ARMS} | tee -a "$GITHUB_STEP_SUMMARY"
           # shellcheck disable=SC2086
-          tasks="$(python3 harness/plan.py '${{ inputs.backend }}' --seeds "$SEEDS" ${TASKS:+--tasks $TASKS} --task-list)"
+          tasks="$(python3 harness/plan.py '${{ inputs.backend }}' --seeds "$SEEDS" ${TASKS:+--tasks $TASKS} ${ARMS:+--arms $ARMS} --task-list)"
           echo "tasks=$tasks" >>"$GITHUB_OUTPUT"
 
   agent:
@@ -94,6 +98,7 @@ jobs:
           MODEL_NAME: ${{ inputs.model }}
           SEEDS: ${{ inputs.seeds }}
           MAX_STEPS: ${{ inputs.max_steps }}
+          ARMS: ${{ inputs.arms }}
           TASK: ${{ matrix.task }}
         run: |
           mkdir -p "$WORK"

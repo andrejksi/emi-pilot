@@ -102,6 +102,7 @@ Actions → **pilot** → Run workflow, then fill in the form:
 | 1. Smoke test | `replay` | `@toy` | | The table matches `sample-replay-results/table.md`. |
 | 2. Check the real tasks | `replay` | `@a`, then `@b` | | **Task check** in the summary: every task `sound: yes`. Drop any that is not. |
 | 3. Live trial | `chat` | `@a`, then `@b` | `3` | Also fill in `base_url` and `model`. |
+| Harvest only | `chat` | task ids | `3` | Set `arms` to `control`: ungated candidates, a quarter of the cost. |
 
 Step 2 is the first time the real tasks run anywhere. It also gives the
 first number that means something: how often EMI's arms send back the
