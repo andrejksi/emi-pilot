@@ -23,8 +23,8 @@ def rate(n, d):
 
 
 def summary(rows):
-    out = ["| laws | checker | wrong, stopped | right, stopped | could not judge | mean s |",
-           "|---|---|---|---|---|---|"]
+    out = ["| laws | checker | wrong, stopped | right, stopped | real fix, stopped | could not judge | mean s |",
+           "|---|---|---|---|---|---|---|"]
     by = defaultdict(list)
     for r in rows:
         if r["said_done"] and r["right"] is not None:
@@ -32,15 +32,17 @@ def summary(rows):
     for version in sorted(by, key=lambda v: ("none", "first", "checked").index(v)
                           if v in ("none", "first", "checked") else 9):
         group = by[version]
-        wrong = [r for r in group if not r["right"]]
-        right = [r for r in group if r["right"]]
+        human = [r for r in group if r["model"] == "human"]
+        wrong = [r for r in group if not r["right"] and r["model"] != "human"]
+        right = [r for r in group if r["right"] and r["model"] != "human"]
         for c in CHECKERS:
             secs = [r[c]["seconds"] for r in group if "seconds" in r[c]]
             out.append(
                 f"| {version} | {c} | {rate(sum(verdict(r[c]) is False for r in wrong), len(wrong))} "
                 f"| {rate(sum(verdict(r[c]) is False for r in right), len(right))} "
+                f"| {rate(sum(verdict(r[c]) is False for r in human), len(human))} "
                 f"| {sum(verdict(r[c]) is None for r in group)} "
-                f"| {sum(secs) / len(secs):.1f} |" if secs else f"| {version} | {c} | - | - | - | - |")
+                f"| {sum(secs) / len(secs):.1f} |" if secs else f"| {version} | {c} | - | - | - | - | - |")
     return out
 
 
@@ -56,7 +58,8 @@ def disagreements(rows):
 
 def main():
     rows = [json.loads(Path(f).read_text()) for f in sys.argv[1:]]
-    print("Attempts that said done; \"stopped\" is anything but accept.\n")
+    print("Attempts that said done; \"stopped\" is anything but accept. The real fix is\n"
+          "each task's own pull request, code and tests, replayed as one more attempt.\n")
     print("\n".join(summary(rows)))
     print("\nWhere the two checkers disagree:\n")
     print("\n".join(disagreements(rows)))

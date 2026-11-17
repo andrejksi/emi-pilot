@@ -20,7 +20,7 @@ import time
 from pathlib import Path
 
 import plain_check
-from common import GIT_ENV, copy_tree, git, load_task, run, write_json
+from common import GIT_ENV, PILOT, copy_tree, git, load_task, run, write_json
 from gates import emi as emi_gate
 from prepare import prepare
 from trees import test_command
@@ -37,11 +37,20 @@ def base_tree(task_id, laws, dst, venv, emi):
         git(dst, "branch", "-f", "main", "HEAD")
 
 
-def attempts_of(root, task_id):
+def attempts_of(root, task_id, tmp):
+    """The saved attempts of the task, then the real fix with its tests as one
+    more attempt, known right (every tuning task is sound by replay): a
+    checker that stops it would stop a person's own fix."""
     for d in sorted(Path(root).iterdir()):
         r = json.loads((d / "run.json").read_text())
         if r["task"] == task_id and (d / "oracle.json").exists():
             yield d, r, json.loads((d / "oracle.json").read_text())
+    gold = PILOT / "tasks" / task_id / "replay" / "gold-with-tests.patch"
+    if gold.exists():
+        d = tmp / f"{task_id}.human.gold"
+        d.mkdir(exist_ok=True)
+        shutil.copy2(gold, d / "candidate.diff")
+        yield d, {"model": "human", "final": "accepted"}, {"passed": True}
 
 
 def candidate(base, attempt, dst):
@@ -84,7 +93,7 @@ def replay(args, task, version, laws, tmp):
     base = tmp / f"base-{version}"
     base_tree(args.task, laws, base, args.venv, args.emi)
     before, why = plain_check.outcomes(task, base, test_command(task))
-    for attempt, record, oracle in attempts_of(args.attempts, args.task):
+    for attempt, record, oracle in attempts_of(args.attempts, args.task, tmp):
         out = Path(args.out) / f"{attempt.name}.{version}"
         out.mkdir(parents=True, exist_ok=True)
         ctx = {"emi": args.emi, "out_dir": str(out), "task": task}

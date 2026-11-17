@@ -156,9 +156,11 @@ Does EMI add anything over a plain check, once a task has laws? Actions →
 3. `stage: replay`: every saved attempt in `results/harvest-tuning` is
    judged by EMI and by `harness/plain_check.py` (put the old tests back,
    then the tests that passed before must pass and every law must pass),
-   under no laws, the first draft and the checked draft. No model runs. The
-   summary has the table: of the attempts that said done, the wrong ones
-   each checker stopped and the right ones it stopped.
+   under no laws, the first draft and the checked draft, and so is each
+   task's real fix (its pull request, code and tests), which must not be
+   stopped. No model runs. The summary has the table: of the attempts
+   that said done, the wrong ones each checker stopped and the right ones
+   it stopped.
 
 ### What happens
 
