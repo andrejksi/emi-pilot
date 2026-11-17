@@ -69,9 +69,12 @@ def baseline_tree(task, dst):
     index = dst.parent / (dst.name + ".index")
     env = {"GIT_INDEX_FILE": str(index)}  # its own index: tasks can be laid out side by side
     base = ["git", "--git-dir", str(git_dir), "--work-tree", str(dst)]
+    # read-tree -u fetches the clone's missing file contents in one batch;
+    # checkout-index fetched them one request per file, over 30 minutes
+    # for litellm's 16,000 files
     try:
-        run(base + ["read-tree", task["base_commit"]], cwd=dst, env=env, check=True, timeout=1800)
-        run(base + ["checkout-index", "-a", "-f"], cwd=dst, env=env, check=True, timeout=1800)
+        run(base + ["read-tree", "--reset", "-u", task["base_commit"]], cwd=dst, env=env,
+            check=True, timeout=1800)
     finally:
         index.unlink(missing_ok=True)
     return copy_generated(task, dst)

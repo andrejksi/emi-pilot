@@ -1,0 +1,17 @@
+diff --git a/tornado/http1connection.py b/tornado/http1connection.py
+index 99433b8a..853c2e12 100644
+--- a/tornado/http1connection.py
++++ b/tornado/http1connection.py
+@@ -955,9 +955,11 @@ class HTTP1ServerConnection:
+                 except (
+                     iostream.StreamClosedError,
+                     iostream.UnsatisfiableReadError,
+-                    asyncio.CancelledError,
+                 ):
+                     return
++                except asyncio.CancelledError:
++                    conn.close()
++                    return
+                 except Exception:
+                     gen_log.error("Uncaught exception", exc_info=True)
+                     conn.close()
