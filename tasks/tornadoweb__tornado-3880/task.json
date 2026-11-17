@@ -1,0 +1,36 @@
+{
+  "base_commit": "6ef5ce8ee502f3afa534e2abcbb30407f2f78cde",
+  "created_at": "2026-11-12T19:00:40Z",
+  "install": [
+    "pip install -q -e ."
+  ],
+  "install_from": "tornadoweb__tornado-3521",
+  "issue": 3879,
+  "kind": "git",
+  "license": "Apache-2.0",
+  "oracle": {
+    "fail_to_pass": [
+      "tornado/test/http1connection_test.py::HTTP1ConnectionTest::test_server_connection_cancel_closes_stream"
+    ],
+    "pass_to_pass": [
+      "tornado/test/circlerefs_test.py::CircleRefsTest::test_known_leak",
+      "tornado/test/circlerefs_test.py::CircleRefsTest::test_run_on_executor",
+      "tornado/test/http1connection_test.py::HTTP1ConnectionTest::test_1xx_does_not_read_a_second_body",
+      "tornado/test/http1connection_test.py::HTTP1ConnectionTest::test_chunked_body_bad_chunk_terminator",
+      "tornado/test/http1connection_test.py::HTTP1ConnectionTest::test_chunked_body_tiny_chunks",
+      "tornado/test/http1connection_test.py::HTTP1ConnectionTest::test_error_in_data_received",
+      "tornado/test/http1connection_test.py::HTTP1ConnectionTest::test_error_in_finish",
+      "tornado/test/http1connection_test.py::HTTP1ConnectionTest::test_error_in_headers_received",
+      "tornado/test/http1connection_test.py::HTTP1ConnectionTest::test_http10_no_content_length"
+    ]
+  },
+  "prompt": "6.6.1 regression: the test suite fails on Windows Python < 3.13\n\nWhen running the Tornado test suite on Windows, on Python < 3.13, it fails due to unexpected stderr output:\n\n```\n[E 261111 12:27:26 runtests:208] logged 0 infos, 0 warnings, 0 errors, and 454 bytes to stderr\n```\n\nIf I'm not mistaken, this is referring to:\n\n```pytb\ntest_curl_httpclient_streaming_callback (tornado.test.circlerefs_test.CircleRefsTest.test_curl_httpclient_streaming_callback) ... Exception ignored in: <socket.socket fd=1160, family=2, type=1, proto=0, laddr=('127.0.0.1', 56640), raddr=('127.0.0.1', 56643)>\nTraceback (most recent call last):\n  File \"%PREFIX%\\Lib\\site-packages\\tornado\\test\\circlerefs_test.py\", line 75, in assert_no_cycle_garbage\n    gc.collect()\nResourceWarning: unclosed <socket.socket fd=1160, family=2, type=1, proto=0, laddr=('127.0.0.1', 56640), raddr=('127.0.0.1', 56643)>\nok\n```\n\nI've just rechecked and 6.6.0 still passes. 6.6.1 also passes on Python 3.13+.\n\nThe full build logs are at:\n- https://github.com/conda-forge/tornado-feedstock/actions/runs/42748111023/job/130521045252?pr=90\n- https://github.com/conda-forge/tornado-feedstock/actions/runs/42748111023/job/130521045255?pr=90",
+  "pull": 3880,
+  "python": "3.11",
+  "repo": "tornadoweb/tornado",
+  "source": "github-pr",
+  "test_files": [
+    "tornado/test/circlerefs_test.py",
+    "tornado/test/http1connection_test.py"
+  ]
+}

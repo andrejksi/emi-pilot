@@ -150,7 +150,7 @@ def candidate(pr, repo):
     git_dir = mirror({"repo": repo, "base_commit": head})
     fix, tests = split_patch(git_dir, base, head)
     return {
-        "instance_id": f"{repo.replace('/', '__')}-{pr['number']}",
+        "instance_id": task_id(repo, pr["number"]),
         "repo": repo, "pull": pr["number"], "issue": issue["number"],
         "base_commit": base, "merge_commit": head, "merged_at": pr["mergedAt"],
         "problem_statement": f"{issue['title']}\n\n{(issue['body'] or '').strip()}\n",
@@ -176,18 +176,23 @@ def size_reason(c):
     return None
 
 
+def task_id(repo, number):
+    """A task's id, lower-cased like the dataset's: `owner__name-N`."""
+    return f"{repo.replace('/', '__')}-{number}".lower()
+
+
 def seen():
     """Pull requests someone has read (batches/seen.txt): never held out."""
     f = PILOT / "batches" / "seen.txt"
     lines = f.read_text().splitlines() if f.exists() else []
-    return {x.strip() for x in lines if x.strip() and not x.startswith("#")}
+    return {x.strip().lower() for x in lines if x.strip() and not x.startswith("#")}
 
 
 def mine_repo(repo, args, token, skipped):
     kept, read = [], seen()
     for pr in merged_since(repo, args.since, token):
         why = reason_to_skip(pr, repo, args.since, args.min_issue)
-        if f"{repo.replace('/', '__')}-{pr['number']}" in read:
+        if task_id(repo, pr["number"]) in read:
             why = "read while testing the miner (batches/seen.txt)"
         if why is None and len(kept) < args.per_repo:
             c = candidate(pr, repo)

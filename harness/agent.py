@@ -134,15 +134,29 @@ def chat(url, key, body):
     req = urllib.request.Request(
         url.rstrip("/") + "/chat/completions", data=json.dumps(body).encode(),
         headers={"Content-Type": "application/json", "Authorization": f"Bearer {key}"})
-    for attempt in range(4):
+    # an account's rate limit lasts minutes, not seconds: wait as long as the
+    # endpoint asks (Retry-After), else back off up to 5 minutes, about 13 in all
+    for attempt in range(ATTEMPTS):
         try:
             with urllib.request.urlopen(req, timeout=300) as r:
                 return json.load(r)
         except urllib.error.HTTPError as e:
-            if e.code not in (429, 500, 502, 503, 504) or attempt == 3:
+            if e.code not in (429, 500, 502, 503, 504) or attempt == ATTEMPTS - 1:
                 raise RuntimeError(f"model endpoint: HTTP {e.code}: {e.read()[:500]!r}")
-        time.sleep(5 * 2 ** attempt)
+            time.sleep(wait_before_retry(e.headers.get("Retry-After"), attempt))
     raise RuntimeError("unreachable")
+
+
+ATTEMPTS = 7
+
+
+def wait_before_retry(retry_after, attempt):
+    """Seconds to wait: the endpoint's Retry-After when it gives a number
+    of seconds, else 15, 30, 60 ... up to 300."""
+    try:
+        return min(max(float(retry_after), 1.0), 600.0)
+    except (TypeError, ValueError):
+        return min(15 * 2 ** attempt, 300)
 
 
 def chat_backend(args, task, gate, usage):

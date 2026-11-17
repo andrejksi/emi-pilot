@@ -1,0 +1,141 @@
+diff --git a/tests/units/test_crunch.py b/tests/units/test_crunch.py
+index 04d3391ef..653b0b414 100644
+--- a/tests/units/test_crunch.py
++++ b/tests/units/test_crunch.py
+@@ -188,6 +188,45 @@ class TestPluginCrunch(unittest.TestCase):
+         filtered_result = search_results.crunch(FilterDate(dict(end="2025-01-18")))
+         self.assertEqual(len(filtered_result), 5)
+ 
++    def test_crunch_filterdate_datetime_only(self):
++        """Crunch FilterDate must use datetime for products having no start/end_datetime"""
++        search_results = self.__fake_search_result(
++            [
++                {"datetime": "2021-02-14T10:51:31.024000Z"},
++                {"datetime": "2021-02-12T11:00:59.024000Z"},
++                {"datetime": "2021-02-11T10:00:00Z"},
++            ]
++        )
++
++        filtered_result = search_results.crunch(
++            FilterDate(dict(start="2021-02-10", end="2021-02-12"))
++        )
++        self.assertEqual(len(filtered_result), 1)
++        self.assertEqual(
++            filtered_result[0].properties["datetime"], "2021-02-11T10:00:00Z"
++        )
++
++        filtered_result = search_results.crunch(FilterDate(dict(start="2021-02-12")))
++        self.assertEqual(len(filtered_result), 2)
++
++        filtered_result = search_results.crunch(FilterDate(dict(end="2021-02-13")))
++        self.assertEqual(len(filtered_result), 2)
++
++        # start_datetime and end_datetime take precedence over datetime
++        search_results = self.__fake_search_result(
++            [
++                {
++                    "datetime": "2021-02-20T00:00:00Z",
++                    "start_datetime": "2021-02-11T00:00:00Z",
++                    "end_datetime": "2021-02-11T12:00:00Z",
++                },
++            ]
++        )
++        filtered_result = search_results.crunch(
++            FilterDate(dict(start="2021-02-10", end="2021-02-12"))
++        )
++        self.assertEqual(len(filtered_result), 1)
++
+     def test_crunch_filterdate_sort(self):
+         """Crunch FilterDate.sort_product_by_start_date test"""
+ 
+@@ -225,6 +264,20 @@ class TestPluginCrunch(unittest.TestCase):
+             products[2].properties.get("start_datetime", None), "2025-01-18"
+         )
+ 
++        # products having only datetime
++        products = self.__fake_search_result(
++            [
++                {"datetime": "2025-01-18"},
++                {"datetime": "2025-01-16"},
++                {"datetime": "2025-01-17"},
++            ]
++        )
++        products.sort(key=FilterDate.sort_product_by_start_date)
++        self.assertEqual(
++            [p.properties["datetime"] for p in products],
++            ["2025-01-16", "2025-01-17", "2025-01-18"],
++        )
++
+     def test_crunch_latest_intersect(self):
+         """Crunch FilterLatestIntersect test"""
+ 
+@@ -313,6 +366,22 @@ class TestPluginCrunch(unittest.TestCase):
+             products[2].properties.get("start_datetime", None), "2025-01-18"
+         )
+ 
++        # products having only datetime
++        products = self.__fake_search_result(
++            [
++                {"datetime": "2025-01-16"},
++                {"datetime": "2025-01-18"},
++                {"datetime": "2025-01-17"},
++            ]
++        )
++        products.sort(
++            key=FilterLatestIntersect.sort_product_by_start_date, reverse=True
++        )
++        self.assertEqual(
++            [p.properties["datetime"] for p in products],
++            ["2025-01-18", "2025-01-17", "2025-01-16"],
++        )
++
+     def test_crunch_lastestbyname(self):
+         """Crunch FilterLatestByName test"""
+ 
+diff --git a/tests/units/test_search_plugins.py b/tests/units/test_search_plugins.py
+index 14c6dd23a..2734c78b4 100644
+--- a/tests/units/test_search_plugins.py
++++ b/tests/units/test_search_plugins.py
+@@ -2571,6 +2571,42 @@ class TestSearchPluginStacSearch(BaseSearchPluginTest):
+         search_plugin.query()
+         self.assertNotIn("datetime", mock_requests_post.call_args.kwargs["json"])
+ 
++    @mock.patch("eodag.plugins.search.qssearch.StacSearch._request", autospec=True)
++    def test_plugins_search_stacsearch_filter_date_datetime_only(self, mock__request):
++        """Products from STAC items having only datetime must be filterable by date"""
++        geojson_geometry = self.search_criteria_s2_msi_l1c["geometry"].__geo_interface__
++        # minimal planetary_computer sentinel-2-l2a items: no start/end_datetime
++        mock__request.return_value = mock.Mock()
++        mock__request.return_value.json.side_effect = [
++            {
++                "features": [
++                    {
++                        "id": "S2A_MSIL2A_20210214T105131_R051_T30TXP_20210215T051748",
++                        "collection": "sentinel-2-l2a",
++                        "geometry": geojson_geometry,
++                        "properties": {"datetime": "2021-02-14T10:51:31.024000Z"},
++                    },
++                    {
++                        "id": "S2B_MSIL2A_20210211T105129_R051_T30TXP_20210212T053406",
++                        "collection": "sentinel-2-l2a",
++                        "geometry": geojson_geometry,
++                        "properties": {"datetime": "2021-02-11T10:51:29.024000Z"},
++                    },
++                ],
++            },
++        ]
++        search_plugin = self.get_search_plugin("S2_MSI_L2A", "planetary_computer")
++
++        products = search_plugin.query(prep=PreparedSearch(limit=2))
++        self.assertEqual(len(products), 2)
++        self.assertNotIn("start_datetime", products[0].properties)
++
++        filtered = products.filter_date("2021-02-10T00:00:00", "2021-02-12T00:00:00")
++        self.assertEqual(
++            [p.properties["id"] for p in filtered],
++            ["S2B_MSIL2A_20210211T105129_R051_T30TXP_20210212T053406"],
++        )
++
+     @mock.patch("eodag.plugins.search.qssearch.StacSearch._request", autospec=True)
+     def test_plugins_search_stacsearch_distinct_collection_mtd_mapping(
+         self, mock__request

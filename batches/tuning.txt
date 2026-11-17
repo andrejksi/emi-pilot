@@ -1,0 +1,10 @@
+cs-si__eodag-1717
+matthewwithanm__python-markdownify-230
+meltano__sdk-3091
+more-itertools__more-itertools-1028
+narwhals-dev__narwhals-2864
+aristanetworks__anta-1250
+bluesky__bluesky-1932
+conan-io__conan-18444
+huggingface__huggingface_hub-3180
+trinodb__trino-python-client-564
