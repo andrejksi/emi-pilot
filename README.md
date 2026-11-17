@@ -116,13 +116,16 @@ after every model's release date:
    tests and 1 to 4 Python files in at most 150 lines. At most `per_repo`
    from each repository.
 2. `harness/validate_pr.py` builds each one's environment with the install
-   steps of the pilot's newest task from that repository, and runs its tests
+   steps of the pilot's newest task from that repository (not a mined one),
+   on the oldest Python the project accepts, and runs its tests
    twice with only the test changes and twice with the fix too. Tests that
    go from failing to passing are FAIL_TO_PASS, tests that pass throughout
    are PASS_TO_PASS, and a test whose two runs disagree is in neither.
 3. The **mined-tasks** artifact holds the tasks that came out, and the run's
    summary says why each other candidate did not. Commit the tasks to keep
-   under `tasks/`, then check them with a replay run (step 2 below).
+   under `tasks/`, add their ids to `batches/heldout.txt` (the laws
+   study's held-out tasks, `study/gate.md`), then check them with a replay
+   run (step 2 below).
 
 Nothing prints a fix, so the person mining has not read the answers. A pull
 request someone did read goes in `batches/seen.txt`, and the miner skips it.

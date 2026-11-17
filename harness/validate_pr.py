@@ -22,7 +22,9 @@ import argparse
 import json
 import re
 import shutil
+import subprocess
 import tempfile
+from collections import Counter
 from pathlib import Path
 
 from common import GIT_ENV, PILOT, TEST_PATH, files_in, git, run, write_json
@@ -31,30 +33,41 @@ from trees import baseline_tree, code_env, environment, mirror
 
 RUNS = 2
 TEST_FILE = re.compile(r"(^|/)test_[^/]*\.py$|_test\.py$")
-REQUIRES_PYTHON = re.compile(r"""^\s*requires-python\s*=\s*["']\s*>=\s*3\.(\d+)""", re.M)
+# the oldest Python a project accepts, as pyproject.toml, setup.cfg or
+# setup.py state it
+REQUIRES_PYTHON = {
+    "pyproject.toml": re.compile(r"""^\s*requires-python\s*=\s*["']\s*>=\s*3\.(\d+)""", re.M),
+    "setup.cfg": re.compile(r"""^\s*python_requires\s*=\s*>=\s*3\.(\d+)""", re.M),
+    "setup.py": re.compile(r"""python_requires\s*=\s*["']\s*>=\s*3\.(\d+)"""),
+}
 
 
 def template(repo):
-    """Python and install steps of the pilot's newest task from `repo`."""
+    """Python and install steps of the pilot's newest task from `repo` that
+    was not itself mined: a mined task's steps are borrowed ones."""
     best = None
     for f in sorted((PILOT / "tasks").glob("*/task.json")):
         t = json.loads(f.read_text())
-        if t.get("kind") == "git" and t["repo"].lower() == repo.lower():
+        if (t.get("kind") == "git" and t.get("source") != "github-pr"
+                and t["repo"].lower() == repo.lower()):
             if best is None or t["created_at"] > best["created_at"]:
-                best = t
+                best = {**t, "id": f.parent.name}
     return best
 
 
 def python_for(c, tmpl):
-    """The template's Python, raised to the minimum the project's
-    pyproject.toml asks for at the base: a repository moves on, and the
-    template task may be a year older than the pull request."""
+    """The template's Python, raised to the minimum the project asks for at
+    the base: a repository moves on, and the template task may be a year
+    older than the pull request."""
     git_dir = mirror({"repo": c["repo"], "base_commit": c["base_commit"]})
-    code, text = run(["git", "--git-dir", str(git_dir), "show",
-                      f"{c['base_commit']}:pyproject.toml"], cwd=PILOT, timeout=600)
-    m = REQUIRES_PYTHON.search(text) if code == 0 else None
     have = int(tmpl["python"].split(".")[1])
-    return f"3.{max(have, int(m.group(1)))}" if m else tmpl["python"]
+    for name, pattern in REQUIRES_PYTHON.items():
+        code, text = run(["git", "--git-dir", str(git_dir), "show",
+                          f"{c['base_commit']}:{name}"], cwd=PILOT, timeout=600)
+        m = pattern.search(text) if code == 0 else None
+        if m:
+            return f"3.{max(have, int(m.group(1)))}"
+    return tmpl["python"]
 
 
 def as_task(c, tmpl):
@@ -113,6 +126,9 @@ def classify(sides):
     """FAIL_TO_PASS, PASS_TO_PASS, and how many tests disagreed with themselves."""
     tests = set().union(*sides["before"], *sides["after"])
     f2p, p2p, unstable = [], [], 0
+    # what the tests did with the fix in: when nothing passes, the
+    # environment is the likelier cause than the fix
+    with_fix = Counter(o for run in sides["after"][:1] for o in run.values())
     for t in sorted(tests):
         before = {s.get(t) for s in sides["before"]}
         after = {s.get(t) for s in sides["after"]}
@@ -122,7 +138,7 @@ def classify(sides):
             p2p.append(t)
         elif after == {"PASSED"}:
             f2p.append(t)
-    return f2p, p2p, unstable
+    return f2p, p2p, unstable, dict(sorted(with_fix.items()))
 
 
 def write_task(task, c, out):
@@ -146,14 +162,21 @@ def validate(c, out):
         return {"kept": False, "why": "the test changes add no test file"}
     try:
         venv = environment(task)
-    except (SystemExit, RuntimeError) as e:
+    except (SystemExit, RuntimeError, subprocess.TimeoutExpired) as e:
         return {"kept": False, "why": f"the environment did not build: {str(e)[:500]}"}
-    with tempfile.TemporaryDirectory() as tmp:
-        sides, problem = observe(task, c, venv, tmp)
+    try:
+        with tempfile.TemporaryDirectory() as tmp:
+            sides, problem = observe(task, c, venv, tmp)
+    except subprocess.TimeoutExpired as e:
+        return {"kept": False, "why": f"the tests ran over {e.timeout:.0f} s"}
     if problem:
         return {"kept": False, "why": problem}
-    f2p, p2p, unstable = classify(sides)
-    verdict = {"fail_to_pass": len(f2p), "pass_to_pass": len(p2p), "unstable": unstable}
+    f2p, p2p, unstable, after = classify(sides)
+    verdict = {"fail_to_pass": len(f2p), "pass_to_pass": len(p2p), "unstable": unstable,
+               "after_fix": after}
+    if "PASSED" not in after:
+        return {**verdict, "kept": False, "why": "no test passes with the fix: the environment"
+                " is likelier broken than the fix"}
     if not 1 <= len(f2p) <= 10:
         return {**verdict, "kept": False, "why": "FAIL_TO_PASS not 1..10"}
     if len(p2p) < 5:

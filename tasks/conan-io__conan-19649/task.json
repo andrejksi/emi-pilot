@@ -1,0 +1,65 @@
+{
+  "base_commit": "8a8fd1d5866ec9dc8576ffeb276e30d7bc993657",
+  "created_at": "2026-10-26T19:07:32Z",
+  "install": [
+    "pip install -e . --quiet",
+    "pip install -r conans/requirements_dev.txt --quiet",
+    "pip install -r conans/requirements.txt --quiet"
+  ],
+  "install_from": "conan-io__conan-18444",
+  "issue": 11353,
+  "kind": "git",
+  "license": "MIT",
+  "oracle": {
+    "fail_to_pass": [
+      "test/integration/environment/test_env_ps1.py::test_ps1_consumer_and_test_package",
+      "test/integration/environment/test_env_ps1.py::test_ps1_not_in_cache_but_in_test_package",
+      "test/integration/environment/test_env_ps1.py::test_ps1_only_used_with_powershell_conf"
+    ],
+    "pass_to_pass": [
+      "test/functional/toolchains/env/test_virtualenv_powershell.py::test_powershell_deactivation",
+      "test/integration/environment/test_env.py::TestDotEnv::test_dotenv",
+      "test/integration/environment/test_env.py::TestDotEnv::test_generate_only_dotenv",
+      "test/integration/environment/test_env.py::test_buildenv_from_requires",
+      "test/integration/environment/test_env.py::test_complete[False]",
+      "test/integration/environment/test_env.py::test_complete[True]",
+      "test/integration/environment/test_env.py::test_deactivate_location",
+      "test/integration/environment/test_env.py::test_deactivate_missing_vars_stay_missing[None]",
+      "test/integration/environment/test_env.py::test_deactivate_missing_vars_stay_missing[function]",
+      "test/integration/environment/test_env.py::test_deactivate_relocatable_substitute",
+      "test/integration/environment/test_env.py::test_diamond_repeated",
+      "test/integration/environment/test_env.py::test_environment_scripts_generated_envvars[False]",
+      "test/integration/environment/test_env.py::test_environment_scripts_generated_envvars[True]",
+      "test/integration/environment/test_env.py::test_error_with_dots_virtualenv",
+      "test/integration/environment/test_env.py::test_files_always_created",
+      "test/integration/environment/test_env.py::test_hardened_sh[False]",
+      "test/integration/environment/test_env.py::test_hardened_sh[True]",
+      "test/integration/environment/test_env.py::test_multiple_deactivate[None]",
+      "test/integration/environment/test_env.py::test_multiple_deactivate[function]",
+      "test/integration/environment/test_env.py::test_multiple_deactivate_order[None]",
+      "test/integration/environment/test_env.py::test_multiple_deactivate_order[function]",
+      "test/integration/environment/test_env.py::test_profile_build_env_spaces[None]",
+      "test/integration/environment/test_env.py::test_profile_build_env_spaces[function]",
+      "test/integration/environment/test_env.py::test_profile_buildenv",
+      "test/integration/environment/test_env.py::test_profile_included_multiple",
+      "test/integration/environment/test_env.py::test_runenv_info_propagated",
+      "test/integration/environment/test_env.py::test_skip_virtualbuildenv_run",
+      "test/integration/environment/test_env.py::test_transitive_order",
+      "test/integration/environment/test_virtualrunenv_runtime_copy.py::TestVirtualRunEnvRuntimeCopy::test_win_copy_folder",
+      "test/integration/environment/test_virtualrunenv_runtime_copy.py::TestVirtualRunEnvRuntimeCopy::test_win_copy_folder_absolute_path_error",
+      "test/integration/toolchains/microsoft/vcvars_test.py::test_vcvars_generator_skip_on_linux"
+    ]
+  },
+  "prompt": "[feature] Have a way to generate both conanbuild.bat and conanbuild.ps1 files.\n\n<!-- What is your suggestion? Please be as specific as possible! -->\r\n\r\nIt would be handy to have a way `tools.env.virtualenv:powershell` to create _both_ `.ps1` and `.bat` files. \r\n\r\n- `.ps1` to activate within a user's interactive PowerShell if necessary.\r\n- `.bat` for when build scripting is using CMD to issue commands, and it needs to activate the environment to run CMake or some other command.\r\n\r\n- [x] I've read the [CONTRIBUTING guide](https://github.com/conan-io/conan/blob/develop/.github/CONTRIBUTING.md).\r\n\r\nThis came out of using `conan.tools` to make a Conan 2.0-ish workflow while using Conan 1.",
+  "pull": 19649,
+  "python": "3.10",
+  "repo": "conan-io/conan",
+  "source": "github-pr",
+  "test_files": [
+    "test/functional/toolchains/env/test_virtualenv_powershell.py",
+    "test/integration/environment/test_env.py",
+    "test/integration/environment/test_env_ps1.py",
+    "test/integration/environment/test_virtualrunenv_runtime_copy.py",
+    "test/integration/toolchains/microsoft/vcvars_test.py"
+  ]
+}

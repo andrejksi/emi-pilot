@@ -1,0 +1,121 @@
+diff --git a/src/huggingface_hub/hf_file_system.py b/src/huggingface_hub/hf_file_system.py
+index 0443cc16..6db8185f 100644
+--- a/src/huggingface_hub/hf_file_system.py
++++ b/src/huggingface_hub/hf_file_system.py
+@@ -1114,7 +1114,7 @@ class HfFileSystem(fsspec.AbstractFileSystem, metaclass=_Cached):  # ty: ignore[
+ 
+     def cp_file(self, path1: str, path2: str, revision: str | None = None, **kwargs) -> None:
+         """
+-        Copy a file within or between repositories.
++        Copy a file within or between repositories, or into a bucket.
+ 
+         > [!WARNING]
+         > Note: When possible, use `HfApi.upload_file()` for better performance.
+@@ -1130,10 +1130,36 @@ class HfFileSystem(fsspec.AbstractFileSystem, metaclass=_Cached):  # ty: ignore[
+         """
+         resolved_path1 = self.resolve_path(path1, revision=revision)
+         resolved_path2 = self.resolve_path(path2, revision=revision)
+-        if isinstance(resolved_path1, HfFileSystemResolvedBucketPath) or isinstance(
+-            resolved_path2, HfFileSystemResolvedBucketPath
+-        ):
+-            raise NotImplementedError("Copy from/to buckets is not available yet")
++
++        # --- Destination is a bucket ---
++        if isinstance(resolved_path2, HfFileSystemResolvedBucketPath):
++            source_info = self.info(path1, revision=revision)
++
++            if source_info["type"] == "directory":
++                return  # Folders are implicit in buckets (fsspec's recursive copy calls cp_file on them too)
++
++            if isinstance(resolved_path1, HfFileSystemResolvedBucketPath):
++                source_type, source_id = "bucket", resolved_path1.bucket_id
++            else:
++                source_type, source_id = resolved_path1.repo_type, resolved_path1.repo_id
++            if (xet_hash := source_info.get("xet_hash")) is not None:
++                # Server-side copy by xet hash (no data transfer)
++                self._api.batch_bucket_files(
++                    resolved_path2.bucket_id, copy=[(source_type, source_id, xet_hash, resolved_path2.path)]
++                )
++            else:
++                # Non-Xet repo file: download and upload via batch_bucket_files add
++                with self.open(path1, "rb", revision=revision) as f:
++                    content = f.read()
++                self._api.batch_bucket_files(resolved_path2.bucket_id, add=[(content, resolved_path2.path)])
++
++            self.invalidate_cache(path=resolved_path1.unresolve())
++            self.invalidate_cache(path=resolved_path2.unresolve())
++            return
++
++        # --- Source is a bucket, destination is a repository (unsupported) ---
++        if isinstance(resolved_path1, HfFileSystemResolvedBucketPath):
++            raise NotImplementedError("Copy from buckets to repositories is not available yet")
+ 
+         same_repo = (
+             resolved_path1.repo_type == resolved_path2.repo_type and resolved_path1.repo_id == resolved_path2.repo_id
+diff --git a/tests/test_buckets_hf_file_system.py b/tests/test_buckets_hf_file_system.py
+index 0aae7b77..f5e0cae2 100644
+--- a/tests/test_buckets_hf_file_system.py
++++ b/tests/test_buckets_hf_file_system.py
+@@ -104,9 +104,60 @@ class TestHfFileSystemBucketRW(_HfFileSystemBucketChecks, _HfFileSystemBaseRWTes
+         yield
+         self.api.delete_bucket(self.bucket_id)
+ 
+-    @pytest.mark.skip("Not implemented yet")
+     def test_copy_file(self):
+-        pass
++        self.hffs.cp_file(self.text_file, self.hf_path + "/data/text_data_copy.txt")
++        with self.hffs.open(self.hf_path + "/data/text_data_copy.txt", "r") as f:
++            assert f.read() == "dummy text data"
++
++    def test_move_and_rename_file(self):
++        copied_file = self.hf_path + "/data/text_data_copy.txt"
++        moved_file = self.hf_path + "/data/text_data_moved.txt"
++        renamed_file = self.hf_path + "/data/text_data_renamed.txt"
++
++        self.hffs.cp_file(self.text_file, copied_file)
++        self.hffs.mv(copied_file, moved_file)
++        assert not self.hffs.exists(copied_file)
++        assert self.hffs.exists(moved_file)
++
++        self.hffs.rename(moved_file, renamed_file)
++        assert not self.hffs.exists(moved_file)
++        with self.hffs.open(renamed_file, "r") as f:
++            assert f.read() == "dummy text data"
++
++    def test_copy_between_buckets(self):
++        other_bucket_id = self.api.create_bucket(repo_name()).bucket_id
++        try:
++            self.hffs.copy(self.hf_path + "/data", f"buckets/{other_bucket_id}/data", recursive=True)
++            assert self.hffs.cat(f"buckets/{other_bucket_id}/data/text_data.txt") == b"dummy text data"
++            assert self.hffs.cat(f"buckets/{other_bucket_id}/data/binary_data.bin") == b"dummy binary data"
++        finally:
++            self.api.delete_bucket(other_bucket_id)
++
++    def test_copy_repo_to_bucket(self):
++        repo_id = self.api.create_repo(repo_name(), repo_type="model").repo_id
++        try:
++            self.api.upload_file(
++                path_or_fileobj=b"dummy text data",
++                path_in_repo="data/text_data.txt",
++                repo_id=repo_id,
++                repo_type="model",
++            )
++            self.hffs.cp_file(
++                f"models/{repo_id}/data/text_data.txt",
++                self.hf_path + "/data/text_data_from_repo.txt",
++            )
++            with self.hffs.open(self.hf_path + "/data/text_data_from_repo.txt", "r") as f:
++                assert f.read() == "dummy text data"
++        finally:
++            self.api.delete_repo(repo_id, repo_type="model")
++
++    def test_copy_bucket_to_repo_is_not_supported(self):
++        repo_id = self.api.create_repo(repo_name(), repo_type="model").repo_id
++        try:
++            with pytest.raises(NotImplementedError, match="buckets to repositories"):
++                self.hffs.cp_file(self.text_file, f"models/{repo_id}/data/text_data_copy.txt")
++        finally:
++            self.api.delete_repo(repo_id, repo_type="model")
+ 
+ 
+ class TestHfFileSystemBucketLiveFollow:
