@@ -21,7 +21,7 @@ from pathlib import Path
 
 import plain_check
 from common import GIT_ENV, copy_tree, git, load_task, run, write_json
-from gates import check as emi_check
+from gates import emi as emi_gate
 from prepare import prepare
 from trees import test_command
 
@@ -55,16 +55,20 @@ def candidate(base, attempt, dst):
 
 
 def judge_emi(base, attempt, work, ctx):
+    """EMI as the study's cooperative arm runs it: `emi done`, with the
+    pilot's fixed reviewer playing the person when EMI asks one."""
     problem = candidate(base, attempt, work)
     if problem:
         return {"error": problem}
     started = time.monotonic()
-    code, receipt, name = emi_check(work, ctx)
+    verdict, _, record = emi_gate(work, ctx)
     seconds = round(time.monotonic() - started, 1)
-    if receipt is None:
-        return {"error": name[-2000:], "exit": code, "seconds": seconds}
-    return {"action": receipt["action"], "accept": receipt["action"] == "stop",
-            "repair": receipt.get("repair", [])[:5], "receipt": name, "seconds": seconds}
+    if "action" not in record:
+        return {"error": record.get("error", "no receipt"), "seconds": seconds}
+    receipt = json.loads((Path(ctx["out_dir"]) / record["receipt"]).read_text())
+    return {"action": record["action"], "accept": verdict == "accepted",
+            "reviewer": record.get("reviewer"), "repair": receipt.get("repair", [])[:5],
+            "receipt": record["receipt"], "seconds": seconds}
 
 
 def judge_plain(task, base, attempt, work, before):
