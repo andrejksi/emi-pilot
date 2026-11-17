@@ -15,6 +15,7 @@ import argparse
 import json
 import os
 import shutil
+import subprocess
 import tempfile
 import time
 from pathlib import Path
@@ -70,7 +71,11 @@ def judge_emi(base, attempt, work, ctx):
     if problem:
         return {"error": problem}
     started = time.monotonic()
-    verdict, _, record = emi_gate(work, ctx)
+    try:
+        verdict, _, record = emi_gate(work, ctx)
+    except subprocess.TimeoutExpired as e:
+        # no verdict, said as such: it counts as could not judge
+        return {"error": f"`emi done` ran over {e.timeout:.0f} s", "seconds": e.timeout}
     seconds = round(time.monotonic() - started, 1)
     if "action" not in record:
         return {"error": record.get("error", "no receipt"), "seconds": seconds}
@@ -85,7 +90,10 @@ def judge_plain(task, base, attempt, work, before):
     if problem:
         return {"error": problem}
     started = time.monotonic()
-    accept, why = plain_check.check(task, work, before)
+    try:
+        accept, why = plain_check.check(task, work, before)
+    except subprocess.TimeoutExpired as e:
+        return {"error": f"the tests ran over {e.timeout:.0f} s", "seconds": e.timeout}
     return {"accept": accept, "why": why, "seconds": round(time.monotonic() - started, 1)}
 
 
