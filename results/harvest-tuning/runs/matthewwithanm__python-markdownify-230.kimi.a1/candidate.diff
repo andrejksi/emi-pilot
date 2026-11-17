@@ -1,0 +1,45 @@
+diff --git a/markdownify/__init__.py b/markdownify/__init__.py
+index 72c5214..12bad0e 100644
+--- a/markdownify/__init__.py
++++ b/markdownify/__init__.py
+@@ -482,8 +482,24 @@ class MarkdownConverter(object):
+     def convert_code(self, el, text, parent_tags):
+         if 'pre' in parent_tags:
+             return text
+-        converter = abstract_inline_conversion(lambda self: '`')
+-        return converter(self, el, text, parent_tags)
++        if '_noformat' in parent_tags:
++            return text
++
++        prefix, suffix, text = chomp(text)
++        if not text:
++            return ''
++
++        # Use a delimiter longer than any backtick sequence in the code so
++        # that backticks in the code do not terminate the code span early.
++        backtick_sequences = re.findall(r'`+', text)
++        delimiter_length = max([len(sequence) for sequence in backtick_sequences] or [0]) + 1
++        delimiter = '`' * delimiter_length
++
++        # A space on both sides prevents a backtick at either boundary from
++        # being interpreted as part of the delimiter. Markdown removes these
++        # padding spaces when parsing the code span.
++        padding = ' ' if text.startswith('`') or text.endswith('`') else ''
++        return '%s%s%s%s%s%s%s' % (prefix, delimiter, padding, text, padding, delimiter, suffix)
+ 
+     convert_del = abstract_inline_conversion(lambda self: '~~')
+ 
+diff --git a/tests/test_conversions.py b/tests/test_conversions.py
+index 825559b..e741dd3 100644
+--- a/tests/test_conversions.py
++++ b/tests/test_conversions.py
+@@ -85,6 +85,9 @@ def test_br():
+ 
+ def test_code():
+     inline_tests('code', '`')
++    assert md('<code>We have to `manage` this.</code>') == '``We have to `manage` this.``'
++    assert md('<code>`foo`</code>') == '`` `foo` ``'
++    assert md('<code>foo ``bar`` baz</code>') == '```foo ``bar`` baz```'
+     assert md('<code>*this_should_not_escape*</code>') == '`*this_should_not_escape*`'
+     assert md('<kbd>*this_should_not_escape*</kbd>') == '`*this_should_not_escape*`'
+     assert md('<samp>*this_should_not_escape*</samp>') == '`*this_should_not_escape*`'

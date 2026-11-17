@@ -1,0 +1,132 @@
+diff --git a/src/bluesky/bundlers.py b/src/bluesky/bundlers.py
+index e970708..a3e3f87 100644
+--- a/src/bluesky/bundlers.py
++++ b/src/bluesky/bundlers.py
+@@ -269,7 +269,11 @@ class RunBundler:
+ 
+         collect = kwargs.get("collect", False)
+         assert no_obj is None
+-        objs = frozenset(objs)
++        # Keep the order in which objects were declared for the descriptor.
++        # Use a separate set for stream lookup because declaration order is not
++        # part of a stream's identity.
++        objs = tuple(objs)
++        objs_set = frozenset(objs)
+         objs_dks = {}  # {collect_object: stream_data_keys}
+ 
+         await asyncio.gather(*[self._ensure_cached(obj, collect=collect) for obj in objs])
+@@ -290,7 +294,7 @@ class RunBundler:
+ 
+             objs_dks[obj] = data_keys
+ 
+-        existing_stream_names = self._declared_stream_names.setdefault(objs, [])
++        existing_stream_names = self._declared_stream_names.setdefault(objs_set, [])
+         existing_stream_names.append(stream_name)
+ 
+         return await self._prepare_stream(stream_name, objs_dks)
+@@ -538,8 +542,10 @@ class RunBundler:
+             self._bundle_name = None
+             return
+         # The Event Descriptor is uniquely defined by the set of objects
+-        # read in this Event grouping.
+-        objs_read = frozenset(self._objs_read)
++        # read in this Event grouping. Retain their read order when building
++        # the descriptor so that its data keys are deterministic.
++        objs_read = tuple(self._objs_read)
++        objs_read_set = frozenset(objs_read)
+ 
+         # Event Descriptor key
+         desc_key = self._bundle_name
+@@ -566,8 +572,8 @@ class RunBundler:
+             descriptor_doc, compose_event, d_objs = await self._prepare_stream(desc_key, objs_dks)
+ 
+         # do have the descriptor cached
+-        elif frozenset(d_objs) != objs_read:
+-            raise RuntimeError(f"Mismatched objects read, expected {frozenset(d_objs)!s}, got {objs_read!s}")
++        elif frozenset(d_objs) != objs_read_set:
++            raise RuntimeError(f"Mismatched objects read, expected {frozenset(d_objs)!s}, got {objs_read_set!s}")
+ 
+         # Resource and Datum documents
+         indices_generated = await self._pack_external_assets(self._asset_docs_cache, message_stream_name=desc_key)
+diff --git a/src/bluesky/plans.py b/src/bluesky/plans.py
+index 9cc197f..fa1460e 100644
+--- a/src/bluesky/plans.py
++++ b/src/bluesky/plans.py
+@@ -616,7 +616,7 @@ def log_scan(
+     @bpp.run_decorator(md=_md)
+     def inner_log_scan():
+         if predeclare:
+-            yield from bps.declare_stream(motor, *detectors, name="primary")
++            yield from bps.declare_stream(*detectors, motor, name="primary")
+         for step in steps:
+             yield from per_step(detectors, motor, step)
+ 
+@@ -985,7 +985,7 @@ def tune_centroid(
+         sum_I = 0  # for peak centroid calculation, I(x)
+         sum_xI = 0
+         if os.environ.get("BLUESKY_PREDECLARE", False):
+-            yield from bps.declare_stream(motor, *detectors, name="primary")  # type: ignore
++            yield from bps.declare_stream(*detectors, motor, name="primary")  # type: ignore
+         while abs(step) >= min_step and low_limit <= next_pos <= high_limit:
+             yield Msg("checkpoint")
+             yield from bps.mv(motor, next_pos)  # type: ignore      # Movable
+@@ -1161,7 +1161,7 @@ def scan_nd(
+     @bpp.run_decorator(md=_md)
+     def inner_scan_nd():
+         if predeclare:
+-            yield from bps.declare_stream(*motors, *detectors, name="primary")
++            yield from bps.declare_stream(*detectors, *motors, name="primary")
+         for step in list(cycler):
+             yield from per_step(detectors, step, pos_cache)
+ 
+@@ -1195,7 +1195,8 @@ def scan(
+     Parameters
+     ----------
+     detectors : list or tuple
+-        list of 'readable' objects
++        list of 'readable' objects. The order of detector keys in the emitted
++        event and descriptor documents follows this order.
+     *args :
+         For one dimension, ``motor, start, stop``.
+         In general:
+diff --git a/src/bluesky/tests/test_run_engine.py b/src/bluesky/tests/test_run_engine.py
+index 3eeaa1c..d7e495b 100644
+--- a/src/bluesky/tests/test_run_engine.py
++++ b/src/bluesky/tests/test_run_engine.py
+@@ -22,7 +22,7 @@ from bluesky.plan_stubs import (
+     wait,
+     wait_for,
+ )
+-from bluesky.plans import count, grid_scan
++from bluesky.plans import count, grid_scan, scan
+ from bluesky.preprocessors import (
+     SupplementalData,
+     baseline_wrapper,
+@@ -2130,6 +2130,27 @@ def test_configure_multiple_descritpors(RE):
+     assert stop["num_events"]["primary"] == 2
+ 
+ 
++@pytest.mark.parametrize("predeclare", [False, True])
++def test_scan_preserves_detector_order(RE, hw, predeclare, monkeypatch):
++    if predeclare:
++        monkeypatch.setenv("BLUESKY_PREDECLARE", "1")
++
++    detectors = [hw.det3, hw.det1, hw.det2]
++    docs = defaultdict(list)
++    RE(scan(detectors, hw.motor, -1, 1, 2), lambda name, doc: docs[name].append(doc))
++
++    (descriptor,) = docs["descriptor"]
++    expected_detector_keys = [det.name for det in detectors]
++    expected_keys = expected_detector_keys + list(hw.motor.describe())
++
++    assert list(descriptor["data_keys"]) == expected_keys
++    assert list(descriptor["object_keys"]) == expected_detector_keys + [hw.motor.name]
++    assert docs["event"]
++    for event in docs["event"]:
++        assert list(event["data"]) == expected_keys
++        assert list(event["timestamps"]) == expected_keys
++
++
+ def test_sync_scan_id_source(RE):
+     def sync_scan_source(md: dict) -> int:
+         return 314159

@@ -1,0 +1,25 @@
+{
+  "arm": "cooperative",
+  "backend": "chat",
+  "claims": [
+    {
+      "action": "stop",
+      "exit": 0,
+      "gate": "emi",
+      "receipt": "receipt-0.json",
+      "rule": "none",
+      "verdict": "accepted"
+    }
+  ],
+  "final": "accepted",
+  "model": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+  "repair_rounds": 0,
+  "replay": null,
+  "seconds": 23.4,
+  "seed": 2,
+  "task": "matthewwithanm__python-markdownify-230",
+  "usage": {
+    "completion_tokens": 1446,
+    "prompt_tokens": 87539
+  }
+}

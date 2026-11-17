@@ -1,0 +1,16 @@
+{
+  "arm": "cooperative",
+  "backend": "chat",
+  "claims": [],
+  "final": "gave_up",
+  "model": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+  "repair_rounds": 0,
+  "replay": null,
+  "seconds": 99.0,
+  "seed": 3,
+  "task": "narwhals-dev__narwhals-2864",
+  "usage": {
+    "completion_tokens": 10110,
+    "prompt_tokens": 598096
+  }
+}

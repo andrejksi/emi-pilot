@@ -1,0 +1,22 @@
+{
+  "arm": "naive",
+  "backend": "replay",
+  "claims": [
+    {
+      "exit": 1,
+      "gate": "pytest",
+      "verdict": "repair"
+    }
+  ],
+  "final": "flagged",
+  "model": null,
+  "repair_rounds": 1,
+  "replay": "gold",
+  "seconds": 1.2,
+  "seed": 0,
+  "task": "deshaw__pyflyby-391",
+  "usage": {
+    "completion_tokens": 0,
+    "prompt_tokens": 0
+  }
+}

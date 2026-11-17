@@ -1,0 +1,123 @@
+diff --git a/singer_sdk/singerlib/schema.py b/singer_sdk/singerlib/schema.py
+index 035851f..3381787 100644
+--- a/singer_sdk/singerlib/schema.py
++++ b/singer_sdk/singerlib/schema.py
+@@ -2,6 +2,7 @@
+ 
+ from __future__ import annotations
+ 
++import copy
+ import typing as t
+ from dataclasses import dataclass
+ 
+@@ -261,8 +262,8 @@ def _resolve_schema_references(  # noqa: C901, PLR0912
+     Args:
+         schema: The schema dict to resolve references in
+         resolver: The JSON Schema resolver to use
+-        visited_refs: Set of already visited reference paths to prevent infinite
+-            recursion
++        visited_refs: Set of reference paths currently being resolved, used to
++            detect and prevent infinite recursion for circular references.
+ 
+     Returns:
+         The schema with all references resolved
+@@ -273,14 +274,19 @@ def _resolve_schema_references(  # noqa: C901, PLR0912
+     if _SchemaKey.ref in schema:
+         reference_path = schema.pop(_SchemaKey.ref, None)
+         if reference_path in visited_refs:
+-            # We've already seen this reference, return the schema as-is
+-            # to prevent infinite recursion
++            # We're already resolving this reference further up the stack, so
++            # leave it unresolved to prevent infinite recursion.
+             return schema
+ 
+-        visited_refs.add(reference_path)
+         resolved = resolver.lookup(reference_path)
+-        schema.update(resolved.contents)
+-        return _resolve_schema_references(schema, resolver, visited_refs)
++        # Copy the resolved contents so that sibling schemas sharing the same
++        # reference don't mutate each other's (or the registry's) data.
++        schema.update(copy.deepcopy(resolved.contents))
++        return _resolve_schema_references(
++            schema,
++            resolver,
++            visited_refs | {reference_path},
++        )
+ 
+     if _SchemaKey.properties in schema:
+         for k, val in schema[_SchemaKey.properties].items():
+diff --git a/tests/singerlib/test_schema.py b/tests/singerlib/test_schema.py
+index 89c22d8..72cda1c 100644
+--- a/tests/singerlib/test_schema.py
++++ b/tests/singerlib/test_schema.py
+@@ -415,6 +415,70 @@ def test_schema_from_dict(pydict, expected):
+             },
+             id="resolve_schema_references_with_circular_references",
+         ),
++        pytest.param(
++            {
++                "type": "object",
++                "properties": {
++                    "min_compute_units": {
++                        "$ref": "components#/schemas/ComputeUnit",
++                    },
++                    "max_compute_units": {
++                        "$ref": "components#/schemas/ComputeUnit",
++                    },
++                },
++            },
++            {"components": {"schemas": {"ComputeUnit": {"type": "number"}}}},
++            {
++                "type": "object",
++                "properties": {
++                    "min_compute_units": {"type": "number"},
++                    "max_compute_units": {"type": "number"},
++                },
++            },
++            id="resolve_schema_references_with_duplicate_references",
++        ),
++        pytest.param(
++            {
++                "type": "object",
++                "properties": {
++                    "first": {"$ref": "components#/schemas/Thing"},
++                    "second": {"$ref": "components#/schemas/Thing"},
++                },
++            },
++            {
++                "components": {
++                    "schemas": {
++                        "Thing": {
++                            "type": "object",
++                            "properties": {
++                                "name": {"type": "string"},
++                                "child": {"$ref": "components#/schemas/Thing"},
++                            },
++                        },
++                    },
++                },
++            },
++            {
++                "type": "object",
++                "properties": {
++                    "first": {
++                        "type": "object",
++                        "properties": {
++                            "name": {"type": "string"},
++                            "child": {},
++                        },
++                    },
++                    "second": {
++                        "type": "object",
++                        "properties": {
++                            "name": {"type": "string"},
++                            "child": {},
++                        },
++                    },
++                },
++            },
++            id="resolve_schema_references_with_duplicate_circular_references",
++        ),
+     ],
+ )
+ def test_resolve_schema_references(schema, refs, expected):

@@ -1,0 +1,25 @@
+{
+  "arm": "cooperative",
+  "backend": "replay",
+  "claims": [
+    {
+      "action": "stop",
+      "exit": 0,
+      "gate": "emi",
+      "receipt": "receipt-0.json",
+      "rule": "none",
+      "verdict": "accepted"
+    }
+  ],
+  "final": "accepted",
+  "model": null,
+  "repair_rounds": 0,
+  "replay": "gold",
+  "seconds": 132.9,
+  "seed": 0,
+  "task": "matchms__matchms-809",
+  "usage": {
+    "completion_tokens": 0,
+    "prompt_tokens": 0
+  }
+}

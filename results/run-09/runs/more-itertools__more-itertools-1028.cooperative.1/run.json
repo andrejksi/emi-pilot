@@ -1,0 +1,25 @@
+{
+  "arm": "cooperative",
+  "backend": "chat",
+  "claims": [
+    {
+      "action": "stop",
+      "exit": 0,
+      "gate": "emi",
+      "receipt": "receipt-0.json",
+      "rule": "none",
+      "verdict": "accepted"
+    }
+  ],
+  "final": "accepted",
+  "model": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+  "repair_rounds": 0,
+  "replay": null,
+  "seconds": 77.2,
+  "seed": 1,
+  "task": "more-itertools__more-itertools-1028",
+  "usage": {
+    "completion_tokens": 999,
+    "prompt_tokens": 35730
+  }
+}

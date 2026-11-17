@@ -1,0 +1,16 @@
+{
+  "arm": "cooperative",
+  "backend": "chat",
+  "claims": [],
+  "final": "gave_up",
+  "model": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+  "repair_rounds": 0,
+  "replay": null,
+  "seconds": 147.8,
+  "seed": 2,
+  "task": "cs-si__eodag-1717",
+  "usage": {
+    "completion_tokens": 8555,
+    "prompt_tokens": 1392567
+  }
+}

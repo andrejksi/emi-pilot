@@ -1,0 +1,33 @@
+{
+  "arm": "strict",
+  "backend": "chat",
+  "claims": [
+    {
+      "action": "repair",
+      "exit": 3,
+      "gate": "emi",
+      "receipt": "receipt-0.json",
+      "rule": "policy_repair",
+      "verdict": "repair"
+    },
+    {
+      "action": "stop",
+      "exit": 0,
+      "gate": "emi",
+      "receipt": "receipt-1.json",
+      "rule": "none",
+      "verdict": "accepted"
+    }
+  ],
+  "final": "accepted",
+  "model": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+  "repair_rounds": 1,
+  "replay": null,
+  "seconds": 84.6,
+  "seed": 3,
+  "task": "matthewwithanm__python-markdownify-230",
+  "usage": {
+    "completion_tokens": 3010,
+    "prompt_tokens": 177398
+  }
+}

@@ -1,0 +1,121 @@
+diff --git a/src/huggingface_hub/file_download.py b/src/huggingface_hub/file_download.py
+index 98748fd..62299d7 100644
+--- a/src/huggingface_hub/file_download.py
++++ b/src/huggingface_hub/file_download.py
+@@ -1471,7 +1471,7 @@ def get_hf_file_metadata(
+         size=_int_or_none(
+             r.headers.get(constants.HUGGINGFACE_HEADER_X_LINKED_SIZE) or r.headers.get("Content-Length")
+         ),
+-        xet_file_data=parse_xet_file_data_from_response(r),  # type: ignore
++        xet_file_data=parse_xet_file_data_from_response(r, endpoint=_get_endpoint_from_url(url)),  # type: ignore
+     )
+ 
+ 
+@@ -1735,6 +1735,14 @@ def _download_to_tmp_and_move(
+     _chmod_and_move(incomplete_path, destination_path)
+ 
+ 
++def _get_endpoint_from_url(url: str) -> Optional[str]:
++    """Extract the Hub endpoint (scheme + netloc) from a Hub URL, if any."""
++    parsed = urlparse(url)
++    if not parsed.scheme or not parsed.netloc:
++        return None
++    return f"{parsed.scheme}://{parsed.netloc}"
++
++
+ def _int_or_none(value: Optional[str]) -> Optional[int]:
+     try:
+         return int(value)  # type: ignore
+diff --git a/src/huggingface_hub/utils/_xet.py b/src/huggingface_hub/utils/_xet.py
+index e80b0e8..84f66b9 100644
+--- a/src/huggingface_hub/utils/_xet.py
++++ b/src/huggingface_hub/utils/_xet.py
+@@ -26,7 +26,10 @@ class XetConnectionInfo:
+     endpoint: str
+ 
+ 
+-def parse_xet_file_data_from_response(response: requests.Response) -> Optional[XetFileData]:
++def parse_xet_file_data_from_response(
++    response: requests.Response,
++    endpoint: Optional[str] = None,
++) -> Optional[XetFileData]:
+     """
+     Parse XET file metadata from an HTTP response.
+ 
+@@ -36,6 +39,10 @@ def parse_xet_file_data_from_response(response: requests.Response) -> Optional[X
+     Args:
+         response (`requests.Response`):
+             The HTTP response object containing headers dict and links dict to extract the XET metadata from.
++        endpoint (`str`, *optional*):
++            The endpoint to use for the refresh route. Defaults to the Hub endpoint.
++            If the refresh route starts with the default HuggingFace home URL, it is
++            rewritten to use this endpoint.
+     Returns:
+         `Optional[XetFileData]`:
+             An instance of `XetFileData` containing the file hash and refresh route if the metadata
+@@ -53,6 +60,12 @@ def parse_xet_file_data_from_response(response: requests.Response) -> Optional[X
+     except KeyError:
+         return None
+ 
++    # The server may return a hardcoded `https://huggingface.co` URL in the refresh route.
++    # Rewrite it to use the configured endpoint (e.g. a custom `HF_ENDPOINT`).
++    endpoint = endpoint if endpoint is not None else constants.ENDPOINT
++    if refresh_route.startswith(constants.HUGGINGFACE_CO_URL_HOME):
++        refresh_route = endpoint.rstrip("/") + "/" + refresh_route[len(constants.HUGGINGFACE_CO_URL_HOME) :]
++
+     return XetFileData(
+         file_hash=file_hash,
+         refresh_route=refresh_route,
+diff --git a/tests/test_xet_utils.py b/tests/test_xet_utils.py
+index 893ad1e..96efacd 100644
+--- a/tests/test_xet_utils.py
++++ b/tests/test_xet_utils.py
+@@ -44,6 +44,48 @@ def test_parse_valid_headers_file_info_with_link() -> None:
+     assert file_data.file_hash == "sha256:abcdef"
+ 
+ 
++def test_parse_valid_headers_file_info_custom_endpoint() -> None:
++    mock_response = MagicMock()
++    mock_response.headers = {
++        "X-Xet-Hash": "sha256:abcdef",
++        "X-Xet-Refresh-Route": f"{constants.HUGGINGFACE_CO_URL_HOME}api/models/username/repo_name/xet-read-token/token",
++    }
++    mock_response.links = {}
++
++    file_data = parse_xet_file_data_from_response(mock_response, endpoint="https://custom.endpoint")
++
++    assert file_data is not None
++    assert file_data.refresh_route == "https://custom.endpoint/api/models/username/repo_name/xet-read-token/token"
++    assert file_data.file_hash == "sha256:abcdef"
++
++
++def test_parse_valid_headers_file_info_default_endpoint() -> None:
++    mock_response = MagicMock()
++    mock_response.headers = {
++        "X-Xet-Hash": "sha256:abcdef",
++        "X-Xet-Refresh-Route": f"{constants.HUGGINGFACE_CO_URL_HOME}api/models/username/repo_name/xet-read-token/token",
++    }
++    mock_response.links = {}
++
++    file_data = parse_xet_file_data_from_response(mock_response)
++
++    assert file_data is not None
++    assert file_data.refresh_route == f"{constants.ENDPOINT}/api/models/username/repo_name/xet-read-token/token"
++
++
++def test_parse_valid_headers_file_info_custom_endpoint_with_link() -> None:
++    mock_response = MagicMock()
++    mock_response.headers = {"X-Xet-Hash": "sha256:abcdef"}
++    mock_response.links = {
++        "xet-auth": {"url": f"{constants.HUGGINGFACE_CO_URL_HOME}api/refresh"},
++    }
++
++    file_data = parse_xet_file_data_from_response(mock_response, endpoint="https://custom.endpoint")
++
++    assert file_data is not None
++    assert file_data.refresh_route == "https://custom.endpoint/api/refresh"
++
++
+ def test_parse_invalid_headers_file_info() -> None:
+     mock_response = MagicMock()
+     mock_response.headers = {"X-foo": "bar"}

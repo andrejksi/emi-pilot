@@ -1,0 +1,54 @@
+diff --git a/tests/units/test_zz_repro.py b/tests/units/test_zz_repro.py
+new file mode 100644
+index 0000000..dbc13c2
+--- /dev/null
++++ b/tests/units/test_zz_repro.py
+@@ -0,0 +1,48 @@
++import os
++from unittest import mock
++from tests.units.test_download_plugins import TestDownloadPluginHttp
++from eodag.utils import ProgressCallback
++from eodag.api.product import EOProduct
++
++
++@mock.patch("eodag.plugins.download.http.HTTPDownload._stream_download", autospec=True)
++@mock.patch("eodag.plugins.download.http.HTTPDownload.stream", create=True)
++def test_repro(mock_stream, mock_stream_download):
++    t = TestDownloadPluginHttp("test_plugins_download_http_nonzip_file_with_zip_extension_ok")
++    t.setUp()
++    try:
++        plugin = t.get_download_plugin(t.product)
++        t.product.location = t.product.remote_location = "http://somewhere"
++        t.product.properties["id"] = "someproduct"
++        t.product.filename = "dummy_product.nc"
++        mock_stream_download.return_value = [b"a"]
++        progress_callback = ProgressCallback(disable=True)
++        path = plugin.download(t.product, output_dir=t.output_dir, progress_callback=progress_callback)
++        print("first:", path, os.listdir(t.output_dir), os.listdir(os.path.join(t.output_dir, ".downloaded")))
++        # simulate a new search result: new product object, same id
++        p2 = EOProduct("peps", dict(geometry="POINT (0 0)", title="dummy_product", id="dummy"))
++        p2.location = p2.remote_location = "http://somewhere"
++        p2.properties["id"] = "someproduct"
++        p2.filename = "dummy_product.nc"
++        p2.register_downloader(plugin, None)
++        mock_stream_download.reset_mock()
++        path2 = p2.download(output_dir=t.output_dir)
++        print("second:", path2, os.listdir(t.output_dir))
++        print("stream called:", mock_stream_download.call_count)
++        # third: same product object downloaded again
++        mock_stream_download.reset_mock()
++        path3 = p2.download(output_dir=t.output_dir)
++        print("third:", path3, os.listdir(t.output_dir))
++        print("stream called:", mock_stream_download.call_count)
++        # fourth: new product object, same id, but with a different title (e.g. versioned title)
++        p3 = EOProduct("peps", dict(geometry="POINT (0 0)", title="dummy_product", id="dummy"))
++        p3.location = p3.remote_location = "http://somewhere"
++        p3.properties["id"] = "someproduct"
++        p3.filename = "dummy_product.nc"
++        p3.register_downloader(plugin, None)
++        mock_stream_download.reset_mock()
++        path4 = p3.download(output_dir=t.output_dir)
++        print("fourth:", path4, os.listdir(t.output_dir))
++        print("stream called:", mock_stream_download.call_count)
++    finally:
++        t.tearDown()

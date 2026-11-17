@@ -1,0 +1,192 @@
+diff --git a/eodag/plugins/download/base.py b/eodag/plugins/download/base.py
+index b286a77..77ab058 100644
+--- a/eodag/plugins/download/base.py
++++ b/eodag/plugins/download/base.py
+@@ -232,36 +232,118 @@ class Download(PluginTopic):
+         )
+         if os.path.isfile(old_record_filename):
+             os.rename(old_record_filename, record_filename)
+-        if os.path.isfile(record_filename) and os.path.isfile(fs_path):
+-            logger.info(
+-                f"Product already downloaded: {fs_path}",
+-            )
+-            return (
+-                self._finalize(fs_path, progress_callback=progress_callback, **kwargs),
+-                None,
+-            )
+-        elif os.path.isfile(record_filename) and os.path.isdir(fs_dir_path):
+-            logger.info(
+-                f"Product already downloaded: {fs_dir_path}",
+-            )
+-            return (
+-                self._finalize(
+-                    fs_dir_path, progress_callback=progress_callback, **kwargs
+-                ),
+-                None,
++        if os.path.isfile(record_filename):
++            # the downloaded product may have been stored using another name than the expected one
++            # (e.g. using the filename returned by the server), then look for it in the output directory
++            existing_path = self._get_existing_product_path(
++                product, fs_path, fs_dir_path, **kwargs
+             )
+-        # Remove the record file if fs_path is absent (e.g. it was deleted while record wasn't)
+-        elif os.path.isfile(record_filename):
+-            logger.debug(
+-                f"Record file found ({record_filename}) but not the actual file",
++            if existing_path:
++                logger.info(
++                    f"Product already downloaded: {existing_path}",
++                )
++                return (
++                    self._finalize(
++                        existing_path, progress_callback=progress_callback, **kwargs
++                    ),
++                    None,
++                )
++            # Remove the record file if fs_path is absent (e.g. it was deleted while record wasn't)
++            else:
++                logger.debug(
++                    f"Record file found ({record_filename}) but not the actual file",
++                )
++                logger.debug(
++                    f"Removing record file : {record_filename}",
++                )
++                os.remove(record_filename)
++
++        # the product may have been downloaded without its record file being written
++        # (e.g. download interrupted), then look for it in the output directory
++        if not (
++            len(product.assets) > 0
++            and (
++                not getattr(self.config, "ignore_assets", False)
++                or kwargs.get("asset") is not None
+             )
+-            logger.debug(
+-                f"Removing record file : {record_filename}",
++        ):
++            existing_path = self._get_existing_product_path(
++                product, fs_path, fs_dir_path, **kwargs
+             )
+-            os.remove(record_filename)
++            if existing_path:
++                logger.info(
++                    f"Product already downloaded: {existing_path}",
++                )
++                return (
++                    self._finalize(
++                        existing_path, progress_callback=progress_callback, **kwargs
++                    ),
++                    None,
++                )
+ 
+         return fs_path, record_filename
+ 
++    def _get_existing_product_path(
++        self,
++        product: EOProduct,
++        fs_path: str,
++        fs_dir_path: str,
++        **kwargs: Unpack[DownloadConf],
++    ) -> Optional[str]:
++        """Look for an already downloaded product in the output directory.
++
++        The product may have been stored using a name that differs from the one built from its
++        ``title`` (e.g. when the filename returned by the server was used instead). This method
++        checks the expected paths first, then the paths built from the product ``id``.
++
++        :param product: The EO product to look for
++        :param fs_path: The expected path of the product archive
++        :param fs_dir_path: The expected path of the extracted product directory
++        :returns: The path of the existing product, or ``None`` if not found
++        """
++        # expected paths
++        if os.path.isfile(fs_path):
++            return fs_path
++        if os.path.isdir(fs_dir_path):
++            return fs_dir_path
++
++        output_dir = (
++            kwargs.get("output_dir")
++            or getattr(self.config, "output_dir", tempfile.gettempdir())
++            or tempfile.gettempdir()
++        )
++        output_extension = kwargs.get("output_extension") or getattr(
++            self.config, "output_extension", ""
++        )
++        prefix = os.path.abspath(output_dir)
++
++        # paths built from the product id
++        product_id = product.properties.get("id")
++        if not product_id:
++            return None
++        sanitized_id = sanitize(str(product_id))
++        if not sanitized_id:
++            return None
++        id_fs_path = os.path.join(prefix, f"{sanitized_id}{output_extension}")
++        id_fs_dir_path = (
++            id_fs_path.replace(output_extension, "") if output_extension else id_fs_path
++        )
++        if os.path.isfile(id_fs_path):
++            return id_fs_path
++        if os.path.isdir(id_fs_dir_path):
++            return id_fs_dir_path
++
++        # paths built from the product id, with the extension of the expected archive
++        expected_extension = os.path.splitext(fs_path)[1]
++        if expected_extension and expected_extension != output_extension:
++            id_fs_path_with_ext = os.path.join(
++                prefix, f"{sanitized_id}{expected_extension}"
++            )
++            if os.path.isfile(id_fs_path_with_ext):
++                return id_fs_path_with_ext
++
++        return None
++
+     def generate_record_hash(self, product: EOProduct) -> str:
+         """Generate the record hash of the given product.
+ 
+@@ -360,7 +442,6 @@ class Download(PluginTopic):
+             )
+             progress_callback(1, total=1)
+             return product_path
+-        output_dir = kwargs.pop("output_dir", None) or self.config.output_dir
+ 
+         if not os.path.exists(product_path):
+             logger.info("Extraction activated")
+@@ -369,7 +450,8 @@ class Download(PluginTopic):
+             )
+             progress_callback.refresh()
+ 
+-            product_dir = os.path.join(output_dir, product_path)
++            # the archive may be stored in a sub-directory of the output directory
++            product_dir = os.path.join(os.path.dirname(fs_path), product_path)
+             tmp_dir = tempfile.TemporaryDirectory()
+             extraction_dir = os.path.join(tmp_dir.name, os.path.basename(product_dir))
+ 
+diff --git a/eodag/plugins/download/http.py b/eodag/plugins/download/http.py
+index c2f98e8..a432408 100644
+--- a/eodag/plugins/download/http.py
++++ b/eodag/plugins/download/http.py
+@@ -633,6 +633,11 @@ class HTTPDownload(Download):
+                     raise NotAvailableError(e).with_traceback(e.__traceback__)
+                 else:
+                     pass
++            except Exception:
++                # remove record file if the download did not succeed, to not skip it next time
++                if os.path.isfile(record_filename):
++                    os.remove(record_filename)
++                raise
+ 
+         url = product.remote_location
+ 
+@@ -654,6 +659,10 @@ class HTTPDownload(Download):
+                 path = Path(fs_path).with_suffix(ext)
+                 if "ORDERABLE" in path.stem and product.properties.get("title"):
+                     path = path.with_stem(sanitize(product.properties["title"]))
++                elif ext and ext != Path(fs_path).suffix:
++                    # the product is stored using a name built from its title, with the extension
++                    # of the downloaded file, so that it can be found again on next downloads
++                    path = Path(fs_path).with_suffix(ext)
+ 
+                 with open(path, "wb") as fhandle:
+                     for chunk in chunk_iterator:

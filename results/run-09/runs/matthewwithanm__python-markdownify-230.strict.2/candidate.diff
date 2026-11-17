@@ -1,0 +1,52 @@
+diff --git a/markdownify/__init__.py b/markdownify/__init__.py
+index 72c5214..1a364c0 100644
+--- a/markdownify/__init__.py
++++ b/markdownify/__init__.py
+@@ -482,8 +482,23 @@ class MarkdownConverter(object):
+     def convert_code(self, el, text, parent_tags):
+         if 'pre' in parent_tags:
+             return text
+-        converter = abstract_inline_conversion(lambda self: '`')
+-        return converter(self, el, text, parent_tags)
++        if '_noformat' in parent_tags:
++            return text
++        prefix, suffix, text = chomp(text)
++        if not text:
++            return ''
++        # If the code contains backticks, use a longer run of backticks as the
++        # delimiter (one more than the longest run of backticks in the code),
++        # and pad with spaces if the code starts or ends with a backtick.
++        # See https://spec.commonmark.org/0.30/#code-spans
++        longest_backtick_run = max((len(m) for m in re.findall(r'`+', text)), default=0)
++        if longest_backtick_run:
++            markup = '`' * (longest_backtick_run + 1)
++            if text.startswith('`') or text.endswith('`'):
++                text = ' %s ' % text
++        else:
++            markup = '`'
++        return '%s%s%s%s%s' % (prefix, markup, text, markup, suffix)
+ 
+     convert_del = abstract_inline_conversion(lambda self: '~~')
+ 
+diff --git a/tests/test_conversions.py b/tests/test_conversions.py
+index 825559b..9520f9d 100644
+--- a/tests/test_conversions.py
++++ b/tests/test_conversions.py
+@@ -103,6 +103,17 @@ def test_code():
+     assert md('<code>foo<sub>bar</sub>baz</code>', sub_symbol='^') == '`foobarbaz`'
+ 
+ 
++def test_code_with_backticks():
++    assert md('<code>We have to `manage` this.</code>') == '``We have to `manage` this.``'
++    assert md('<code>`foo`</code>') == '`` `foo` ``'
++    assert md('<code>a ``b`` c</code>') == '```a ``b`` c```'
++    assert md('<code>foo<code>`bar`</code>baz</code>') == '``foo`bar`baz``'
++    assert md('<kbd>a `b`</kbd>') == '`` a `b` ``'
++    assert md('<samp>a `b`</samp>') == '`` a `b` ``'
++    assert md('foo <code>`x`</code> bar') == 'foo `` `x` `` bar'
++    assert md('<pre><code>a `b`</code></pre>') == '\n\n```\na `b`\n```\n\n'
++
++
+ def test_dl():
+     assert md('<dl><dt>term</dt><dd>definition</dd></dl>') == '\n\nterm\n:   definition\n\n'
+     assert md('<dl><dt><p>te</p><p>rm</p></dt><dd>definition</dd></dl>') == '\n\nte rm\n:   definition\n\n'

@@ -1,0 +1,25 @@
+{
+  "arm": "strict",
+  "backend": "chat",
+  "claims": [
+    {
+      "action": "repair",
+      "exit": 3,
+      "gate": "emi",
+      "receipt": "receipt-0.json",
+      "rule": "policy_repair",
+      "verdict": "repair"
+    }
+  ],
+  "final": "gave_up",
+  "model": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+  "repair_rounds": 1,
+  "replay": null,
+  "seconds": 471.6,
+  "seed": 2,
+  "task": "narwhals-dev__narwhals-2864",
+  "usage": {
+    "completion_tokens": 9622,
+    "prompt_tokens": 636007
+  }
+}

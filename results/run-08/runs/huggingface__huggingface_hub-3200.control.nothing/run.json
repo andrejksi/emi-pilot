@@ -1,0 +1,21 @@
+{
+  "arm": "control",
+  "backend": "replay",
+  "claims": [
+    {
+      "gate": "none",
+      "verdict": "accepted"
+    }
+  ],
+  "final": "accepted",
+  "model": null,
+  "repair_rounds": 0,
+  "replay": "nothing",
+  "seconds": 0.0,
+  "seed": 0,
+  "task": "huggingface__huggingface_hub-3200",
+  "usage": {
+    "completion_tokens": 0,
+    "prompt_tokens": 0
+  }
+}

@@ -1,0 +1,45 @@
+diff --git a/more_itertools/more.py b/more_itertools/more.py
+index 3cd42e8..28c17d2 100755
+--- a/more_itertools/more.py
++++ b/more_itertools/more.py
+@@ -283,7 +283,7 @@ def last(iterable, default=_marker):
+         if isinstance(iterable, Sequence):
+             return iterable[-1]
+         # Work around https://bugs.python.org/issue38525
+-        if hasattr(iterable, '__reversed__'):
++        if getattr(iterable, '__reversed__', None) is not None:
+             return next(reversed(iterable))
+         return deque(iterable, maxlen=1)[-1]
+     except (IndexError, TypeError, StopIteration):
+diff --git a/tests/test_more.py b/tests/test_more.py
+index b964312..8fb4317 100644
+--- a/tests/test_more.py
++++ b/tests/test_more.py
+@@ -180,6 +180,27 @@ class LastTests(TestCase):
+                 with self.assertRaises(ValueError):
+                     mi.last(iterable)
+ 
++    def test_reversed_is_none(self):
++        class MyMapping(abc.Mapping):
++            def __getitem__(self, key):
++                return 1
++
++            def __iter__(self):
++                return iter([1])
++
++            def __len__(self):
++                return 1
++
++        self.assertEqual(mi.last(MyMapping()), 1)
++
++        class NoReversed:
++            __reversed__ = None
++
++            def __iter__(self):
++                return iter([1, 2, 3])
++
++        self.assertEqual(mi.last(NoReversed()), 3)
++
+ 
+ class NthOrLastTests(TestCase):
+     """Tests for ``nth_or_last()``"""

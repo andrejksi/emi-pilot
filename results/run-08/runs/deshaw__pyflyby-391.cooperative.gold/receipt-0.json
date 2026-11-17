@@ -1,0 +1,179 @@
+{
+  "action": "incomplete",
+  "adequacy": null,
+  "ask": [],
+  "assurance": {
+    "isolation": "sandboxed",
+    "setting": "cooperative"
+  },
+  "baseline": {
+    "sha": "141dc1768de96fa91f674fb6c5d5698815cce165",
+    "source": "merge-base:main"
+  },
+  "candidate": {
+    "content_id": "1e943a5897e0cbebeaae7257601ff56ed143d3b6",
+    "id": "worktree"
+  },
+  "change": {
+    "companion_tests": [],
+    "failing_tests": [],
+    "functions": [
+      {
+        "file": "lib/python/pyflyby/_format.py",
+        "function": "pyfill",
+        "laws": [],
+        "line": 103,
+        "status": "unknown"
+      },
+      {
+        "file": "lib/python/pyflyby/_importstmt.py",
+        "function": "run_black",
+        "laws": [],
+        "line": 578,
+        "status": "unknown"
+      }
+    ],
+    "not_measured": [
+      "lib/python/pyflyby/_format.py: 2 changed line(s) outside any function (module or class level); whether a test runs them is not measured",
+      "listing the tests at the candidate exited 1"
+    ],
+    "proving_tests": [],
+    "redundant_tests": [],
+    "skipped_tests": [],
+    "status": "unknown",
+    "unknown_tests": []
+  },
+  "changed_old_tests": [],
+  "decision_id": "7c1ccc8f225b1d14500fdfb09096ec1474a066b6203d8e033fd134cb4b866083",
+  "input_id": "b36f26f22ba0b43e00dbb8a79897f439a5194d1d0527227c70ff5ef94f9971a3",
+  "inputs": {
+    "approvals": [],
+    "baseline": "141dc1768de96fa91f674fb6c5d5698815cce165",
+    "candidate": "1e943a5897e0cbebeaae7257601ff56ed143d3b6",
+    "config": "1d26d1eb7f966c734077aceb4d6f17859f81b220e955b7c589781fe63da32d83",
+    "driver": {
+      "language": "python",
+      "producer": "a062e705e9b4791409555212698338a8fe282c765ca2412edc4b3369909161ee"
+    },
+    "emi": "0.1.1",
+    "environment": "2e2645d30af34859dc1ac18c2cfac2e11486a5ce565839f8aeb03fa97e1fc943",
+    "intent": null,
+    "laws": null,
+    "memory": {
+      "laws": {},
+      "schema": "emi-memory-1"
+    },
+    "pins": {
+      "derandomize": true,
+      "hash_seed": 0,
+      "locale": "C.UTF-8",
+      "seed_random": true,
+      "tz": "UTC"
+    },
+    "policy": "emi-policy-10",
+    "search": null,
+    "setting": "cooperative"
+  },
+  "laws": {
+    "checked_functions": {},
+    "digest": null,
+    "fault": null,
+    "forgotten": [],
+    "found": {},
+    "laws": [],
+    "not_measured": [],
+    "proposals": []
+  },
+  "meta": {
+    "repo": "/home/runner/work/_temp/work/deshaw__pyflyby-391.cooperative.gold"
+  },
+  "not_verified": [
+    "Behaviour that no test exercises: tests passing does not show the task's behaviour exists.",
+    "The baseline's tests are taken as correct. They ran twice under the same pins; a test whose outcome differed is quarantined, and an outcome that depends on something the pins do not hold (the clock, the network, another process) can still differ.",
+    "Tests the baseline already skipped, expected to fail, could not collect or failed are not regression evidence: nothing is known about the behaviour they cover.",
+    "Escape hatches in the change (suppressions, test-runner sniffing, always-equal comparisons) are found by pattern, and only in product lines it added. Only sniffing is also measured: a modified function is replayed as a test run and as a plain process, on the inputs the behaviour comparison has, and only for the clues of a test run that replay plants.",
+    "Cooperative verification: the proposer could alter the controller's inputs (the configuration, the recorded approvals, the dependencies the tests run). It catches a careless proposer, not a cheating one.",
+    "Linked dependencies (.venv) were taken as found on this machine.",
+    "No laws: what the change should do is shown only by the proposer's own tests. Laws the person writes in .emi/laws hold every change to them.",
+    "Behaviour was compared with the baseline's on 0 input(s) (0 generated from annotations), as a report that decides nothing, since nobody asked for it to be kept; other inputs are not covered, so this is not a proof of equivalence.",
+    "Not compared: lib/python/pyflyby/_format.py::pyfill: no_inputs.",
+    "Not compared: lib/python/pyflyby/_importstmt.py::ImportStatement.run_black: no_inputs.",
+    "the test command on the base commit exited with 1: le-drift-harvest-4006-1794590567594488396-0/.venv/lib/python3.10/site-packages/pluggy/_manager.py\", line 44, in _warn_for_function\n    warnings.warn_explicit(\npytest.PytestRemovedIn9Warning: The (path: py.path.local) argument is deprecated, please use (collection_path: pathlib.Path)\nsee https://docs.pytest.org/en/latest/deprecations.html#py-path-local-arguments-for-hooks-replaced-with-pathlib-path; the recorded inputs may be incomplete"
+  ],
+  "policy": "emi-policy-10",
+  "preserve": {
+    "counts": {
+      "added_or_removed": 0,
+      "compared": 0,
+      "generated": 0,
+      "import_failures": 0,
+      "no_inputs": 2,
+      "not_replayed": 0,
+      "skipped_async": 0,
+      "skipped_method": 0,
+      "skipped_nested": 0,
+      "targets": 2,
+      "timeouts": 0,
+      "unencodable_result": 0,
+      "unrecordable": 0,
+      "unresolved": 0,
+      "unstable": 0,
+      "with_drift": 0
+    },
+    "divergences": [],
+    "functions": [
+      {
+        "compared": 0,
+        "deterministic": false,
+        "file": "lib/python/pyflyby/_format.py",
+        "function": "pyfill",
+        "inputs": 0,
+        "status": "no_inputs"
+      },
+      {
+        "compared": 0,
+        "deterministic": false,
+        "file": "lib/python/pyflyby/_importstmt.py",
+        "function": "ImportStatement.run_black",
+        "inputs": 0,
+        "status": "no_inputs"
+      }
+    ],
+    "more_divergences": 0,
+    "not_checked": [
+      "lib/python/pyflyby/_format.py::pyfill: no_inputs",
+      "lib/python/pyflyby/_importstmt.py::ImportStatement.run_black: no_inputs"
+    ],
+    "reasons": [
+      "the test command on the base commit exited with 1: le-drift-harvest-4006-1794590567594488396-0/.venv/lib/python3.10/site-packages/pluggy/_manager.py\", line 44, in _warn_for_function\n    warnings.warn_explicit(\npytest.PytestRemovedIn9Warning: The (path: py.path.local) argument is deprecated, please use (collection_path: pathlib.Path)\nsee https://docs.pytest.org/en/latest/deprecations.html#py-path-local-arguments-for-hooks-replaced-with-pathlib-path; the recorded inputs may be incomplete"
+    ],
+    "required": false,
+    "under_test": {
+      "compared": 0,
+      "differences": [],
+      "unmeasured": null
+    }
+  },
+  "regression": {
+    "failed": [],
+    "missing": [],
+    "nondeterministic": [],
+    "quarantined": [],
+    "reasons": [
+      "pytest execution has no complete readable result summary: see https://docs.pytest.org/en/latest/deprecations.html#py-path-local-arguments-for-hooks-replaced-with-pathlib-path"
+    ],
+    "status": "unknown",
+    "tests_run": null
+  },
+  "repair": [],
+  "rule": "fault",
+  "schema": "emi-done-receipt-1.0",
+  "signals": [],
+  "this_run": [
+    "No laws: what the change should do is shown only by the proposer's own tests. Laws the person writes in .emi/laws hold every change to them.",
+    "Behaviour was compared with the baseline's on 0 input(s) (0 generated from annotations), as a report that decides nothing, since nobody asked for it to be kept; other inputs are not covered, so this is not a proof of equivalence.",
+    "Not compared: lib/python/pyflyby/_format.py::pyfill: no_inputs.",
+    "Not compared: lib/python/pyflyby/_importstmt.py::ImportStatement.run_black: no_inputs.",
+    "the test command on the base commit exited with 1: le-drift-harvest-4006-1794590567594488396-0/.venv/lib/python3.10/site-packages/pluggy/_manager.py\", line 44, in _warn_for_function\n    warnings.warn_explicit(\npytest.PytestRemovedIn9Warning: The (path: py.path.local) argument is deprecated, please use (collection_path: pathlib.Path)\nsee https://docs.pytest.org/en/latest/deprecations.html#py-path-local-arguments-for-hooks-replaced-with-pathlib-path; the recorded inputs may be incomplete"
+  ]
+}

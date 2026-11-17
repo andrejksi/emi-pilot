@@ -1,0 +1,319 @@
+{
+  "action": "stop",
+  "adequacy": null,
+  "ask": [],
+  "assurance": {
+    "isolation": "sandboxed",
+    "setting": "cooperative"
+  },
+  "baseline": {
+    "sha": "e7c1037b0a962677e87d0aa6b9c54a7785d41e13",
+    "source": "merge-base:main"
+  },
+  "candidate": {
+    "content_id": "5c65fb52cdaf1bb15b33fd0e9cc0d55721b6a6be",
+    "id": "worktree"
+  },
+  "change": {
+    "companion_tests": [],
+    "failing_tests": [],
+    "functions": [
+      {
+        "file": "src/huggingface_hub/inference/_providers/hf_inference.py",
+        "function": "_build_chat_completion_url",
+        "laws": [],
+        "line": 128,
+        "status": "unexercised"
+      }
+    ],
+    "not_measured": [
+      "src/huggingface_hub/inference/_client.py: 4 changed line(s) outside any function (module or class level); whether a test runs them is not measured",
+      "src/huggingface_hub/inference/_generated/_async_client.py: 4 changed line(s) outside any function (module or class level); whether a test runs them is not measured",
+      "src/huggingface_hub/inference/_providers/hf_inference.py: 1 changed line(s) outside any function (module or class level); whether a test runs them is not measured"
+    ],
+    "proving_tests": [],
+    "redundant_tests": [],
+    "skipped_tests": [],
+    "status": "unexercised",
+    "unknown_tests": []
+  },
+  "changed_old_tests": [],
+  "decision_id": "984ebef7032f41a65766ab93a88b895cfa569e06f6c6109202debce27d7643a0",
+  "input_id": "76ac73598bb989954fbf344f9586ef4a713d7fc4367ab78fdfaac4e8be41d5a9",
+  "inputs": {
+    "approvals": [],
+    "baseline": "e7c1037b0a962677e87d0aa6b9c54a7785d41e13",
+    "candidate": "5c65fb52cdaf1bb15b33fd0e9cc0d55721b6a6be",
+    "config": "f6390bea26437e782e0c17fce6c04b2a95413cb3cb92b5c07a95975e89e36abf",
+    "driver": {
+      "language": "python",
+      "producer": "a062e705e9b4791409555212698338a8fe282c765ca2412edc4b3369909161ee"
+    },
+    "emi": "0.1.1",
+    "environment": "549935ee62d49f7743526f7a197871892c3c442292b202661d8917c6fbaaec2b",
+    "intent": null,
+    "laws": null,
+    "memory": {
+      "laws": {},
+      "schema": "emi-memory-1"
+    },
+    "pins": {
+      "derandomize": true,
+      "hash_seed": 0,
+      "locale": "C.UTF-8",
+      "seed_random": true,
+      "tz": "UTC"
+    },
+    "policy": "emi-policy-10",
+    "search": null,
+    "setting": "cooperative"
+  },
+  "laws": {
+    "checked_functions": {},
+    "digest": null,
+    "fault": null,
+    "forgotten": [],
+    "found": {},
+    "laws": [],
+    "not_measured": [],
+    "proposals": []
+  },
+  "meta": {
+    "repo": "/home/runner/work/_temp/work/huggingface__huggingface_hub-3200.cooperative.gold"
+  },
+  "not_verified": [
+    "Behaviour that no test exercises: tests passing does not show the task's behaviour exists.",
+    "The baseline's tests are taken as correct. They ran twice under the same pins; a test whose outcome differed is quarantined, and an outcome that depends on something the pins do not hold (the clock, the network, another process) can still differ.",
+    "Tests the baseline already skipped, expected to fail, could not collect or failed are not regression evidence: nothing is known about the behaviour they cover.",
+    "Escape hatches in the change (suppressions, test-runner sniffing, always-equal comparisons) are found by pattern, and only in product lines it added. Only sniffing is also measured: a modified function is replayed as a test run and as a plain process, on the inputs the behaviour comparison has, and only for the clues of a test run that replay plants.",
+    "Cooperative verification: the proposer could alter the controller's inputs (the configuration, the recorded approvals, the dependencies the tests run). It catches a careless proposer, not a cheating one.",
+    "Linked dependencies (.venv) were taken as found on this machine.",
+    "No laws: what the change should do is shown only by the proposer's own tests. Laws the person writes in .emi/laws hold every change to them.",
+    "Behaviour was compared with the baseline's on 212 input(s) (200 generated from annotations), as a report that decides nothing, since nobody asked for it to be kept; other inputs are not covered, so this is not a proof of equivalence.",
+    "the test command on the base commit exited with 1: loop_scope\" is unset.\nThe event loop scope for asynchronous fixtures will default to the fixture caching scope. Future versions of pytest-asyncio will default the loop scope for asynchronous fixtures to function scope. Set the default fixture loop scope explicitly in order to avoid unexpected behavior in the future. Valid fixture loop scopes are: \"function\", \"class\", \"module\", \"package\", \"session\"; the recorded inputs may be incomplete"
+  ],
+  "policy": "emi-policy-10",
+  "preserve": {
+    "counts": {
+      "added_or_removed": 0,
+      "compared": 1,
+      "generated": 200,
+      "import_failures": 0,
+      "no_inputs": 0,
+      "not_replayed": 0,
+      "skipped_async": 0,
+      "skipped_method": 0,
+      "skipped_nested": 0,
+      "targets": 1,
+      "timeouts": 0,
+      "unencodable_result": 0,
+      "unrecordable": 0,
+      "unresolved": 0,
+      "unstable": 0,
+      "with_drift": 1
+    },
+    "divergences": [
+      {
+        "before": {
+          "returned": " /v1/chat/completions"
+        },
+        "file": "src/huggingface_hub/inference/_providers/hf_inference.py",
+        "function": "_build_chat_completion_url",
+        "input": {
+          "args": [
+            " "
+          ],
+          "kwargs": {}
+        },
+        "now": {
+          "returned": "/v1/chat/completions"
+        }
+      },
+      {
+        "before": {
+          "returned": "*\ud928\udeef\u00eb\u00ad\u00b1m\uda37\ude2d\r\udbb9\uddf1\ud916\udf52B\u00e4A\udac5\udd87\u0015\u00c3\u009b\u00ab|/v1/chat/completions"
+        },
+        "file": "src/huggingface_hub/inference/_providers/hf_inference.py",
+        "function": "_build_chat_completion_url",
+        "input": {
+          "args": [
+            "*\ud928\udeef\u00eb\u00ad\u00b1m\uda37\ude2d\r\udbb9\uddf1\ud916\udf52B\u00e4A\udac5\udd87\u0015\u00c3\u009b\u00ab|"
+          ],
+          "kwargs": {}
+        },
+        "now": {
+          "returned": "*\ud928\udeef\u00eb\u00ad\u00b1m\uda37\ude2d\udbb9\uddf1\ud916\udf52B\u00e4A\udac5\udd87\u0015\u00c3\u009b\u00ab|/v1/chat/completions"
+        }
+      },
+      {
+        "before": {
+          "returned": "3\u0093\u0005{\t\u00a2\udbd8\udec9P\uda2a\udefbb\u00bc\u00ad\u000f_\udbf2\udf42\u00ab\u0016\u00feK\u00c2'\udb7e\udf30\udb02\udc66\u00c1/v1/chat/completions"
+        },
+        "file": "src/huggingface_hub/inference/_providers/hf_inference.py",
+        "function": "_build_chat_completion_url",
+        "input": {
+          "args": [
+            "3\u0093\u0005{\t\u00a2\udbd8\udec9P\uda2a\udefbb\u00bc\u00ad\u000f_\udbf2\udf42\u00ab\u0016\u00feK\u00c2'\udb7e\udf30\udb02\udc66\u00c1"
+          ],
+          "kwargs": {}
+        },
+        "now": {
+          "returned": "3\u0093\u0005{\u00a2\udbd8\udec9P\uda2a\udefbb\u00bc\u00ad\u000f_\udbf2\udf42\u00ab\u0016\u00feK\u00c2'\udb7e\udf30\udb02\udc66\u00c1/v1/chat/completions"
+        }
+      },
+      {
+        "before": {
+          "returned": "8\u00e8\fa\u0083\u0090\u00eb\ud9ae\udc2d\u0001\u00e13\n\u00cd\u00988\u00e67/v1/chat/completions"
+        },
+        "file": "src/huggingface_hub/inference/_providers/hf_inference.py",
+        "function": "_build_chat_completion_url",
+        "input": {
+          "args": [
+            "8\u00e8\fa\u0083\u0090\u00eb\ud9ae\udc2d\u0001\u00e13\n\u00cd\u00988\u00e67"
+          ],
+          "kwargs": {}
+        },
+        "now": {
+          "returned": "8\u00e8\fa\u0083\u0090\u00eb\ud9ae\udc2d\u0001\u00e13\u00cd\u00988\u00e67/v1/chat/completions"
+        }
+      },
+      {
+        "before": {
+          "returned": "?\u00e1\u009d\u00ed\ud8a4\uddc3\ud996\uddf13c\u00c16\uda01\ude38U>/v1/chat/completions"
+        },
+        "file": "src/huggingface_hub/inference/_providers/hf_inference.py",
+        "function": "_build_chat_completion_url",
+        "input": {
+          "args": [
+            "?\u00e1\u009d\u00ed\ud8a4\uddc3\ud996\uddf13c\u00c16\uda01\ude38U>"
+          ],
+          "kwargs": {}
+        },
+        "now": {
+          "returned": "/v1/chat/completions?\u00e1\u009d\u00ed\ud8a4\uddc3\ud996\uddf13c\u00c16\uda01\ude38U>"
+        }
+      },
+      {
+        "before": {
+          "returned": "Xxb\u0083\u008d\u0083\u0ba3\u00d1\r\u00f2/v1/chat/completions"
+        },
+        "file": "src/huggingface_hub/inference/_providers/hf_inference.py",
+        "function": "_build_chat_completion_url",
+        "input": {
+          "args": [
+            "Xxb\u0083\u008d\u0083\u0ba3\u00d1\r\u00f2"
+          ],
+          "kwargs": {}
+        },
+        "now": {
+          "returned": "Xxb\u0083\u008d\u0083\u0ba3\u00d1\u00f2/v1/chat/completions"
+        }
+      },
+      {
+        "before": {
+          "returned": "[\u000f\u00b7\u00e9\t\ud9a8\udc66\u008a/v1/chat/completions"
+        },
+        "file": "src/huggingface_hub/inference/_providers/hf_inference.py",
+        "function": "_build_chat_completion_url",
+        "input": {
+          "args": [
+            "[\u000f\u00b7\u00e9\t\ud9a8\udc66\u008a"
+          ],
+          "kwargs": {}
+        },
+        "now": {
+          "returned": "[\u000f\u00b7\u00e9\ud9a8\udc66\u008a/v1/chat/completions"
+        }
+      },
+      {
+        "before": {
+          "returned": "\b\u00d6\ud8d6\udf2b9/v1/chat/completions"
+        },
+        "file": "src/huggingface_hub/inference/_providers/hf_inference.py",
+        "function": "_build_chat_completion_url",
+        "input": {
+          "args": [
+            "\b\u00d6\ud8d6\udf2b9"
+          ],
+          "kwargs": {}
+        },
+        "now": {
+          "returned": "\u00d6\ud8d6\udf2b9/v1/chat/completions"
+        }
+      },
+      {
+        "before": {
+          "returned": "\f\u00f7/v1/chat/completions"
+        },
+        "file": "src/huggingface_hub/inference/_providers/hf_inference.py",
+        "function": "_build_chat_completion_url",
+        "input": {
+          "args": [
+            "\f\u00f7"
+          ],
+          "kwargs": {}
+        },
+        "now": {
+          "returned": "\u00f7/v1/chat/completions"
+        }
+      },
+      {
+        "before": {
+          "returned": "\nm\b\u00a4/v1/chat/completions"
+        },
+        "file": "src/huggingface_hub/inference/_providers/hf_inference.py",
+        "function": "_build_chat_completion_url",
+        "input": {
+          "args": [
+            "\nm\b\u00a4"
+          ],
+          "kwargs": {}
+        },
+        "now": {
+          "returned": "m\b\u00a4/v1/chat/completions"
+        }
+      }
+    ],
+    "functions": [
+      {
+        "compared": 212,
+        "deterministic": true,
+        "file": "src/huggingface_hub/inference/_providers/hf_inference.py",
+        "function": "_build_chat_completion_url",
+        "inputs": 212,
+        "status": "compared"
+      }
+    ],
+    "more_divergences": 30,
+    "not_checked": [],
+    "reasons": [
+      "the test command on the base commit exited with 1: loop_scope\" is unset.\nThe event loop scope for asynchronous fixtures will default to the fixture caching scope. Future versions of pytest-asyncio will default the loop scope for asynchronous fixtures to function scope. Set the default fixture loop scope explicitly in order to avoid unexpected behavior in the future. Valid fixture loop scopes are: \"function\", \"class\", \"module\", \"package\", \"session\"; the recorded inputs may be incomplete"
+    ],
+    "required": false,
+    "under_test": {
+      "compared": 212,
+      "differences": [],
+      "unmeasured": null
+    }
+  },
+  "regression": {
+    "failed": [],
+    "missing": [],
+    "nondeterministic": [],
+    "quarantined": [],
+    "reasons": [
+      "10 test(s) already failed at the baseline and are not regression evidence"
+    ],
+    "status": "held",
+    "tests_run": 41
+  },
+  "repair": [],
+  "rule": "none",
+  "schema": "emi-done-receipt-1.0",
+  "signals": [],
+  "this_run": [
+    "No laws: what the change should do is shown only by the proposer's own tests. Laws the person writes in .emi/laws hold every change to them.",
+    "Behaviour was compared with the baseline's on 212 input(s) (200 generated from annotations), as a report that decides nothing, since nobody asked for it to be kept; other inputs are not covered, so this is not a proof of equivalence.",
+    "the test command on the base commit exited with 1: loop_scope\" is unset.\nThe event loop scope for asynchronous fixtures will default to the fixture caching scope. Future versions of pytest-asyncio will default the loop scope for asynchronous fixtures to function scope. Set the default fixture loop scope explicitly in order to avoid unexpected behavior in the future. Valid fixture loop scopes are: \"function\", \"class\", \"module\", \"package\", \"session\"; the recorded inputs may be incomplete"
+  ]
+}

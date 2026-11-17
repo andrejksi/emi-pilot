@@ -1,0 +1,182 @@
+{
+  "action": "stop",
+  "adequacy": null,
+  "ask": [],
+  "assurance": {
+    "isolation": "sandboxed",
+    "setting": "cooperative"
+  },
+  "baseline": {
+    "sha": "e442a3a4fc1c09f0f02ff4ba5005a1afb3f69cbb",
+    "source": "merge-base:main"
+  },
+  "candidate": {
+    "content_id": "2a56455fc8ba1051a302b6eba5672a778aee8840",
+    "id": "worktree"
+  },
+  "change": {
+    "companion_tests": [],
+    "failing_tests": [],
+    "functions": [
+      {
+        "file": "conan/cli/commands/cache.py",
+        "function": "cache_backup_upload",
+        "laws": [],
+        "line": 185,
+        "status": "unexercised"
+      },
+      {
+        "file": "conan/tools/scm/git.py",
+        "function": "get_remote_url",
+        "laws": [],
+        "line": 72,
+        "status": "exercised"
+      }
+    ],
+    "not_measured": [],
+    "proving_tests": [
+      {
+        "baseline_result": "failed",
+        "edited": false,
+        "id": "test/functional/tools/scm/test_git.py::TestGitTreelessRemote::test_treeless_clone"
+      },
+      {
+        "baseline_result": "failed",
+        "edited": false,
+        "id": "test/functional/tools/scm/test_git.py::TestGitTreelessRemote::test_treeless_clone_with_parenthesis"
+      }
+    ],
+    "redundant_tests": [],
+    "skipped_tests": [],
+    "status": "partly_exercised",
+    "unknown_tests": []
+  },
+  "changed_old_tests": [],
+  "decision_id": "24264ca766896b3fa3617412f26fa6665e6c8661628250603089156664a58884",
+  "input_id": "a01dd2cde563607a9b0b7a23329b26e1d3c36a2b0d35f6a34c2e8b436af6300a",
+  "inputs": {
+    "approvals": [],
+    "baseline": "e442a3a4fc1c09f0f02ff4ba5005a1afb3f69cbb",
+    "candidate": "2a56455fc8ba1051a302b6eba5672a778aee8840",
+    "config": "dc926bb2ae90852aa6b1e4c54a80a56e55e7684a780c53912211398a7c520a65",
+    "driver": {
+      "language": "python",
+      "producer": "a062e705e9b4791409555212698338a8fe282c765ca2412edc4b3369909161ee"
+    },
+    "emi": "0.1.1",
+    "environment": "f20bb0806a249ac00636ede25279ff8662e779961666e8b1f82a39a349e5381c",
+    "intent": null,
+    "laws": null,
+    "memory": {
+      "laws": {},
+      "schema": "emi-memory-1"
+    },
+    "pins": {
+      "derandomize": true,
+      "hash_seed": 0,
+      "locale": "C.UTF-8",
+      "seed_random": true,
+      "tz": "UTC"
+    },
+    "policy": "emi-policy-10",
+    "search": null,
+    "setting": "cooperative"
+  },
+  "laws": {
+    "checked_functions": {},
+    "digest": null,
+    "fault": null,
+    "forgotten": [],
+    "found": {},
+    "laws": [],
+    "not_measured": [],
+    "proposals": []
+  },
+  "meta": {
+    "repo": "/home/runner/work/_temp/work/conan-io__conan-18444.cooperative.gold-with-tests"
+  },
+  "not_verified": [
+    "Behaviour that no test exercises: tests passing does not show the task's behaviour exists.",
+    "The baseline's tests are taken as correct. They ran twice under the same pins; a test whose outcome differed is quarantined, and an outcome that depends on something the pins do not hold (the clock, the network, another process) can still differ.",
+    "Tests the baseline already skipped, expected to fail, could not collect or failed are not regression evidence: nothing is known about the behaviour they cover.",
+    "Escape hatches in the change (suppressions, test-runner sniffing, always-equal comparisons) are found by pattern, and only in product lines it added. Only sniffing is also measured: a modified function is replayed as a test run and as a plain process, on the inputs the behaviour comparison has, and only for the clues of a test run that replay plants.",
+    "Cooperative verification: the proposer could alter the controller's inputs (the configuration, the recorded approvals, the dependencies the tests run). It catches a careless proposer, not a cheating one.",
+    "Linked dependencies (.venv) were taken as found on this machine.",
+    "No laws: what the change should do is shown only by the proposer's own tests. Laws the person writes in .emi/laws hold every change to them.",
+    "Behaviour was compared with the baseline's on 0 input(s) (0 generated from annotations), as a report that decides nothing, since nobody asked for it to be kept; other inputs are not covered, so this is not a proof of equivalence.",
+    "Not compared: conan/tools/scm/git.py::Git.get_remote_url: no_inputs.",
+    "Not compared: conan/cli/commands/cache.py::cache_backup_upload: not_found.",
+    "the test command on the base commit exited with 1; the recorded inputs may be incomplete",
+    "conan/cli/commands/cache.py cache_backup_upload: the test run imported conan.cli.commands.cache but the recorder did not find the function in it"
+  ],
+  "policy": "emi-policy-10",
+  "preserve": {
+    "counts": {
+      "added_or_removed": 2,
+      "compared": 0,
+      "generated": 0,
+      "import_failures": 0,
+      "no_inputs": 1,
+      "not_replayed": 0,
+      "skipped_async": 0,
+      "skipped_method": 0,
+      "skipped_nested": 0,
+      "targets": 2,
+      "timeouts": 0,
+      "unencodable_result": 0,
+      "unrecordable": 30,
+      "unresolved": 1,
+      "unstable": 0,
+      "with_drift": 0
+    },
+    "divergences": [],
+    "functions": [
+      {
+        "compared": 0,
+        "deterministic": false,
+        "file": "conan/tools/scm/git.py",
+        "function": "Git.get_remote_url",
+        "inputs": 0,
+        "status": "no_inputs"
+      }
+    ],
+    "more_divergences": 0,
+    "not_checked": [
+      "conan/tools/scm/git.py::Git.get_remote_url: no_inputs",
+      "conan/cli/commands/cache.py::cache_backup_upload: not_found"
+    ],
+    "reasons": [
+      "the test command on the base commit exited with 1; the recorded inputs may be incomplete",
+      "conan/cli/commands/cache.py cache_backup_upload: the test run imported conan.cli.commands.cache but the recorder did not find the function in it"
+    ],
+    "required": false,
+    "under_test": {
+      "compared": 0,
+      "differences": [],
+      "unmeasured": null
+    }
+  },
+  "regression": {
+    "failed": [],
+    "missing": [],
+    "nondeterministic": [],
+    "quarantined": [],
+    "reasons": [
+      "1 test(s) already failed at the baseline and are not regression evidence"
+    ],
+    "status": "held",
+    "tests_run": 34
+  },
+  "repair": [],
+  "rule": "none",
+  "schema": "emi-done-receipt-1.0",
+  "signals": [],
+  "this_run": [
+    "No laws: what the change should do is shown only by the proposer's own tests. Laws the person writes in .emi/laws hold every change to them.",
+    "Behaviour was compared with the baseline's on 0 input(s) (0 generated from annotations), as a report that decides nothing, since nobody asked for it to be kept; other inputs are not covered, so this is not a proof of equivalence.",
+    "Not compared: conan/tools/scm/git.py::Git.get_remote_url: no_inputs.",
+    "Not compared: conan/cli/commands/cache.py::cache_backup_upload: not_found.",
+    "the test command on the base commit exited with 1; the recorded inputs may be incomplete",
+    "conan/cli/commands/cache.py cache_backup_upload: the test run imported conan.cli.commands.cache but the recorder did not find the function in it"
+  ]
+}

@@ -1,0 +1,107 @@
+diff --git a/src/bluesky/bundlers.py b/src/bluesky/bundlers.py
+index e970708..304a19e 100644
+--- a/src/bluesky/bundlers.py
++++ b/src/bluesky/bundlers.py
+@@ -269,7 +269,10 @@ class RunBundler:
+ 
+         collect = kwargs.get("collect", False)
+         assert no_obj is None
+-        objs = frozenset(objs)
++        # Keep the order supplied by the plan when constructing the descriptor.
++        # A set is still used for stream identity below, but iterating over it
++        # here would make the descriptor's data key order depend on hash order.
++        objs = list(dict.fromkeys(objs))
+         objs_dks = {}  # {collect_object: stream_data_keys}
+ 
+         await asyncio.gather(*[self._ensure_cached(obj, collect=collect) for obj in objs])
+@@ -290,7 +293,7 @@ class RunBundler:
+ 
+             objs_dks[obj] = data_keys
+ 
+-        existing_stream_names = self._declared_stream_names.setdefault(objs, [])
++        existing_stream_names = self._declared_stream_names.setdefault(frozenset(objs), [])
+         existing_stream_names.append(stream_name)
+ 
+         return await self._prepare_stream(stream_name, objs_dks)
+@@ -538,8 +541,9 @@ class RunBundler:
+             self._bundle_name = None
+             return
+         # The Event Descriptor is uniquely defined by the set of objects
+-        # read in this Event grouping.
+-        objs_read = frozenset(self._objs_read)
++        # read in this Event grouping. Preserve read order when constructing
++        # its data keys; only use a set for identity comparisons.
++        objs_read = list(dict.fromkeys(self._objs_read))
+ 
+         # Event Descriptor key
+         desc_key = self._bundle_name
+@@ -566,8 +570,10 @@ class RunBundler:
+             descriptor_doc, compose_event, d_objs = await self._prepare_stream(desc_key, objs_dks)
+ 
+         # do have the descriptor cached
+-        elif frozenset(d_objs) != objs_read:
+-            raise RuntimeError(f"Mismatched objects read, expected {frozenset(d_objs)!s}, got {objs_read!s}")
++        elif frozenset(d_objs) != frozenset(objs_read):
++            raise RuntimeError(
++                f"Mismatched objects read, expected {frozenset(d_objs)!s}, got {frozenset(objs_read)!s}"
++            )
+ 
+         # Resource and Datum documents
+         indices_generated = await self._pack_external_assets(self._asset_docs_cache, message_stream_name=desc_key)
+diff --git a/src/bluesky/tests/test_run_engine.py b/src/bluesky/tests/test_run_engine.py
+index 3eeaa1c..cb038c5 100644
+--- a/src/bluesky/tests/test_run_engine.py
++++ b/src/bluesky/tests/test_run_engine.py
+@@ -22,7 +22,7 @@ from bluesky.plan_stubs import (
+     wait,
+     wait_for,
+ )
+-from bluesky.plans import count, grid_scan
++from bluesky.plans import count, grid_scan, scan
+ from bluesky.preprocessors import (
+     SupplementalData,
+     baseline_wrapper,
+@@ -1652,6 +1652,43 @@ def test_filled(RE, hw, db):
+     assert event["filled"] == {"img": False}
+ 
+ 
++@pytest.mark.parametrize("predeclare", [False, True])
++def test_scan_preserves_detector_order(RE, hw, predeclare, monkeypatch):
++    """Detector fields in documents follow the order passed to scan."""
++    if predeclare:
++        monkeypatch.setenv("BLUESKY_PREDECLARE", "1")
++
++    detectors = [hw.det3, hw.det1, hw.det2]
++    collector = DocCollector()
++    RE(scan(detectors, hw.motor, -1, 1, 2), collector.insert)
++
++    (descriptor,) = collector.descriptor[next(iter(collector.descriptor))]
++    events = collector.event[descriptor["uid"]]
++    assert len(events) == 2
++
++    detector_keys = [det.name for det in detectors]
++    descriptor_keys = list(descriptor["data_keys"])
++    assert [key for key in descriptor_keys if key in detector_keys] == detector_keys
++    assert [key for key in descriptor["object_keys"] if key in detector_keys] == detector_keys
++    for event in events:
++        assert [key for key in event["data"] if key in detector_keys] == detector_keys
++
++
++def test_declare_stream_preserves_object_order(RE, hw):
++    """Predeclared descriptors retain the order of their objects."""
++    collector = DocCollector()
++
++    def plan():
++        yield from declare_stream(hw.det3, hw.det1, hw.det2, name="primary")
++        yield from trigger_and_read([hw.det3, hw.det1, hw.det2])
++
++    RE(run_wrapper(plan()), collector.insert)
++
++    (descriptor,) = collector.descriptor[next(iter(collector.descriptor))]
++    assert list(descriptor["object_keys"]) == [hw.det3.name, hw.det1.name, hw.det2.name]
++    assert list(descriptor["data_keys"]) == [hw.det3.name, hw.det1.name, hw.det2.name]
++
++
+ def test_double_call(RE):
+     uid1 = RE(count([]))
+     uid2 = RE(count([]))

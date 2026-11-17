@@ -1,0 +1,141 @@
+diff --git a/eodag/plugins/download/base.py b/eodag/plugins/download/base.py
+index b286a77..58dd129 100644
+--- a/eodag/plugins/download/base.py
++++ b/eodag/plugins/download/base.py
+@@ -232,26 +232,22 @@ class Download(PluginTopic):
+         )
+         if os.path.isfile(old_record_filename):
+             os.rename(old_record_filename, record_filename)
+-        if os.path.isfile(record_filename) and os.path.isfile(fs_path):
+-            logger.info(
+-                f"Product already downloaded: {fs_path}",
+-            )
+-            return (
+-                self._finalize(fs_path, progress_callback=progress_callback, **kwargs),
+-                None,
+-            )
+-        elif os.path.isfile(record_filename) and os.path.isdir(fs_dir_path):
+-            logger.info(
+-                f"Product already downloaded: {fs_dir_path}",
+-            )
+-            return (
+-                self._finalize(
+-                    fs_dir_path, progress_callback=progress_callback, **kwargs
+-                ),
+-                None,
+-            )
+-        # Remove the record file if fs_path is absent (e.g. it was deleted while record wasn't)
+-        elif os.path.isfile(record_filename):
++        if os.path.isfile(record_filename):
++            # the downloaded file may have been renamed after download (e.g. using the filename
++            # returned by the server instead of the product title), so look for any existing
++            # file or directory matching the product title
++            existing_path = self._get_existing_product_path(fs_path, fs_dir_path)
++            if existing_path:
++                logger.info(
++                    f"Product already downloaded: {existing_path}",
++                )
++                return (
++                    self._finalize(
++                        existing_path, progress_callback=progress_callback, **kwargs
++                    ),
++                    None,
++                )
++            # Remove the record file if fs_path is absent (e.g. it was deleted while record wasn't)
+             logger.debug(
+                 f"Record file found ({record_filename}) but not the actual file",
+             )
+@@ -262,6 +258,46 @@ class Download(PluginTopic):
+ 
+         return fs_path, record_filename
+ 
++    @staticmethod
++    def _get_existing_product_path(fs_path: str, fs_dir_path: str) -> Optional[str]:
++        """Look for an already downloaded product, using its expected file or directory path.
++
++        The expected file path is checked first, then the expected directory path, and finally
++        any file or directory located in the same directory and named after the product title
++        (whatever its extension), as the downloaded file may have been renamed after download.
++
++        :param fs_path: expected path to the downloaded product file
++        :param fs_dir_path: expected path to the extracted product directory
++        :returns: the path to the existing product, or None if not found
++        """
++        if os.path.isfile(fs_path):
++            return fs_path
++        if os.path.isdir(fs_dir_path):
++            return fs_dir_path
++
++        parent_dir = os.path.dirname(fs_path)
++        product_name = os.path.basename(fs_dir_path)
++        if not product_name or not os.path.isdir(parent_dir):
++            return None
++
++        try:
++            entries = sorted(os.listdir(parent_dir))
++        except OSError:
++            return None
++
++        for entry in entries:
++            if entry == product_name or not entry.startswith(product_name):
++                continue
++            # only consider files having an extension (e.g. "product.zip"), to avoid
++            # matching another product whose title starts with the same name
++            if not os.path.splitext(entry)[1]:
++                continue
++            entry_path = os.path.join(parent_dir, entry)
++            if os.path.isfile(entry_path) or os.path.isdir(entry_path):
++                return entry_path
++
++        return None
++
+     def generate_record_hash(self, product: EOProduct) -> str:
+         """Generate the record hash of the given product.
+ 
+diff --git a/eodag/plugins/download/http.py b/eodag/plugins/download/http.py
+index c2f98e8..b37f196 100644
+--- a/eodag/plugins/download/http.py
++++ b/eodag/plugins/download/http.py
+@@ -646,6 +646,42 @@ class HTTPDownload(Download):
+             **kwargs: Unpack[DownloadConf],
+         ) -> os.PathLike:
+             is_empty = True
++            if fs_path is not None:
++                # the downloaded file may have been renamed after a previous download
++                # (e.g. using the filename returned by the server), so check it again
++                # to avoid downloading it twice
++                existing_path = self._get_existing_product_path(
++                    fs_path, str(Path(fs_path).with_suffix(""))
++                )
++                if existing_path:
++                    logger.info(
++                        f"Product already downloaded: {existing_path}",
++                    )
++                    return Path(existing_path)
++                # the product may also have been downloaded as a single file
++                # stored in a directory named after the product title
++                existing_dir_path = str(Path(fs_path).with_suffix(""))
++                if os.path.isdir(existing_dir_path) and os.listdir(existing_dir_path):
++                    logger.info(
++                        f"Product already downloaded: {existing_dir_path}",
++                    )
++                    return Path(existing_dir_path)
++                # or it may have been extracted from a previously downloaded archive
++                # whose extension was not the one expected
++                if os.path.isdir(os.path.dirname(fs_path)):
++                    for entry in sorted(os.listdir(os.path.dirname(fs_path))):
++                        entry_path = os.path.join(os.path.dirname(fs_path), entry)
++                        if (
++                            entry.startswith(os.path.basename(existing_dir_path))
++                            and os.path.splitext(entry)[1]
++                            and os.path.isdir(entry_path)
++                            and os.listdir(entry_path)
++                        ):
++                            logger.info(
++                                f"Product already downloaded: {entry_path}",
++                            )
++                            return Path(entry_path)
++
+             chunk_iterator = self._stream_download(
+                 product, auth, progress_callback, **kwargs
+             )

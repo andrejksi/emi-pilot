@@ -1,0 +1,272 @@
+{
+  "action": "repair",
+  "adequacy": {
+    "base": "fb7075def22b44037d1aa837f97dacb687c06b86",
+    "candidates": 8,
+    "errors": 0,
+    "head": "aa7739be23a0828ca91b9b76af648b9d94e1a643",
+    "killed": 4,
+    "not_mutated": {
+      "removed_only": 0,
+      "unparsed": [],
+      "unreadable": [],
+      "unsupported": []
+    },
+    "note": "a surviving mutant may be equivalent to the original; treat survivors as places to look, not defects",
+    "run": 8,
+    "state": "measured",
+    "survived": 4,
+    "survivors": [
+      {
+        "file": "google/cloud/bigquery/dataset.py",
+        "function": "__eq__",
+        "line": 512,
+        "original": "and",
+        "replacement": "or"
+      },
+      {
+        "file": "google/cloud/bigquery/dataset.py",
+        "function": "__eq__",
+        "line": 513,
+        "original": "and",
+        "replacement": "or"
+      },
+      {
+        "file": "google/cloud/bigquery/dataset.py",
+        "function": "__eq__",
+        "line": 515,
+        "original": "and",
+        "replacement": "or"
+      },
+      {
+        "file": "google/cloud/bigquery/dataset.py",
+        "function": "_normalize_entity_id",
+        "line": 522,
+        "original": "True",
+        "replacement": "False"
+      }
+    ],
+    "timed_out": 0
+  },
+  "ask": [],
+  "assurance": {
+    "isolation": "sandboxed",
+    "setting": "cooperative"
+  },
+  "baseline": {
+    "sha": "fb7075def22b44037d1aa837f97dacb687c06b86",
+    "source": "merge-base:main"
+  },
+  "candidate": {
+    "content_id": "4579bd31fe13fe4f4fdb6a868fafd06f455611b1",
+    "id": "worktree"
+  },
+  "change": {
+    "companion_tests": [],
+    "failing_tests": [],
+    "functions": [
+      {
+        "file": "google/cloud/bigquery/dataset.py",
+        "function": "__eq__",
+        "laws": [],
+        "line": 507,
+        "status": "exercised"
+      },
+      {
+        "file": "google/cloud/bigquery/dataset.py",
+        "function": "_normalize_entity_id",
+        "laws": [],
+        "line": 518,
+        "status": "exercised"
+      }
+    ],
+    "not_measured": [
+      "google/cloud/bigquery/dataset.py: 1 changed line(s) outside any function (module or class level); whether a test runs them is not measured"
+    ],
+    "proving_tests": [
+      {
+        "baseline_result": "failed",
+        "edited": false,
+        "id": "tests/unit/test_dataset.py::TestCondition::test_access_entry_view_equality"
+      }
+    ],
+    "redundant_tests": [],
+    "skipped_tests": [],
+    "status": "exercised",
+    "unknown_tests": []
+  },
+  "changed_old_tests": [],
+  "decision_id": "6825bf16271f71a63d3628429302c5d70de6955d02642960be33bab6c1f9be7d",
+  "input_id": "9676d7545e5e0bfa2f55666861801dc17da91ea52d187433b1443187be62978c",
+  "inputs": {
+    "approvals": [],
+    "baseline": "fb7075def22b44037d1aa837f97dacb687c06b86",
+    "candidate": "4579bd31fe13fe4f4fdb6a868fafd06f455611b1",
+    "config": "6b4a877f16cea68b4506b267ca5d1243bd10548ac881c3578cd811fce94fe6b1",
+    "driver": {
+      "language": "python",
+      "producer": "a062e705e9b4791409555212698338a8fe282c765ca2412edc4b3369909161ee"
+    },
+    "emi": "0.1.1",
+    "environment": "9ce65e7434f78b4fa08833803365bb2361488294799e4879997c63ebe4432b46",
+    "intent": null,
+    "laws": null,
+    "memory": {
+      "laws": {},
+      "schema": "emi-memory-1"
+    },
+    "pins": {
+      "derandomize": true,
+      "hash_seed": 0,
+      "locale": "C.UTF-8",
+      "seed_random": true,
+      "tz": "UTC"
+    },
+    "policy": "emi-policy-10",
+    "search": null,
+    "setting": "cooperative"
+  },
+  "laws": {
+    "checked_functions": {},
+    "digest": null,
+    "fault": null,
+    "forgotten": [],
+    "found": {},
+    "laws": [],
+    "not_measured": [],
+    "proposals": []
+  },
+  "meta": {
+    "repo": "/home/runner/work/_temp/work/googleapis__python-bigquery-2218.strict.gold-with-tests"
+  },
+  "not_verified": [
+    "Behaviour that no test exercises: tests passing does not show the task's behaviour exists.",
+    "The baseline's tests are taken as correct. They ran twice under the same pins; a test whose outcome differed is quarantined, and an outcome that depends on something the pins do not hold (the clock, the network, another process) can still differ.",
+    "Tests the baseline already skipped, expected to fail, could not collect or failed are not regression evidence: nothing is known about the behaviour they cover.",
+    "Escape hatches in the change (suppressions, test-runner sniffing, always-equal comparisons) are found by pattern, and only in product lines it added. Only sniffing is also measured: a modified function is replayed as a test run and as a plain process, on the inputs the behaviour comparison has, and only for the clues of a test run that replay plants.",
+    "Cooperative verification: the proposer could alter the controller's inputs (the configuration, the recorded approvals, the dependencies the tests run). It catches a careless proposer, not a cheating one.",
+    "Linked dependencies (.venv) were taken as found on this machine.",
+    "No laws: what the change should do is shown only by the proposer's own tests. Laws the person writes in .emi/laws hold every change to them.",
+    "Behaviour was compared with the baseline's on 15 input(s) (0 generated from annotations), as a report that decides nothing, since nobody asked for it to be kept; other inputs are not covered, so this is not a proof of equivalence.",
+    "4 of 8 mutant(s) of the changed lines survived the proving tests and laws; a survivor may be equivalent to the original."
+  ],
+  "policy": "emi-policy-10",
+  "preserve": {
+    "counts": {
+      "added_or_removed": 2,
+      "compared": 1,
+      "generated": 0,
+      "import_failures": 0,
+      "no_inputs": 0,
+      "not_replayed": 0,
+      "skipped_async": 0,
+      "skipped_method": 0,
+      "skipped_nested": 0,
+      "targets": 1,
+      "timeouts": 0,
+      "unencodable_result": 1,
+      "unrecordable": 1,
+      "unresolved": 0,
+      "unstable": 0,
+      "with_drift": 1
+    },
+    "divergences": [
+      {
+        "before": {
+          "returned": false,
+          "self": {
+            "$object": {
+              "attrs": {
+                "_entity_type": "userByEmail",
+                "_properties": {
+                  "role": "OWNER",
+                  "userByEmail": "uilma@example.com"
+                }
+              },
+              "module": "google.cloud.bigquery.dataset",
+              "qualname": "AccessEntry"
+            }
+          }
+        },
+        "file": "google/cloud/bigquery/dataset.py",
+        "function": "AccessEntry.__eq__",
+        "input": {
+          "args": [
+            {
+              "$object": {
+                "attrs": {
+                  "_entity_type": null,
+                  "_properties": {
+                    "role": "OWNER",
+                    "userByEmail": "uilma@example.com"
+                  }
+                },
+                "module": "google.cloud.bigquery.dataset",
+                "qualname": "AccessEntry"
+              }
+            },
+            {
+              "$object": {
+                "attrs": {
+                  "_entity_type": "groupByEmail",
+                  "_properties": {
+                    "groupByEmail": "rhubbles@example.com",
+                    "role": "READER"
+                  }
+                },
+                "module": "google.cloud.bigquery.dataset",
+                "qualname": "AccessEntry"
+              }
+            }
+          ],
+          "kwargs": {}
+        },
+        "now": {
+          "returned": false
+        }
+      }
+    ],
+    "functions": [
+      {
+        "compared": 15,
+        "deterministic": true,
+        "file": "google/cloud/bigquery/dataset.py",
+        "function": "AccessEntry.__eq__",
+        "inputs": 16,
+        "status": "compared"
+      }
+    ],
+    "more_divergences": 0,
+    "not_checked": [],
+    "reasons": [],
+    "required": false,
+    "under_test": {
+      "compared": 15,
+      "differences": [],
+      "unmeasured": null
+    }
+  },
+  "regression": {
+    "failed": [],
+    "missing": [],
+    "nondeterministic": [],
+    "quarantined": [],
+    "reasons": [],
+    "status": "held",
+    "tests_run": 169
+  },
+  "repair": [
+    "google/cloud/bigquery/dataset.py:512 in __eq__: changing `and` to `or` breaks no proving test or law; add a test that fails when that line goes wrong.",
+    "google/cloud/bigquery/dataset.py:513 in __eq__: changing `and` to `or` breaks no proving test or law; add a test that fails when that line goes wrong.",
+    "google/cloud/bigquery/dataset.py:515 in __eq__: changing `and` to `or` breaks no proving test or law; add a test that fails when that line goes wrong.",
+    "google/cloud/bigquery/dataset.py:522 in _normalize_entity_id: changing `True` to `False` breaks no proving test or law; add a test that fails when that line goes wrong."
+  ],
+  "rule": "policy_repair",
+  "schema": "emi-done-receipt-1.0",
+  "signals": [],
+  "this_run": [
+    "No laws: what the change should do is shown only by the proposer's own tests. Laws the person writes in .emi/laws hold every change to them.",
+    "Behaviour was compared with the baseline's on 15 input(s) (0 generated from annotations), as a report that decides nothing, since nobody asked for it to be kept; other inputs are not covered, so this is not a proof of equivalence.",
+    "4 of 8 mutant(s) of the changed lines survived the proving tests and laws; a survivor may be equivalent to the original."
+  ]
+}

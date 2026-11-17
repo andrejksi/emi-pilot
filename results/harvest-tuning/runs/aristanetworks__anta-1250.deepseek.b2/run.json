@@ -1,0 +1,21 @@
+{
+  "arm": "control",
+  "backend": "chat",
+  "claims": [
+    {
+      "gate": "none",
+      "verdict": "accepted"
+    }
+  ],
+  "final": "accepted",
+  "model": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+  "repair_rounds": 0,
+  "replay": null,
+  "seconds": 104.2,
+  "seed": 2,
+  "task": "aristanetworks__anta-1250",
+  "usage": {
+    "completion_tokens": 3546,
+    "prompt_tokens": 209930
+  }
+}

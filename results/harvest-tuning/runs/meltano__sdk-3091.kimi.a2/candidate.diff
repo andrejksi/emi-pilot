@@ -1,0 +1,62 @@
+diff --git a/singer_sdk/singerlib/schema.py b/singer_sdk/singerlib/schema.py
+index 035851f..564c086 100644
+--- a/singer_sdk/singerlib/schema.py
++++ b/singer_sdk/singerlib/schema.py
+@@ -261,8 +261,8 @@ def _resolve_schema_references(  # noqa: C901, PLR0912
+     Args:
+         schema: The schema dict to resolve references in
+         resolver: The JSON Schema resolver to use
+-        visited_refs: Set of already visited reference paths to prevent infinite
+-            recursion
++        visited_refs: Set of reference paths in the current recursion chain to
++            prevent infinite recursion
+ 
+     Returns:
+         The schema with all references resolved
+@@ -277,10 +277,15 @@ def _resolve_schema_references(  # noqa: C901, PLR0912
+             # to prevent infinite recursion
+             return schema
+ 
+-        visited_refs.add(reference_path)
+         resolved = resolver.lookup(reference_path)
+         schema.update(resolved.contents)
+-        return _resolve_schema_references(schema, resolver, visited_refs)
++        # A reference is circular only if it occurs in the current recursion
++        # chain. Sibling branches must be able to resolve the same reference.
++        return _resolve_schema_references(
++            schema,
++            resolver,
++            visited_refs | {reference_path},
++        )
+ 
+     if _SchemaKey.properties in schema:
+         for k, val in schema[_SchemaKey.properties].items():
+diff --git a/tests/singerlib/test_schema.py b/tests/singerlib/test_schema.py
+index 89c22d8..5a4cfe7 100644
+--- a/tests/singerlib/test_schema.py
++++ b/tests/singerlib/test_schema.py
+@@ -105,6 +105,24 @@ def test_schema_from_dict(pydict, expected):
+             },
+             id="resolve_schema_references",
+         ),
++        pytest.param(
++            {
++                "type": "object",
++                "properties": {
++                    "min_compute_units": {"$ref": "components#/schemas/ComputeUnit"},
++                    "max_compute_units": {"$ref": "components#/schemas/ComputeUnit"},
++                },
++            },
++            {"components": {"schemas": {"ComputeUnit": {"type": "number"}}}},
++            {
++                "type": "object",
++                "properties": {
++                    "min_compute_units": {"type": "number"},
++                    "max_compute_units": {"type": "number"},
++                },
++            },
++            id="resolve_schema_references_reused_reference",
++        ),
+         pytest.param(
+             {
+                 "type": "object",

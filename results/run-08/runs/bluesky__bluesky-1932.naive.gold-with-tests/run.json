@@ -1,0 +1,22 @@
+{
+  "arm": "naive",
+  "backend": "replay",
+  "claims": [
+    {
+      "exit": 0,
+      "gate": "pytest",
+      "verdict": "accepted"
+    }
+  ],
+  "final": "accepted",
+  "model": null,
+  "repair_rounds": 0,
+  "replay": "gold-with-tests",
+  "seconds": 36.8,
+  "seed": 0,
+  "task": "bluesky__bluesky-1932",
+  "usage": {
+    "completion_tokens": 0,
+    "prompt_tokens": 0
+  }
+}

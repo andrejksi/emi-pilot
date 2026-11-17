@@ -1,0 +1,25 @@
+{
+  "arm": "strict",
+  "backend": "replay",
+  "claims": [
+    {
+      "action": "repair",
+      "exit": 3,
+      "gate": "emi",
+      "receipt": "receipt-0.json",
+      "rule": "policy_repair",
+      "verdict": "repair"
+    }
+  ],
+  "final": "flagged",
+  "model": null,
+  "repair_rounds": 1,
+  "replay": "gold",
+  "seconds": 16.9,
+  "seed": 0,
+  "task": "huggingface__huggingface_hub-3200",
+  "usage": {
+    "completion_tokens": 0,
+    "prompt_tokens": 0
+  }
+}

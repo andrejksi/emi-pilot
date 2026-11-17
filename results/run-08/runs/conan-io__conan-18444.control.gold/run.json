@@ -1,0 +1,21 @@
+{
+  "arm": "control",
+  "backend": "replay",
+  "claims": [
+    {
+      "gate": "none",
+      "verdict": "accepted"
+    }
+  ],
+  "final": "accepted",
+  "model": null,
+  "repair_rounds": 0,
+  "replay": "gold",
+  "seconds": 0.1,
+  "seed": 0,
+  "task": "conan-io__conan-18444",
+  "usage": {
+    "completion_tokens": 0,
+    "prompt_tokens": 0
+  }
+}

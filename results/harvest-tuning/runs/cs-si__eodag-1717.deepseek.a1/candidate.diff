@@ -1,0 +1,269 @@
+diff --git a/eodag/plugins/download/base.py b/eodag/plugins/download/base.py
+index b286a77..134e9dd 100644
+--- a/eodag/plugins/download/base.py
++++ b/eodag/plugins/download/base.py
+@@ -88,8 +88,11 @@ class Download(PluginTopic):
+     - not try to download a product whose ``location`` attribute already points to an
+       existing file/directory
+     - not try to download a product if its *record* file exists as long as the expected
+-      product's file/directory. If the *record* file only is found, it must be deleted
+-      (it certainly indicates that the download didn't complete)
++      product's file/directory. The product's file may keep the extension of the remote
++      file (e.g. ``product.zip`` when ``extract`` is disabled), so a file matching the
++      product's ``title`` with any extension is also considered. If the *record* file
++      only is found, it must be deleted (it certainly indicates that the download
++      didn't complete)
+ 
+     :param provider: An eodag providers configuration dictionary
+     :param config: Path to the user configuration file
+@@ -232,36 +235,69 @@ class Download(PluginTopic):
+         )
+         if os.path.isfile(old_record_filename):
+             os.rename(old_record_filename, record_filename)
+-        if os.path.isfile(record_filename) and os.path.isfile(fs_path):
+-            logger.info(
+-                f"Product already downloaded: {fs_path}",
+-            )
+-            return (
+-                self._finalize(fs_path, progress_callback=progress_callback, **kwargs),
+-                None,
+-            )
+-        elif os.path.isfile(record_filename) and os.path.isdir(fs_dir_path):
+-            logger.info(
+-                f"Product already downloaded: {fs_dir_path}",
+-            )
+-            return (
+-                self._finalize(
+-                    fs_dir_path, progress_callback=progress_callback, **kwargs
+-                ),
+-                None,
+-            )
+-        # Remove the record file if fs_path is absent (e.g. it was deleted while record wasn't)
+-        elif os.path.isfile(record_filename):
+-            logger.debug(
+-                f"Record file found ({record_filename}) but not the actual file",
+-            )
+-            logger.debug(
+-                f"Removing record file : {record_filename}",
+-            )
+-            os.remove(record_filename)
++        if os.path.isfile(record_filename):
++            # The downloaded file may have kept its original extension (e.g. when
++            # ``extract`` is disabled), so look for any file matching ``fs_path``
++            # with an extension in addition to the extension-less ``fs_path``.
++            existing_fs_path = self._get_existing_fs_path(fs_path)
++            if existing_fs_path is not None:
++                logger.info(
++                    f"Product already downloaded: {existing_fs_path}",
++                )
++                return (
++                    self._finalize(
++                        existing_fs_path, progress_callback=progress_callback, **kwargs
++                    ),
++                    None,
++                )
++            elif os.path.isdir(fs_dir_path):
++                logger.info(
++                    f"Product already downloaded: {fs_dir_path}",
++                )
++                return (
++                    self._finalize(
++                        fs_dir_path, progress_callback=progress_callback, **kwargs
++                    ),
++                    None,
++                )
++            # Remove the record file if fs_path is absent (e.g. it was deleted while record wasn't)
++            else:
++                logger.debug(
++                    f"Record file found ({record_filename}) but not the actual file",
++                )
++                logger.debug(
++                    f"Removing record file : {record_filename}",
++                )
++                os.remove(record_filename)
+ 
+         return fs_path, record_filename
+ 
++    @staticmethod
++    def _get_existing_fs_path(fs_path: str) -> Optional[str]:
++        """Return the path of an already downloaded product file, if any.
++
++        The downloaded file may be stored either without extension (``fs_path``)
++        or with the extension of the remote file (e.g. ``fs_path.zip`` when
++        ``extract`` is disabled). This method returns the matching existing file
++        path, or ``None`` if no such file exists.
++
++        :param fs_path: The extension-less path of the product
++        :returns: The path to the existing product file, or ``None``
++        """
++        if os.path.isfile(fs_path):
++            return fs_path
++        # look for a file named ``fs_path`` with an extension (e.g. ``fs_path.zip``)
++        fs_path_dir = os.path.dirname(fs_path)
++        fs_path_basename = os.path.basename(fs_path)
++        if not os.path.isdir(fs_path_dir):
++            return None
++        for filename in os.listdir(fs_path_dir):
++            if filename.startswith(fs_path_basename + ".") and os.path.isfile(
++                os.path.join(fs_path_dir, filename)
++            ):
++                return os.path.join(fs_path_dir, filename)
++        return None
++
+     def generate_record_hash(self, product: EOProduct) -> str:
+         """Generate the record hash of the given product.
+ 
+diff --git a/tests/__init__.py b/tests/__init__.py
+index d7488db..5a7782a 100644
+--- a/tests/__init__.py
++++ b/tests/__init__.py
+@@ -324,7 +324,20 @@ class EODagTestCase(unittest.TestCase):
+ 
+     def _clean_product(self, product_path):
+         if os.path.exists(product_path):
+-            shutil.rmtree(product_path)
++            if os.path.isdir(product_path):
++                shutil.rmtree(product_path)
++            else:
++                os.remove(product_path)
++        # also remove the downloaded archive (if any) and its record file so that
++        # tests using the same output directory do not interfere with each other
++        product_archive_path = f"{product_path}.zip"
++        if os.path.isfile(product_archive_path):
++            os.remove(product_archive_path)
++        download_records_dir = os.path.join(
++            os.path.dirname(product_path), ".downloaded"
++        )
++        if os.path.isdir(download_records_dir):
++            shutil.rmtree(download_records_dir)
+         self.tmp_download_dir.cleanup()
+ 
+     def _set_download_simulation(self):
+diff --git a/tests/units/test_download_plugins.py b/tests/units/test_download_plugins.py
+index ccdb597..4e2463a 100644
+--- a/tests/units/test_download_plugins.py
++++ b/tests/units/test_download_plugins.py
+@@ -163,6 +163,37 @@ class TestDownloadPluginBase(BaseDownloadPluginTest):
+                 self.assertTrue(os.path.isfile(recordfile_path))
+                 self.assertIn("Product already downloaded", str(cm.output))
+ 
++    def test_plugins_download_base_prepare_download_record_file_with_extension(self):
++        """Download._prepare_download must detect already downloaded files keeping their extension"""
++
++        self.product.location = self.product.remote_location = "http://foo.bar"
++        self.product.product_type = "foo"
++
++        with TemporaryDirectory() as output_dir:
++            download_kwargs = dict(output_dir=output_dir, extract=False)
++            product_path = Path(output_dir) / self.product.properties["title"]
++            recordfile_dir = Path(output_dir) / ".downloaded"
++            recordfile_dir.mkdir()
++
++            recordfile_path = (
++                recordfile_dir / hashlib.md5("foo-dummy".encode("utf-8")).hexdigest()
++            )
++
++            plugin = self.get_download_plugin(self.product)
++
++            # record file and product file with an extension exist (e.g. extract=False)
++            product_path_with_ext = product_path.with_suffix(".zip")
++            product_path_with_ext.touch()
++            recordfile_path.touch()
++            with self.assertLogs(level="INFO") as cm:
++                fs_path, record_filename = plugin._prepare_download(
++                    self.product, **download_kwargs
++                )
++                self.assertEqual(fs_path, str(product_path_with_ext))
++                self.assertIsNone(record_filename)
++                self.assertTrue(os.path.isfile(recordfile_path))
++                self.assertIn("Product already downloaded", str(cm.output))
++
+     def test_plugins_download_base_prepare_download_no_url(self):
+         """Download._prepare_download must return None when no download url"""
+ 
+@@ -361,6 +392,85 @@ class TestDownloadPluginHttp(BaseDownloadPluginTest):
+             verify=True,
+         )
+ 
++    @mock.patch("eodag.plugins.download.http.requests.Session.request", autospec=True)
++    def test_plugins_download_http_zip_file_twice_ok(self, mock_requests_session):
++        """HTTPDownload.download() must not download again an already downloaded product"""
++
++        provider = "creodias"
++        download_url = (
++            "https://zipper.creodias.eu/download/8ff765a2-e089-465d-a48f-cc27008a0962"
++        )
++        local_filename = "S2A_MSIL1C_20180101T105441_N0206_R051_T31TDH_20180101T124911"
++        local_product_as_archive_path = os.path.abspath(
++            os.path.join(
++                TEST_RESOURCES_PATH,
++                "products",
++                "as_archive",
++                "{}.zip".format(local_filename),
++            )
++        )
++        product_type = "S2_MSI_L1C"
++
++        eoproduct_props = {
++            "id": "9deb7e78-9341-5530-8fe8-f81fd99c9f0f",
++            "geometry": {
++                "type": "Polygon",
++                "coordinates": [
++                    [
++                        [0.495928592903789, 44.22596415476343],
++                        [1.870237286761489, 44.24783068396879],
++                        [1.888683014192297, 43.25939191053712],
++                        [0.536772323136669, 43.23826255332707],
++                        [0.495928592903789, 44.22596415476343],
++                    ]
++                ],
++            },
++            "productType": product_type,
++            "platform": "Sentinel-2",
++            "platformSerialIdentifier": "S2A",
++            "instrument": "MSI",
++            "title": local_filename,
++            "downloadLink": download_url,
++        }
++
++        # Put an empty string as value of properties which are not relevant for the test
++        eoproduct_props.update(
++            {key: "" for key in DEFAULT_METADATA_MAPPING if key not in eoproduct_props}
++        )
++
++        product = self._dummy_downloadable_product(
++            mock_requests_session,
++            local_product_as_archive_path,
++            provider,
++            eoproduct_props,
++            product_type,
++        )
++        path = product.download()
++
++        expected_path = os.path.join(
++            self.output_dir, product.properties["title"] + ".zip"
++        )
++        self.assertEqual(path, expected_path)
++        self.assertTrue(os.path.isfile(path))
++        mock_requests_session.assert_called_once()
++
++        # download the same product again: it must not be downloaded a second time
++        product2 = self._dummy_downloadable_product(
++            mock_requests_session,
++            local_product_as_archive_path,
++            provider,
++            eoproduct_props,
++            product_type,
++        )
++        with self.assertLogs(level="INFO") as cm:
++            path2 = product2.download()
++            self.assertIn("Product already downloaded", str(cm.output))
++
++        self.assertEqual(path2, expected_path)
++        self.assertTrue(os.path.isfile(path2))
++        # no additional request was made
++        mock_requests_session.assert_called_once()
++
+     @mock.patch(
+         "eodag.plugins.download.http.HTTPDownload._stream_download", autospec=True
+     )

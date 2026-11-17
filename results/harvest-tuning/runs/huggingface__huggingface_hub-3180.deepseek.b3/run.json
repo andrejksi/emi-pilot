@@ -1,0 +1,21 @@
+{
+  "arm": "control",
+  "backend": "chat",
+  "claims": [
+    {
+      "gate": "none",
+      "verdict": "accepted"
+    }
+  ],
+  "final": "accepted",
+  "model": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+  "repair_rounds": 0,
+  "replay": null,
+  "seconds": 65.3,
+  "seed": 3,
+  "task": "huggingface__huggingface_hub-3180",
+  "usage": {
+    "completion_tokens": 3031,
+    "prompt_tokens": 166914
+  }
+}

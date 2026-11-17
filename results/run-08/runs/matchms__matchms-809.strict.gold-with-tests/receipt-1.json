@@ -1,0 +1,178 @@
+{
+  "action": "stop",
+  "adequacy": {
+    "base": "9a3852e26d368fa10f9a10280241656291f358bb",
+    "candidates": 0,
+    "errors": null,
+    "head": "f294232fb955b1d2c19f504ed1121309cb480437",
+    "killed": null,
+    "not_mutated": {
+      "removed_only": 0,
+      "unparsed": [],
+      "unreadable": [],
+      "unsupported": []
+    },
+    "note": "a surviving mutant may be equivalent to the original; treat survivors as places to look, not defects",
+    "run": 0,
+    "state": "nothing_to_mutate",
+    "survived": null,
+    "survivors": null,
+    "timed_out": null
+  },
+  "ask": [],
+  "assurance": {
+    "isolation": "sandboxed",
+    "setting": "cooperative"
+  },
+  "baseline": {
+    "sha": "9a3852e26d368fa10f9a10280241656291f358bb",
+    "source": "merge-base:main"
+  },
+  "candidate": {
+    "content_id": "5b58edb860df0cb9ab9c9312b2cfd5c4c7676522",
+    "id": "worktree"
+  },
+  "change": {
+    "companion_tests": [
+      "tests/importing/test_load_from_msp.py::test_get_peak_values[496\\t7.1e-05-expected1]",
+      "tests/importing/test_load_from_msp.py::test_get_peak_values[85:201 86:55 87:10 88:4 89:315-expected2]"
+    ],
+    "failing_tests": [],
+    "functions": [
+      {
+        "file": "matchms/importing/load_from_msp.py",
+        "function": "get_peak_values",
+        "laws": [],
+        "line": 110,
+        "status": "exercised"
+      }
+    ],
+    "not_measured": [],
+    "proving_tests": [
+      {
+        "baseline_result": "failed",
+        "edited": false,
+        "id": "tests/importing/test_load_from_msp.py::test_get_peak_values[496\\t7.1E-05-expected0]"
+      }
+    ],
+    "redundant_tests": [],
+    "skipped_tests": [],
+    "status": "exercised",
+    "unknown_tests": []
+  },
+  "changed_old_tests": [
+    {
+      "approved": true,
+      "item": "old-test:tests/importing/test_load_from_msp.py",
+      "kind": "modified",
+      "path": "tests/importing/test_load_from_msp.py",
+      "restored_result": "unknown",
+      "type": "old-test"
+    }
+  ],
+  "decision_id": "d15495c272b02fee65edb78cee162d1c83c2543174ab3b6e5e6d7ebda127df85",
+  "input_id": "d7a2a7afc7ec2d2cb62952db07e5336d7b7725c3828e1200ce41198c5e5e0e6c",
+  "inputs": {
+    "approvals": [
+      {
+        "content": "839b604c9908e6ff7fb1782e1df2cf31aaa0cf0a",
+        "item": "old-test:tests/importing/test_load_from_msp.py"
+      }
+    ],
+    "baseline": "9a3852e26d368fa10f9a10280241656291f358bb",
+    "candidate": "5b58edb860df0cb9ab9c9312b2cfd5c4c7676522",
+    "config": "1fe427be3653ee9f3f5455ea6375aa048d69f2ce3b0ccc1ccfa57a0bd2a7010b",
+    "driver": {
+      "language": "python",
+      "producer": "a062e705e9b4791409555212698338a8fe282c765ca2412edc4b3369909161ee"
+    },
+    "emi": "0.1.1",
+    "environment": "1b07decf472bc2b2645626a28b869aaf1b35f8917f26b125f2d8578ad62f6e50",
+    "intent": null,
+    "laws": null,
+    "memory": {
+      "laws": {},
+      "schema": "emi-memory-1"
+    },
+    "pins": {
+      "derandomize": true,
+      "hash_seed": 0,
+      "locale": "C.UTF-8",
+      "seed_random": true,
+      "tz": "UTC"
+    },
+    "policy": "emi-policy-10",
+    "search": null,
+    "setting": "cooperative"
+  },
+  "laws": {
+    "checked_functions": {},
+    "digest": null,
+    "fault": null,
+    "forgotten": [],
+    "found": {},
+    "laws": [],
+    "not_measured": [],
+    "proposals": []
+  },
+  "meta": {
+    "repo": "/home/runner/work/_temp/work/matchms__matchms-809.strict.gold-with-tests"
+  },
+  "not_verified": [
+    "Behaviour that no test exercises: tests passing does not show the task's behaviour exists.",
+    "The baseline's tests are taken as correct. They ran twice under the same pins; a test whose outcome differed is quarantined, and an outcome that depends on something the pins do not hold (the clock, the network, another process) can still differ.",
+    "Tests the baseline already skipped, expected to fail, could not collect or failed are not regression evidence: nothing is known about the behaviour they cover.",
+    "Escape hatches in the change (suppressions, test-runner sniffing, always-equal comparisons) are found by pattern, and only in product lines it added. Only sniffing is also measured: a modified function is replayed as a test run and as a plain process, on the inputs the behaviour comparison has, and only for the clues of a test run that replay plants.",
+    "Cooperative verification: the proposer could alter the controller's inputs (the configuration, the recorded approvals, the dependencies the tests run). It catches a careless proposer, not a cheating one.",
+    "Linked dependencies (.venv) were taken as found on this machine.",
+    "No laws: what the change should do is shown only by the proposer's own tests. Laws the person writes in .emi/laws hold every change to them."
+  ],
+  "policy": "emi-policy-10",
+  "preserve": {
+    "counts": {
+      "added_or_removed": 1,
+      "compared": 1,
+      "generated": 200,
+      "import_failures": 0,
+      "no_inputs": 0,
+      "not_replayed": 0,
+      "skipped_async": 0,
+      "skipped_method": 0,
+      "skipped_nested": 0,
+      "targets": 1,
+      "timeouts": 0,
+      "unencodable_result": 0,
+      "unrecordable": 0,
+      "unresolved": 0,
+      "unstable": 0,
+      "with_drift": 0
+    },
+    "divergences": [],
+    "functions": [],
+    "more_divergences": 0,
+    "not_checked": [],
+    "reasons": [],
+    "required": false,
+    "under_test": {
+      "compared": 250,
+      "differences": [],
+      "unmeasured": null
+    }
+  },
+  "regression": {
+    "failed": [],
+    "missing": [],
+    "nondeterministic": [],
+    "quarantined": [],
+    "reasons": [],
+    "status": "held",
+    "tests_run": 19
+  },
+  "repair": [],
+  "rule": "none",
+  "schema": "emi-done-receipt-1.0",
+  "signals": [],
+  "this_run": [
+    "No laws: what the change should do is shown only by the proposer's own tests. Laws the person writes in .emi/laws hold every change to them."
+  ]
+}

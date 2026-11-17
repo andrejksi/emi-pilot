@@ -1,0 +1,25 @@
+{
+  "arm": "strict",
+  "backend": "replay",
+  "claims": [
+    {
+      "action": "stop",
+      "exit": 0,
+      "gate": "emi",
+      "receipt": "receipt-0.json",
+      "rule": "none",
+      "verdict": "accepted"
+    }
+  ],
+  "final": "accepted",
+  "model": null,
+  "repair_rounds": 0,
+  "replay": "nothing",
+  "seconds": 5.5,
+  "seed": 0,
+  "task": "googleapis__python-bigquery-2218",
+  "usage": {
+    "completion_tokens": 0,
+    "prompt_tokens": 0
+  }
+}

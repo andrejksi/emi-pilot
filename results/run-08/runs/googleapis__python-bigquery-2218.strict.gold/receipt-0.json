@@ -1,0 +1,218 @@
+{
+  "action": "repair",
+  "adequacy": {
+    "note": "no proving test or passing law to run the mutants against",
+    "state": "nothing_to_run"
+  },
+  "ask": [],
+  "assurance": {
+    "isolation": "sandboxed",
+    "setting": "cooperative"
+  },
+  "baseline": {
+    "sha": "fb7075def22b44037d1aa837f97dacb687c06b86",
+    "source": "merge-base:main"
+  },
+  "candidate": {
+    "content_id": "be840a59bb55e647d0679722d711763a47ea8e52",
+    "id": "worktree"
+  },
+  "change": {
+    "companion_tests": [],
+    "failing_tests": [],
+    "functions": [
+      {
+        "file": "google/cloud/bigquery/dataset.py",
+        "function": "__eq__",
+        "laws": [],
+        "line": 507,
+        "status": "unexercised"
+      },
+      {
+        "file": "google/cloud/bigquery/dataset.py",
+        "function": "_normalize_entity_id",
+        "laws": [],
+        "line": 518,
+        "status": "unexercised"
+      }
+    ],
+    "not_measured": [
+      "google/cloud/bigquery/dataset.py: 1 changed line(s) outside any function (module or class level); whether a test runs them is not measured"
+    ],
+    "proving_tests": [],
+    "redundant_tests": [],
+    "skipped_tests": [],
+    "status": "unexercised",
+    "unknown_tests": []
+  },
+  "changed_old_tests": [],
+  "decision_id": "ae1b6a528a6d7430c56760cee54d14e1f081cabb0b291d5d1aca97d970b9a0bc",
+  "input_id": "5182e60c535b1b01e00fb117e7b4b7a2485ddcd395390c052e6742eba5c35d03",
+  "inputs": {
+    "approvals": [],
+    "baseline": "fb7075def22b44037d1aa837f97dacb687c06b86",
+    "candidate": "be840a59bb55e647d0679722d711763a47ea8e52",
+    "config": "6b4a877f16cea68b4506b267ca5d1243bd10548ac881c3578cd811fce94fe6b1",
+    "driver": {
+      "language": "python",
+      "producer": "a062e705e9b4791409555212698338a8fe282c765ca2412edc4b3369909161ee"
+    },
+    "emi": "0.1.1",
+    "environment": "9ce65e7434f78b4fa08833803365bb2361488294799e4879997c63ebe4432b46",
+    "intent": null,
+    "laws": null,
+    "memory": {
+      "laws": {},
+      "schema": "emi-memory-1"
+    },
+    "pins": {
+      "derandomize": true,
+      "hash_seed": 0,
+      "locale": "C.UTF-8",
+      "seed_random": true,
+      "tz": "UTC"
+    },
+    "policy": "emi-policy-10",
+    "search": null,
+    "setting": "cooperative"
+  },
+  "laws": {
+    "checked_functions": {},
+    "digest": null,
+    "fault": null,
+    "forgotten": [],
+    "found": {},
+    "laws": [],
+    "not_measured": [],
+    "proposals": []
+  },
+  "meta": {
+    "repo": "/home/runner/work/_temp/work/googleapis__python-bigquery-2218.strict.gold"
+  },
+  "not_verified": [
+    "Behaviour that no test exercises: tests passing does not show the task's behaviour exists.",
+    "The baseline's tests are taken as correct. They ran twice under the same pins; a test whose outcome differed is quarantined, and an outcome that depends on something the pins do not hold (the clock, the network, another process) can still differ.",
+    "Tests the baseline already skipped, expected to fail, could not collect or failed are not regression evidence: nothing is known about the behaviour they cover.",
+    "Escape hatches in the change (suppressions, test-runner sniffing, always-equal comparisons) are found by pattern, and only in product lines it added. Only sniffing is also measured: a modified function is replayed as a test run and as a plain process, on the inputs the behaviour comparison has, and only for the clues of a test run that replay plants.",
+    "Cooperative verification: the proposer could alter the controller's inputs (the configuration, the recorded approvals, the dependencies the tests run). It catches a careless proposer, not a cheating one.",
+    "Linked dependencies (.venv) were taken as found on this machine.",
+    "No laws: what the change should do is shown only by the proposer's own tests. Laws the person writes in .emi/laws hold every change to them.",
+    "Behaviour was compared with the baseline's on 15 input(s) (0 generated from annotations), as a report that decides nothing, since nobody asked for it to be kept; other inputs are not covered, so this is not a proof of equivalence."
+  ],
+  "policy": "emi-policy-10",
+  "preserve": {
+    "counts": {
+      "added_or_removed": 1,
+      "compared": 1,
+      "generated": 0,
+      "import_failures": 0,
+      "no_inputs": 0,
+      "not_replayed": 0,
+      "skipped_async": 0,
+      "skipped_method": 0,
+      "skipped_nested": 0,
+      "targets": 1,
+      "timeouts": 0,
+      "unencodable_result": 1,
+      "unrecordable": 1,
+      "unresolved": 0,
+      "unstable": 0,
+      "with_drift": 1
+    },
+    "divergences": [
+      {
+        "before": {
+          "returned": false,
+          "self": {
+            "$object": {
+              "attrs": {
+                "_entity_type": "userByEmail",
+                "_properties": {
+                  "role": "OWNER",
+                  "userByEmail": "uilma@example.com"
+                }
+              },
+              "module": "google.cloud.bigquery.dataset",
+              "qualname": "AccessEntry"
+            }
+          }
+        },
+        "file": "google/cloud/bigquery/dataset.py",
+        "function": "AccessEntry.__eq__",
+        "input": {
+          "args": [
+            {
+              "$object": {
+                "attrs": {
+                  "_entity_type": null,
+                  "_properties": {
+                    "role": "OWNER",
+                    "userByEmail": "uilma@example.com"
+                  }
+                },
+                "module": "google.cloud.bigquery.dataset",
+                "qualname": "AccessEntry"
+              }
+            },
+            {
+              "$object": {
+                "attrs": {
+                  "_entity_type": "groupByEmail",
+                  "_properties": {
+                    "groupByEmail": "rhubbles@example.com",
+                    "role": "READER"
+                  }
+                },
+                "module": "google.cloud.bigquery.dataset",
+                "qualname": "AccessEntry"
+              }
+            }
+          ],
+          "kwargs": {}
+        },
+        "now": {
+          "returned": false
+        }
+      }
+    ],
+    "functions": [
+      {
+        "compared": 15,
+        "deterministic": true,
+        "file": "google/cloud/bigquery/dataset.py",
+        "function": "AccessEntry.__eq__",
+        "inputs": 16,
+        "status": "compared"
+      }
+    ],
+    "more_divergences": 0,
+    "not_checked": [],
+    "reasons": [],
+    "required": false,
+    "under_test": {
+      "compared": 15,
+      "differences": [],
+      "unmeasured": null
+    }
+  },
+  "regression": {
+    "failed": [],
+    "missing": [],
+    "nondeterministic": [],
+    "quarantined": [],
+    "reasons": [],
+    "status": "held",
+    "tests_run": 169
+  },
+  "repair": [
+    "No proving test runs google/cloud/bigquery/dataset.py:__eq__ (line 507); add a test that fails without your change.",
+    "No proving test runs google/cloud/bigquery/dataset.py:_normalize_entity_id (line 518); add a test that fails without your change."
+  ],
+  "rule": "policy_repair",
+  "schema": "emi-done-receipt-1.0",
+  "signals": [],
+  "this_run": [
+    "No laws: what the change should do is shown only by the proposer's own tests. Laws the person writes in .emi/laws hold every change to them.",
+    "Behaviour was compared with the baseline's on 15 input(s) (0 generated from annotations), as a report that decides nothing, since nobody asked for it to be kept; other inputs are not covered, so this is not a proof of equivalence."
+  ]
+}

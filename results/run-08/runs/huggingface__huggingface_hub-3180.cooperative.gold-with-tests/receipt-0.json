@@ -1,0 +1,211 @@
+{
+  "action": "stop",
+  "adequacy": null,
+  "ask": [],
+  "assurance": {
+    "isolation": "sandboxed",
+    "setting": "cooperative"
+  },
+  "baseline": {
+    "sha": "2f44b9dbd7f3d50b65473cce89ffbc7f6a5c571e",
+    "source": "merge-base:main"
+  },
+  "candidate": {
+    "content_id": "823768457baa46201e980f657f05a29ba3bbba96",
+    "id": "worktree"
+  },
+  "change": {
+    "companion_tests": [],
+    "failing_tests": [],
+    "functions": [
+      {
+        "file": "src/huggingface_hub/file_download.py",
+        "function": "get_hf_file_metadata",
+        "laws": [],
+        "line": 1400,
+        "status": "unexercised"
+      },
+      {
+        "file": "src/huggingface_hub/file_download.py",
+        "function": "_get_metadata_or_catch_error",
+        "laws": [],
+        "line": 1481,
+        "status": "unexercised"
+      },
+      {
+        "file": "src/huggingface_hub/hf_api.py",
+        "function": "get_hf_file_metadata",
+        "laws": [],
+        "line": 5356,
+        "status": "unexercised"
+      },
+      {
+        "file": "src/huggingface_hub/utils/_xet.py",
+        "function": "parse_xet_file_data_from_response",
+        "laws": [],
+        "line": 29,
+        "status": "exercised"
+      }
+    ],
+    "not_measured": [],
+    "proving_tests": [
+      {
+        "baseline_result": "failed",
+        "edited": false,
+        "id": "tests/test_xet_utils.py::test_parse_header_file_info_with_endpoint[/api/refresh-/api/refresh]"
+      },
+      {
+        "baseline_result": "failed",
+        "edited": false,
+        "id": "tests/test_xet_utils.py::test_parse_header_file_info_with_endpoint[https://huggingface.co/api/refresh-https://xet.example.com/api/refresh]"
+      }
+    ],
+    "redundant_tests": [],
+    "skipped_tests": [],
+    "status": "partly_exercised",
+    "unknown_tests": []
+  },
+  "changed_old_tests": [],
+  "decision_id": "b667d9144c35010d28f1ba7efe773684220c70125b70e6994285b5d1bec6cbb1",
+  "input_id": "945aee62ac79940ca449d5f99335e64cfc2e06b76e670588f99760926b054fe8",
+  "inputs": {
+    "approvals": [],
+    "baseline": "2f44b9dbd7f3d50b65473cce89ffbc7f6a5c571e",
+    "candidate": "823768457baa46201e980f657f05a29ba3bbba96",
+    "config": "bdbeee1d94d0cf33364b96f5a8f6c540b913cd6e6461dbe9fc1bf7d698f02cc8",
+    "driver": {
+      "language": "python",
+      "producer": "a062e705e9b4791409555212698338a8fe282c765ca2412edc4b3369909161ee"
+    },
+    "emi": "0.1.1",
+    "environment": "549935ee62d49f7743526f7a197871892c3c442292b202661d8917c6fbaaec2b",
+    "intent": null,
+    "laws": null,
+    "memory": {
+      "laws": {},
+      "schema": "emi-memory-1"
+    },
+    "pins": {
+      "derandomize": true,
+      "hash_seed": 0,
+      "locale": "C.UTF-8",
+      "seed_random": true,
+      "tz": "UTC"
+    },
+    "policy": "emi-policy-10",
+    "search": null,
+    "setting": "cooperative"
+  },
+  "laws": {
+    "checked_functions": {},
+    "digest": null,
+    "fault": null,
+    "forgotten": [],
+    "found": {},
+    "laws": [],
+    "not_measured": [],
+    "proposals": []
+  },
+  "meta": {
+    "repo": "/home/runner/work/_temp/work/huggingface__huggingface_hub-3180.cooperative.gold-with-tests"
+  },
+  "not_verified": [
+    "Behaviour that no test exercises: tests passing does not show the task's behaviour exists.",
+    "The baseline's tests are taken as correct. They ran twice under the same pins; a test whose outcome differed is quarantined, and an outcome that depends on something the pins do not hold (the clock, the network, another process) can still differ.",
+    "Tests the baseline already skipped, expected to fail, could not collect or failed are not regression evidence: nothing is known about the behaviour they cover.",
+    "Escape hatches in the change (suppressions, test-runner sniffing, always-equal comparisons) are found by pattern, and only in product lines it added. Only sniffing is also measured: a modified function is replayed as a test run and as a plain process, on the inputs the behaviour comparison has, and only for the clues of a test run that replay plants.",
+    "Cooperative verification: the proposer could alter the controller's inputs (the configuration, the recorded approvals, the dependencies the tests run). It catches a careless proposer, not a cheating one.",
+    "Linked dependencies (.venv) were taken as found on this machine.",
+    "No laws: what the change should do is shown only by the proposer's own tests. Laws the person writes in .emi/laws hold every change to them.",
+    "Behaviour was compared with the baseline's on 495 input(s) (585 generated from annotations), as a report that decides nothing, since nobody asked for it to be kept; other inputs are not covered, so this is not a proof of equivalence.",
+    "Not compared: src/huggingface_hub/utils/_xet.py::parse_xet_file_data_from_response: no_inputs.",
+    "1 escape-hatch signal(s) in the change's product code, found by pattern (first: src/huggingface_hub/file_download.py:1477 suppression); a pass with one that says the code may behave one way under test goes to a person in the enforced setting."
+  ],
+  "policy": "emi-policy-10",
+  "preserve": {
+    "counts": {
+      "added_or_removed": 1,
+      "compared": 3,
+      "generated": 585,
+      "import_failures": 0,
+      "no_inputs": 1,
+      "not_replayed": 0,
+      "skipped_async": 0,
+      "skipped_method": 0,
+      "skipped_nested": 0,
+      "targets": 4,
+      "timeouts": 0,
+      "unencodable_result": 90,
+      "unrecordable": 4,
+      "unresolved": 0,
+      "unstable": 0,
+      "with_drift": 0
+    },
+    "divergences": [],
+    "functions": [
+      {
+        "compared": 198,
+        "deterministic": true,
+        "file": "src/huggingface_hub/file_download.py",
+        "function": "get_hf_file_metadata",
+        "inputs": 198,
+        "status": "compared"
+      },
+      {
+        "compared": 109,
+        "deterministic": true,
+        "file": "src/huggingface_hub/file_download.py",
+        "function": "_get_metadata_or_catch_error",
+        "inputs": 199,
+        "status": "compared"
+      },
+      {
+        "compared": 188,
+        "deterministic": true,
+        "file": "src/huggingface_hub/hf_api.py",
+        "function": "HfApi.get_hf_file_metadata",
+        "inputs": 188,
+        "status": "compared"
+      }
+    ],
+    "more_divergences": 0,
+    "not_checked": [
+      "src/huggingface_hub/utils/_xet.py::parse_xet_file_data_from_response: no_inputs"
+    ],
+    "reasons": [],
+    "required": false,
+    "under_test": {
+      "compared": 495,
+      "differences": [],
+      "unmeasured": null
+    }
+  },
+  "regression": {
+    "failed": [],
+    "missing": [],
+    "nondeterministic": [],
+    "quarantined": [],
+    "reasons": [],
+    "status": "held",
+    "tests_run": 15
+  },
+  "repair": [],
+  "rule": "none",
+  "schema": "emi-done-receipt-1.0",
+  "signals": [
+    {
+      "assurance": "pattern",
+      "file": "src/huggingface_hub/file_download.py",
+      "kind": "suppression",
+      "line": 1477,
+      "means": "switches a checker off for this line",
+      "text": "xet_file_data=parse_xet_file_data_from_response(r, endpoint=endpoint),  # type: ignore"
+    }
+  ],
+  "this_run": [
+    "No laws: what the change should do is shown only by the proposer's own tests. Laws the person writes in .emi/laws hold every change to them.",
+    "Behaviour was compared with the baseline's on 495 input(s) (585 generated from annotations), as a report that decides nothing, since nobody asked for it to be kept; other inputs are not covered, so this is not a proof of equivalence.",
+    "Not compared: src/huggingface_hub/utils/_xet.py::parse_xet_file_data_from_response: no_inputs.",
+    "1 escape-hatch signal(s) in the change's product code, found by pattern (first: src/huggingface_hub/file_download.py:1477 suppression); a pass with one that says the code may behave one way under test goes to a person in the enforced setting."
+  ]
+}

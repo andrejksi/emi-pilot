@@ -1,0 +1,117 @@
+diff --git a/google/cloud/bigquery/dataset.py b/google/cloud/bigquery/dataset.py
+index ec40985..878b77d 100644
+--- a/google/cloud/bigquery/dataset.py
++++ b/google/cloud/bigquery/dataset.py
+@@ -17,6 +17,7 @@
+ from __future__ import absolute_import
+ 
+ import copy
++import json
+ 
+ import typing
+ from typing import Optional, List, Dict, Any, Union
+@@ -506,7 +507,20 @@ class AccessEntry(object):
+     def __eq__(self, other):
+         if not isinstance(other, AccessEntry):
+             return NotImplemented
+-        return self._key() == other._key()
++        return (
++            self.role == other.role
++            and self.entity_type == other.entity_type
++            and self._normalize_entity_id(self.entity_id)
++            == self._normalize_entity_id(other.entity_id)
++            and self.condition == other.condition
++        )
++
++    @staticmethod
++    def _normalize_entity_id(value):
++        """Ensure consistent equality for dicts like 'view'."""
++        if isinstance(value, dict):
++            return json.dumps(value, sort_keys=True)
++        return value
+ 
+     def __ne__(self, other):
+         return not self == other
+@@ -557,7 +571,6 @@ class AccessEntry(object):
+             google.cloud.bigquery.dataset.AccessEntry:
+                 Access entry parsed from ``resource``.
+         """
+-
+         access_entry = cls()
+         access_entry._properties = resource.copy()
+         return access_entry
+diff --git a/tests/unit/test_dataset.py b/tests/unit/test_dataset.py
+index 3fd2579..604e5ed 100644
+--- a/tests/unit/test_dataset.py
++++ b/tests/unit/test_dataset.py
+@@ -1767,3 +1767,70 @@ class TestCondition:
+             description=None,
+         )
+         assert hash(cond1) is not None
++
++    def test_access_entry_view_equality(self):
++        from google.cloud import bigquery
++
++        entry1 = bigquery.dataset.AccessEntry(
++            entity_type="view",
++            entity_id={
++                "projectId": "my_project",
++                "datasetId": "my_dataset",
++                "tableId": "my_table",
++            },
++        )
++        entry2 = bigquery.dataset.AccessEntry.from_api_repr(
++            {
++                "view": {
++                    "projectId": "my_project",
++                    "datasetId": "my_dataset",
++                    "tableId": "my_table",
++                }
++            }
++        )
++
++        entry3 = bigquery.dataset.AccessEntry(
++            entity_type="routine",
++            entity_id={
++                "projectId": "my_project",
++                "datasetId": "my_dataset",
++                "routineId": "my_routine",
++            },
++        )
++
++        entry4 = bigquery.dataset.AccessEntry.from_api_repr(
++            {
++                "routine": {
++                    "projectId": "my_project",
++                    "datasetId": "my_dataset",
++                    "routineId": "my_routine",
++                }
++            }
++        )
++
++        entry5 = bigquery.dataset.AccessEntry(
++            entity_type="dataset",
++            entity_id={
++                "dataset": {
++                    "projectId": "my_project",
++                    "datasetId": "my_dataset",
++                },
++                "target_types": "VIEWS",
++            },
++        )
++
++        entry6 = bigquery.dataset.AccessEntry.from_api_repr(
++            {
++                "dataset": {
++                    "dataset": {
++                        "projectId": "my_project",
++                        "datasetId": "my_dataset",
++                    },
++                    "target_types": "VIEWS",
++                }
++            }
++        )
++
++        assert entry1 == entry2
++        assert entry3 == entry4
++        assert entry5 == entry6

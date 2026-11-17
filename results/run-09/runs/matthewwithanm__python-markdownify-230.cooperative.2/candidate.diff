@@ -1,0 +1,48 @@
+diff --git a/markdownify/__init__.py b/markdownify/__init__.py
+index 72c5214..6a9e29e 100644
+--- a/markdownify/__init__.py
++++ b/markdownify/__init__.py
+@@ -482,8 +482,22 @@ class MarkdownConverter(object):
+     def convert_code(self, el, text, parent_tags):
+         if 'pre' in parent_tags:
+             return text
+-        converter = abstract_inline_conversion(lambda self: '`')
+-        return converter(self, el, text, parent_tags)
++        if '_noformat' in parent_tags:
++            return text
++        prefix, suffix, text = chomp(text)
++        if not text:
++            return ''
++        # If the code contains backticks, use a longer backtick sequence as the
++        # delimiter (and pad with spaces if the code starts or ends with a
++        # backtick), so that the backticks inside the code are preserved.
++        if '`' in text:
++            num_backticks = max(len(m) for m in re.findall(r'`+', text)) + 1
++            markup = '`' * num_backticks
++            if text.startswith('`') or text.endswith('`'):
++                text = ' %s ' % text
++        else:
++            markup = '`'
++        return '%s%s%s%s%s' % (prefix, markup, text, markup, suffix)
+ 
+     convert_del = abstract_inline_conversion(lambda self: '~~')
+ 
+diff --git a/tests/test_conversions.py b/tests/test_conversions.py
+index 825559b..678808c 100644
+--- a/tests/test_conversions.py
++++ b/tests/test_conversions.py
+@@ -101,6 +101,14 @@ def test_code():
+     assert md('<code>foo<s> bar </s>baz</code>') == '`foo bar baz`'
+     assert md('<code>foo<sup>bar</sup>baz</code>', sup_symbol='^') == '`foobarbaz`'
+     assert md('<code>foo<sub>bar</sub>baz</code>', sub_symbol='^') == '`foobarbaz`'
++    assert md('<code>We have to `manage` this.</code>') == '``We have to `manage` this.``'
++    assert md('<code>`foo`</code>') == '`` `foo` ``'
++    assert md('<code>foo``bar</code>') == '```foo``bar```'
++    assert md('<code>foo`bar``baz</code>') == '```foo`bar``baz```'
++    assert md('foo <code>`bar`</code> baz') == 'foo `` `bar` `` baz'
++    assert md('<kbd>foo`bar</kbd>') == '``foo`bar``'
++    assert md('<samp>foo`bar</samp>') == '``foo`bar``'
++    assert md('<pre><code>foo`bar</code></pre>') == '\n\n```\nfoo`bar\n```\n\n'
+ 
+ 
+ def test_dl():

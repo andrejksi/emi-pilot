@@ -1,0 +1,25 @@
+{
+  "arm": "strict",
+  "backend": "replay",
+  "claims": [
+    {
+      "action": "incomplete",
+      "exit": 5,
+      "gate": "emi",
+      "receipt": "receipt-0.json",
+      "rule": "fault",
+      "verdict": "flagged"
+    }
+  ],
+  "final": "flagged",
+  "model": null,
+  "repair_rounds": 0,
+  "replay": "gold-with-tests",
+  "seconds": 18.0,
+  "seed": 0,
+  "task": "aristanetworks__anta-1250",
+  "usage": {
+    "completion_tokens": 0,
+    "prompt_tokens": 0
+  }
+}

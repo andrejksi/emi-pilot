@@ -1,0 +1,21 @@
+{
+  "arm": "control",
+  "backend": "chat",
+  "claims": [
+    {
+      "gate": "none",
+      "verdict": "accepted"
+    }
+  ],
+  "final": "accepted",
+  "model": "moonshotai/Kimi-K3.1-Pro",
+  "repair_rounds": 0,
+  "replay": null,
+  "seconds": 346.5,
+  "seed": 3,
+  "task": "bluesky__bluesky-1932",
+  "usage": {
+    "completion_tokens": 7218,
+    "prompt_tokens": 1300835
+  }
+}

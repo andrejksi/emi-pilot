@@ -1,0 +1,99 @@
+diff --git a/eodag/plugins/download/base.py b/eodag/plugins/download/base.py
+index b286a77..3e904ad 100644
+--- a/eodag/plugins/download/base.py
++++ b/eodag/plugins/download/base.py
+@@ -197,9 +197,11 @@ class Download(PluginTopic):
+         output_extension = kwargs.get("output_extension") or getattr(
+             self.config, "output_extension", ""
+         )
++        extract = kwargs.get("extract")
++        extract = (
++            extract if extract is not None else getattr(self.config, "extract", True)
++        )
+ 
+-        # Strong asumption made here: all products downloaded will be zip files
+-        # If they are not, the '.zip' extension will be removed when they are downloaded and returned as is
+         prefix = os.path.abspath(output_dir)
+         sanitized_title = sanitize(product.properties["title"])
+         if sanitized_title == product.properties["title"]:
+@@ -208,7 +210,7 @@ class Download(PluginTopic):
+             collision_avoidance_suffix = "-" + sanitize(product.properties["id"])
+         fs_path = os.path.join(
+             prefix,
+-            f"{sanitize(product.properties['title'])}{collision_avoidance_suffix}{output_extension}",
++            f"{sanitized_title}{collision_avoidance_suffix}{output_extension}",
+         )
+         fs_dir_path = (
+             fs_path.replace(output_extension, "") if output_extension else fs_path
+@@ -232,6 +234,15 @@ class Download(PluginTopic):
+         )
+         if os.path.isfile(old_record_filename):
+             os.rename(old_record_filename, record_filename)
++        if (
++            os.path.isfile(record_filename)
++            and not extract
++            and not output_extension
++            and os.path.isfile(fs_path + ".zip")
++        ):
++            # HTTP downloads use the extension returned by the provider, which
++            # is not known before the download starts.
++            fs_path += ".zip"
+         if os.path.isfile(record_filename) and os.path.isfile(fs_path):
+             logger.info(
+                 f"Product already downloaded: {fs_path}",
+diff --git a/tests/units/test_download_plugins.py b/tests/units/test_download_plugins.py
+index ccdb597..7ecbc93 100644
+--- a/tests/units/test_download_plugins.py
++++ b/tests/units/test_download_plugins.py
+@@ -361,6 +361,51 @@ class TestDownloadPluginHttp(BaseDownloadPluginTest):
+             verify=True,
+         )
+ 
++    @mock.patch("eodag.plugins.download.http.requests.Session.request", autospec=True)
++    def test_plugins_download_http_already_downloaded_zip_file(
++        self, mock_requests_session
++    ):
++        """HTTPDownload.download() must not download an existing zip file again"""
++
++        provider = "geodes"
++        product_type = "S2_MSI_L1C"
++        title = "S2A_MSIL1C_20231006T102911_N0509_R108_T31TFK_20231006T141008"
++        local_product_as_archive_path = os.path.join(
++            TEST_RESOURCES_PATH,
++            "products",
++            "as_archive",
++            "S2A_MSIL1C_20180101T105441_N0206_R051_T31TDH_20180101T124911.zip",
++        )
++        properties = {
++            "id": "dummy",
++            "geometry": "POINT (0 0)",
++            "title": title,
++            "downloadLink": "https://geodes-portal.cnes.fr/api/download/dummy",
++        }
++
++        product = self._dummy_downloadable_product(
++            mock_requests_session,
++            local_product_as_archive_path,
++            provider,
++            properties,
++            product_type,
++        )
++        expected_path = os.path.join(self.output_dir, title + ".zip")
++        self.assertEqual(product.download(), expected_path)
++        mock_requests_session.assert_called_once()
++
++        # A new search creates a new product whose location is remote again.
++        new_product = self._dummy_downloadable_product(
++            mock_requests_session,
++            local_product_as_archive_path,
++            provider,
++            properties,
++            product_type,
++        )
++        self.assertEqual(new_product.download(), expected_path)
++        self.assertEqual(new_product.location, path_to_uri(expected_path))
++        mock_requests_session.assert_called_once()
++
+     @mock.patch(
+         "eodag.plugins.download.http.HTTPDownload._stream_download", autospec=True
+     )

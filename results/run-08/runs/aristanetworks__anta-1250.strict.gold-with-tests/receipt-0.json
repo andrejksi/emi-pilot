@@ -1,0 +1,198 @@
+{
+  "action": "incomplete",
+  "adequacy": {
+    "base": "01c41fe088528b41d6df52e65fbcfd559176b980",
+    "candidates": 0,
+    "errors": null,
+    "head": "de17e373e18825545b8656728ef8956ac276ee4d",
+    "killed": null,
+    "not_mutated": {
+      "removed_only": 0,
+      "unparsed": [],
+      "unreadable": [],
+      "unsupported": []
+    },
+    "note": "a surviving mutant may be equivalent to the original; treat survivors as places to look, not defects",
+    "run": 0,
+    "state": "nothing_to_mutate",
+    "survived": null,
+    "survivors": null,
+    "timed_out": null
+  },
+  "ask": [],
+  "assurance": {
+    "isolation": "sandboxed",
+    "setting": "cooperative"
+  },
+  "baseline": {
+    "sha": "01c41fe088528b41d6df52e65fbcfd559176b980",
+    "source": "merge-base:main"
+  },
+  "candidate": {
+    "content_id": "1357dc6fb9988d31bcaa6d85965003a6c1bc37bd",
+    "id": "worktree"
+  },
+  "change": {
+    "companion_tests": [],
+    "failing_tests": [],
+    "functions": [],
+    "not_measured": [
+      "anta/custom_types.py: 4 changed line(s) outside any function (module or class level); whether a test runs them is not measured"
+    ],
+    "proving_tests": [
+      {
+        "baseline_result": "failed",
+        "edited": false,
+        "id": "tests/units/anta_tests/test_vxlan.py::test[anta.tests.vxlan.VerifyVxlan1ConnSettings-failure-dps-src-intf]"
+      },
+      {
+        "baseline_result": "failed",
+        "edited": false,
+        "id": "tests/units/anta_tests/test_vxlan.py::test[anta.tests.vxlan.VerifyVxlan1ConnSettings-success-dps-src-intf]"
+      },
+      {
+        "baseline_result": "failed",
+        "edited": true,
+        "id": "tests/units/test_custom_types.py::test_regexp_type_vxlan_src_interface"
+      }
+    ],
+    "redundant_tests": [],
+    "skipped_tests": [],
+    "status": "none",
+    "unknown_tests": [
+      {
+        "id": "tests/units/test_custom_types.py::test_validate_regex_valid[^(Dps1|Loopback(0|[1-9]\\\\d{0,2}|[1-7]\\\\d{3}|80[0-9]{2}|81[0-8]\\\\d|819[01]))$]",
+        "reason": "at the baseline: the run did not report the test"
+      }
+    ]
+  },
+  "changed_old_tests": [
+    {
+      "approved": false,
+      "item": "old-test:anta/tests/vxlan.py",
+      "kind": "modified",
+      "path": "anta/tests/vxlan.py",
+      "restored_result": "passes",
+      "type": "old-test"
+    },
+    {
+      "approved": false,
+      "item": "old-test:tests/units/test_custom_types.py",
+      "kind": "modified",
+      "path": "tests/units/test_custom_types.py",
+      "restored_result": "fails",
+      "type": "old-test"
+    }
+  ],
+  "decision_id": "4bb06c95cfd8b6a5b719068e2320a223e1957876e775676c5dd8545e46c0cd89",
+  "input_id": "fbc7d5bddbe398aba349481f54813f8f97893b85a3830a299abb68bd235558e0",
+  "inputs": {
+    "approvals": [],
+    "baseline": "01c41fe088528b41d6df52e65fbcfd559176b980",
+    "candidate": "1357dc6fb9988d31bcaa6d85965003a6c1bc37bd",
+    "config": "ba5a772868e883b73ab9a9fb7849ffd5493e7fad5838bd43aa415c858b5f83ba",
+    "driver": {
+      "language": "python",
+      "producer": "a062e705e9b4791409555212698338a8fe282c765ca2412edc4b3369909161ee"
+    },
+    "emi": "0.1.1",
+    "environment": "bb903a2fab018573b36f990fb6acbd99d9d9b1c564c0bd25ae7effff94109632",
+    "intent": null,
+    "laws": null,
+    "memory": {
+      "laws": {},
+      "schema": "emi-memory-1"
+    },
+    "pins": {
+      "derandomize": true,
+      "hash_seed": 0,
+      "locale": "C.UTF-8",
+      "seed_random": true,
+      "tz": "UTC"
+    },
+    "policy": "emi-policy-10",
+    "search": null,
+    "setting": "cooperative"
+  },
+  "laws": {
+    "checked_functions": {},
+    "digest": null,
+    "fault": null,
+    "forgotten": [],
+    "found": {},
+    "laws": [],
+    "not_measured": [],
+    "proposals": []
+  },
+  "meta": {
+    "repo": "/home/runner/work/_temp/work/aristanetworks__anta-1250.strict.gold-with-tests"
+  },
+  "not_verified": [
+    "Behaviour that no test exercises: tests passing does not show the task's behaviour exists.",
+    "The baseline's tests are taken as correct. They ran twice under the same pins; a test whose outcome differed is quarantined, and an outcome that depends on something the pins do not hold (the clock, the network, another process) can still differ.",
+    "Tests the baseline already skipped, expected to fail, could not collect or failed are not regression evidence: nothing is known about the behaviour they cover.",
+    "Escape hatches in the change (suppressions, test-runner sniffing, always-equal comparisons) are found by pattern, and only in product lines it added. Only sniffing is also measured: a modified function is replayed as a test run and as a plain process, on the inputs the behaviour comparison has, and only for the clues of a test run that replay plants.",
+    "Cooperative verification: the proposer could alter the controller's inputs (the configuration, the recorded approvals, the dependencies the tests run). It catches a careless proposer, not a cheating one.",
+    "Linked dependencies (.venv) were taken as found on this machine.",
+    "No laws: what the change should do is shown only by the proposer's own tests. Laws the person writes in .emi/laws hold every change to them.",
+    "Behaviour was compared with the baseline's on 1 input(s) (1 generated from annotations), as a report that decides nothing, since nobody asked for it to be kept; other inputs are not covered, so this is not a proof of equivalence."
+  ],
+  "policy": "emi-policy-10",
+  "preserve": {
+    "counts": {
+      "added_or_removed": 0,
+      "compared": 1,
+      "generated": 1,
+      "import_failures": 0,
+      "no_inputs": 0,
+      "not_replayed": 0,
+      "skipped_async": 0,
+      "skipped_method": 0,
+      "skipped_nested": 0,
+      "targets": 1,
+      "timeouts": 0,
+      "unencodable_result": 0,
+      "unrecordable": 0,
+      "unresolved": 0,
+      "unstable": 0,
+      "with_drift": 0
+    },
+    "divergences": [],
+    "functions": [
+      {
+        "compared": 1,
+        "deterministic": true,
+        "file": "tests/units/test_custom_types.py",
+        "function": "test_regexp_type_vxlan_src_interface",
+        "inputs": 1,
+        "status": "compared"
+      }
+    ],
+    "more_divergences": 0,
+    "not_checked": [],
+    "reasons": [],
+    "required": false,
+    "under_test": {
+      "compared": 1,
+      "differences": [],
+      "unmeasured": null
+    }
+  },
+  "regression": {
+    "failed": [],
+    "missing": [],
+    "nondeterministic": [],
+    "quarantined": [],
+    "reasons": [],
+    "status": "held",
+    "tests_run": 73
+  },
+  "repair": [],
+  "rule": "fault",
+  "schema": "emi-done-receipt-1.0",
+  "signals": [],
+  "this_run": [
+    "No laws: what the change should do is shown only by the proposer's own tests. Laws the person writes in .emi/laws hold every change to them.",
+    "Behaviour was compared with the baseline's on 1 input(s) (1 generated from annotations), as a report that decides nothing, since nobody asked for it to be kept; other inputs are not covered, so this is not a proof of equivalence."
+  ]
+}

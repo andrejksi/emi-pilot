@@ -1,0 +1,194 @@
+{
+  "action": "incomplete",
+  "adequacy": null,
+  "ask": [],
+  "assurance": {
+    "isolation": "sandboxed",
+    "setting": "cooperative"
+  },
+  "baseline": {
+    "sha": "9b2953e7225d94412ef75b58651614b14efaa2cc",
+    "source": "merge-base:main"
+  },
+  "candidate": {
+    "content_id": "4ca3ecb278c9a17585c13bde3e372158c62328df",
+    "id": "worktree"
+  },
+  "change": {
+    "companion_tests": [],
+    "failing_tests": [],
+    "functions": [
+      {
+        "file": "anta/device.py",
+        "function": "_collect",
+        "laws": [],
+        "line": 468,
+        "status": "unknown"
+      },
+      {
+        "file": "anta/device.py",
+        "function": "_handle_eapi_command_error",
+        "laws": [],
+        "line": 540,
+        "status": "unknown"
+      }
+    ],
+    "not_measured": [
+      "anta/constants.py: 3 changed line(s) outside any function (module or class level); whether a test runs them is not measured",
+      "anta/device.py: _log_eapi_command_error was removed; removed functions are not measured",
+      "coverage could not be measured: no per-test execution recorded for tests/units/cli/exec/test_utils.py::test_collect_commands[command-failed-to-be-collected]"
+    ],
+    "proving_tests": [
+      {
+        "baseline_result": "failed",
+        "edited": true,
+        "id": "tests/units/cli/exec/test_utils.py::test_collect_commands[command-failed-to-be-collected]"
+      },
+      {
+        "baseline_result": "failed",
+        "edited": false,
+        "id": "tests/units/test_device.py::TestAsyncEOSDevice::test__collect[asynceapi.EapiCommandError - empty error list]"
+      }
+    ],
+    "redundant_tests": [],
+    "skipped_tests": [],
+    "status": "unknown",
+    "unknown_tests": []
+  },
+  "changed_old_tests": [
+    {
+      "approved": false,
+      "item": "old-test:tests/units/cli/exec/test_utils.py",
+      "kind": "modified",
+      "path": "tests/units/cli/exec/test_utils.py",
+      "restored_result": "fails",
+      "type": "old-test"
+    }
+  ],
+  "decision_id": "fd19e64d163f9f23ee87ef366100c03f040958d067b641bcf2889d8d690f1a62",
+  "input_id": "d1b1dade958a54affb7d369fecedc15f0cbc735fd902ba99459823a4e59bac47",
+  "inputs": {
+    "approvals": [],
+    "baseline": "9b2953e7225d94412ef75b58651614b14efaa2cc",
+    "candidate": "4ca3ecb278c9a17585c13bde3e372158c62328df",
+    "config": "319be23cfb609d5620919264e8ba9cdbcc1a45822dd1fd8a37dc25eccee265cf",
+    "driver": {
+      "language": "python",
+      "producer": "a062e705e9b4791409555212698338a8fe282c765ca2412edc4b3369909161ee"
+    },
+    "emi": "0.1.1",
+    "environment": "473313e9bbeab069bd3313ba40b676779a32bf55399f0e4a9f85fa29340e8448",
+    "intent": null,
+    "laws": null,
+    "memory": {
+      "laws": {},
+      "schema": "emi-memory-1"
+    },
+    "pins": {
+      "derandomize": true,
+      "hash_seed": 0,
+      "locale": "C.UTF-8",
+      "seed_random": true,
+      "tz": "UTC"
+    },
+    "policy": "emi-policy-10",
+    "search": null,
+    "setting": "cooperative"
+  },
+  "laws": {
+    "checked_functions": {},
+    "digest": null,
+    "fault": null,
+    "forgotten": [],
+    "found": {},
+    "laws": [],
+    "not_measured": [],
+    "proposals": []
+  },
+  "meta": {
+    "repo": "/home/runner/work/_temp/work/aristanetworks__anta-1276.cooperative.gold-with-tests"
+  },
+  "not_verified": [
+    "Behaviour that no test exercises: tests passing does not show the task's behaviour exists.",
+    "The baseline's tests are taken as correct. They ran twice under the same pins; a test whose outcome differed is quarantined, and an outcome that depends on something the pins do not hold (the clock, the network, another process) can still differ.",
+    "Tests the baseline already skipped, expected to fail, could not collect or failed are not regression evidence: nothing is known about the behaviour they cover.",
+    "Escape hatches in the change (suppressions, test-runner sniffing, always-equal comparisons) are found by pattern, and only in product lines it added. Only sniffing is also measured: a modified function is replayed as a test run and as a plain process, on the inputs the behaviour comparison has, and only for the clues of a test run that replay plants.",
+    "Cooperative verification: the proposer could alter the controller's inputs (the configuration, the recorded approvals, the dependencies the tests run). It catches a careless proposer, not a cheating one.",
+    "Linked dependencies (.venv) were taken as found on this machine.",
+    "No laws: what the change should do is shown only by the proposer's own tests. Laws the person writes in .emi/laws hold every change to them.",
+    "Behaviour was compared with the baseline's on 0 input(s) (0 generated from annotations), as a report that decides nothing, since nobody asked for it to be kept; other inputs are not covered, so this is not a proof of equivalence.",
+    "Not compared: anta/device.py::AsyncEOSDevice._collect: no_inputs.",
+    "Not compared: tests/units/cli/exec/test_utils.py::test_collect_commands: no_inputs."
+  ],
+  "policy": "emi-policy-10",
+  "preserve": {
+    "counts": {
+      "added_or_removed": 2,
+      "compared": 0,
+      "generated": 0,
+      "import_failures": 0,
+      "no_inputs": 2,
+      "not_replayed": 0,
+      "skipped_async": 0,
+      "skipped_method": 0,
+      "skipped_nested": 0,
+      "targets": 2,
+      "timeouts": 0,
+      "unencodable_result": 0,
+      "unrecordable": 31,
+      "unresolved": 0,
+      "unstable": 0,
+      "with_drift": 0
+    },
+    "divergences": [],
+    "functions": [
+      {
+        "compared": 0,
+        "deterministic": false,
+        "file": "anta/device.py",
+        "function": "AsyncEOSDevice._collect",
+        "inputs": 0,
+        "status": "no_inputs"
+      },
+      {
+        "compared": 0,
+        "deterministic": false,
+        "file": "tests/units/cli/exec/test_utils.py",
+        "function": "test_collect_commands",
+        "inputs": 0,
+        "status": "no_inputs"
+      }
+    ],
+    "more_divergences": 0,
+    "not_checked": [
+      "anta/device.py::AsyncEOSDevice._collect: no_inputs",
+      "tests/units/cli/exec/test_utils.py::test_collect_commands: no_inputs"
+    ],
+    "reasons": [],
+    "required": false,
+    "under_test": {
+      "compared": 0,
+      "differences": [],
+      "unmeasured": null
+    }
+  },
+  "regression": {
+    "failed": [],
+    "missing": [],
+    "nondeterministic": [],
+    "quarantined": [],
+    "reasons": [],
+    "status": "held",
+    "tests_run": 54
+  },
+  "repair": [],
+  "rule": "fault",
+  "schema": "emi-done-receipt-1.0",
+  "signals": [],
+  "this_run": [
+    "No laws: what the change should do is shown only by the proposer's own tests. Laws the person writes in .emi/laws hold every change to them.",
+    "Behaviour was compared with the baseline's on 0 input(s) (0 generated from annotations), as a report that decides nothing, since nobody asked for it to be kept; other inputs are not covered, so this is not a proof of equivalence.",
+    "Not compared: anta/device.py::AsyncEOSDevice._collect: no_inputs.",
+    "Not compared: tests/units/cli/exec/test_utils.py::test_collect_commands: no_inputs."
+  ]
+}

@@ -1,0 +1,120 @@
+diff --git a/_patch.py b/_patch.py
+new file mode 100644
+index 0000000..197ec79
+--- /dev/null
++++ b/_patch.py
+@@ -0,0 +1,114 @@
++path = "eodag/plugins/download/base.py"
++with open(path) as f:
++    content = f.read()
++
++old = '''        if os.path.isfile(record_filename) and os.path.isfile(fs_path):
++            logger.info(
++                f"Product already downloaded: {fs_path}",
++            )
++            return (
++                self._finalize(fs_path, progress_callback=progress_callback, **kwargs),
++                None,
++            )
++        elif os.path.isfile(record_filename) and os.path.isdir(fs_dir_path):
++            logger.info(
++                f"Product already downloaded: {fs_dir_path}",
++            )
++            return (
++                self._finalize(
++                    fs_dir_path, progress_callback=progress_callback, **kwargs
++                ),
++                None,
++            )
++        # Remove the record file if fs_path is absent (e.g. it was deleted while record wasn't)
++        elif os.path.isfile(record_filename):
++            logger.debug(
++                f"Record file found ({record_filename}) but not the actual file",
++            )
++            logger.debug(
++                f"Removing record file : {record_filename}",
++            )
++            os.remove(record_filename)
++
++        return fs_path, record_filename
++'''
++
++new = '''        if os.path.isfile(record_filename) and os.path.isfile(fs_path):
++            logger.info(
++                f"Product already downloaded: {fs_path}",
++            )
++            return (
++                self._finalize(fs_path, progress_callback=progress_callback, **kwargs),
++                None,
++            )
++        elif os.path.isfile(record_filename) and os.path.isdir(fs_dir_path):
++            logger.info(
++                f"Product already downloaded: {fs_dir_path}",
++            )
++            return (
++                self._finalize(
++                    fs_dir_path, progress_callback=progress_callback, **kwargs
++                ),
++                None,
++            )
++        # The downloaded product may be an archive whose extension was not known
++        # before the download (e.g. derived from the response headers). In that
++        # case, the archive is stored as ``fs_path`` + its extension, which is
++        # not covered by the checks above.
++        elif os.path.isfile(record_filename) and (
++            archive_path := self._get_existing_archive_path(fs_path)
++        ):
++            logger.info(
++                f"Product already downloaded: {archive_path}",
++            )
++            return (
++                self._finalize(
++                    archive_path, progress_callback=progress_callback, **kwargs
++                ),
++                None,
++            )
++        # Remove the record file if fs_path is absent (e.g. it was deleted while record wasn't)
++        elif os.path.isfile(record_filename):
++            logger.debug(
++                f"Record file found ({record_filename}) but not the actual file",
++            )
++            logger.debug(
++                f"Removing record file : {record_filename}",
++            )
++            os.remove(record_filename)
++
++        return fs_path, record_filename
++
++    def _get_existing_archive_path(self, fs_path: str) -> Optional[str]:
++        """Return the path of an already downloaded archive matching ``fs_path``.
++
++        When a product is downloaded as an archive, its extension may only be known
++        once the download has started (e.g. from the response headers). The archive is
++        then stored as ``fs_path`` + its extension, which cannot be guessed from the
++        product properties alone. This method looks for such an archive.
++
++        :param fs_path: The expected product path, without archive extension
++        :returns: The path to the existing archive if any, ``None`` otherwise
++        """
++        for extension in ARCHIVE_EXTENSIONS:
++            archive_path = f"{fs_path}{extension}"
++            if os.path.isfile(archive_path):
++                return archive_path
++        return None
++'''
++
++assert old in content, "old block not found"
++content = content.replace(old, new)
++
++old_logger = 'logger = logging.getLogger("eodag.download.base")\n'
++new_logger = (
++    'logger = logging.getLogger("eodag.download.base")\n\n'
++    "#: Archive extensions that may be appended to a product path during download\n"
++    "ARCHIVE_EXTENSIONS = (\".zip\", \".tar\", \".tar.gz\", \".tgz\", \".tar.bz2\", \".tbz2\")\n"
++)
++assert old_logger in content
++content = content.replace(old_logger, new_logger, 1)
++
++with open(path, "w") as f:
++    f.write(content)
++print("patched")

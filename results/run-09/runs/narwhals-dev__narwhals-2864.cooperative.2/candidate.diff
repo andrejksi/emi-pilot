@@ -1,0 +1,59 @@
+diff --git a/narwhals/_arrow/series.py b/narwhals/_arrow/series.py
+index e22d20f..ceb37a5 100644
+--- a/narwhals/_arrow/series.py
++++ b/narwhals/_arrow/series.py
+@@ -459,8 +459,13 @@ class ArrowSeries(EagerSeries["ChunkedArrayAny"]):
+         indices_native = indices_native.take(sorting_indices)
+         values_native = values_native.take(sorting_indices)
+ 
++        indices_list = indices_native.to_pylist()
++        if any(i < 0 or i >= self.len() for i in indices_list):
++            msg = f"Index out of bounds for Series of length {self.len()}"
++            raise IndexError(msg)
++
+         mask: _1DArray = np.zeros(self.len(), dtype=bool)
+-        mask[indices_native] = True
++        mask[indices_list] = True
+         # NOTE: Multiple issues
+         # - Missing `values` type
+         # - `mask` accepts a `np.ndarray`, but not mentioned in stubs
+@@ -468,7 +473,7 @@ class ArrowSeries(EagerSeries["ChunkedArrayAny"]):
+         # - Missing return type
+         pc_replace_with_mask: Incomplete = pc.replace_with_mask
+         return self._with_native(
+-            pc_replace_with_mask(self.native, mask, values_native.take(indices_native))
++            pc_replace_with_mask(self.native, mask, values_native)
+         )
+ 
+     def to_list(self) -> list[Any]:
+diff --git a/tests/series_only/scatter_test.py b/tests/series_only/scatter_test.py
+index 2e5cbaa..941d806 100644
+--- a/tests/series_only/scatter_test.py
++++ b/tests/series_only/scatter_test.py
+@@ -61,3 +61,26 @@ def test_scatter_unordered_indices(constructor_eager: ConstructorEager) -> None:
+     df = nw.from_native(constructor_eager(data))
+     result = df["a"].scatter(indices, df["a"])
+     assert_equal_data({"a": result}, {"a": [10, 12, 5, 6, 2, 9, 16]})
++
++
++def test_scatter_non_zero_indices(constructor_eager: ConstructorEager) -> None:
++    df = nw.from_native(
++        constructor_eager({"a": [1, 2, 3], "b": [142, 124, 132]}), eager_only=True
++    )
++    s = df["a"]
++    assert_equal_data({"a": s.scatter(1, 999)}, {"a": [1, 999, 3]})
++    assert_equal_data({"a": s.scatter([0, 2], [999, 888])}, {"a": [999, 2, 888]})
++    assert_equal_data({"a": s.scatter([2], [999])}, {"a": [1, 2, 999]})
++
++
++def test_scatter_out_of_bounds(constructor_eager: ConstructorEager) -> None:
++    import pytest
++
++    df = nw.from_native(
++        constructor_eager({"a": [1, 2, 3], "b": [142, 124, 132]}), eager_only=True
++    )
++    s = df["a"]
++    with pytest.raises(Exception):  # noqa: B017, PT011
++        s.scatter(3, 999)
++    with pytest.raises(Exception):  # noqa: B017, PT011
++        s.scatter([0, 5], [999, 888])

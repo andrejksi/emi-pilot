@@ -1,0 +1,50 @@
+diff --git a/markdownify/__init__.py b/markdownify/__init__.py
+index 72c5214..90fbb36 100644
+--- a/markdownify/__init__.py
++++ b/markdownify/__init__.py
+@@ -482,7 +482,22 @@ class MarkdownConverter(object):
+     def convert_code(self, el, text, parent_tags):
+         if 'pre' in parent_tags:
+             return text
+-        converter = abstract_inline_conversion(lambda self: '`')
++
++        # Use a backtick fence that is longer than any run of backticks in the
++        # text, so that backticks inside the code span are preserved.
++        longest_backtick_run = max((len(m) for m in re.findall(r'`+', text)), default=0)
++        fence = '`' * (longest_backtick_run + 1)
++
++        # If the text starts or ends with a backtick, or consists only of
++        # backticks, pad it with spaces so the fence is not ambiguous.
++        # (Padding is applied after chomping, so it is not stripped away.)
++        if text.startswith('`') or text.endswith('`') or not text.strip('`'):
++            prefix, suffix, text = chomp(text)
++            if not text:
++                return ''
++            return '%s%s %s %s%s' % (prefix, fence, text, fence, suffix)
++
++        converter = abstract_inline_conversion(lambda self: fence)
+         return converter(self, el, text, parent_tags)
+ 
+     convert_del = abstract_inline_conversion(lambda self: '~~')
+diff --git a/tests/test_conversions.py b/tests/test_conversions.py
+index 825559b..347da5a 100644
+--- a/tests/test_conversions.py
++++ b/tests/test_conversions.py
+@@ -101,6 +101,17 @@ def test_code():
+     assert md('<code>foo<s> bar </s>baz</code>') == '`foo bar baz`'
+     assert md('<code>foo<sup>bar</sup>baz</code>', sup_symbol='^') == '`foobarbaz`'
+     assert md('<code>foo<sub>bar</sub>baz</code>', sub_symbol='^') == '`foobarbaz`'
++    # backticks inside code spans
++    assert md('<code>We have to `manage` this.</code>') == '``We have to `manage` this.``'
++    assert md('<code>foo `` bar</code>') == '```foo `` bar```'
++    assert md('<kbd>a`b</kbd>') == '``a`b``'
++    assert md('<samp>a`b</samp>') == '``a`b``'
++    # backticks at the edges of code spans require padding
++    assert md('<code>`foo`</code>') == '`` `foo` ``'
++    assert md('<code>foo`</code>') == '`` foo` ``'
++    assert md('<code>`foo</code>') == '`` `foo ``'
++    assert md('<code>``</code>') == '``` `` ```'
++    assert md('foo <code>`a`</code> bar') == 'foo `` `a` `` bar'
+ 
+ 
+ def test_dl():

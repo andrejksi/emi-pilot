@@ -1,0 +1,21 @@
+{
+  "arm": "control",
+  "backend": "chat",
+  "claims": [
+    {
+      "gate": "none",
+      "verdict": "accepted"
+    }
+  ],
+  "final": "accepted",
+  "model": "moonshotai/Kimi-K3.1-Pro",
+  "repair_rounds": 0,
+  "replay": null,
+  "seconds": 76.3,
+  "seed": 2,
+  "task": "meltano__sdk-3091",
+  "usage": {
+    "completion_tokens": 3698,
+    "prompt_tokens": 123050
+  }
+}
