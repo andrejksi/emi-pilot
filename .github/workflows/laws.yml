@@ -1,0 +1,139 @@
+# The laws trial, in two stages.
+#
+# draft   a model drafts each task's laws from the task text alone, the way
+#         `emi rules brief` asks, checked by `emi rules check`; the draft is
+#         kept as first written and as last passed (harness/draft_laws.py)
+# replay  EMI and the plain check judge every saved attempt of each task
+#         (results/harvest-tuning) under no laws, the first draft and the
+#         checked draft (harness/replay_laws.py); no model runs
+#
+# The drafts go to results/laws-trial/drafts/<task>/ before a replay reads
+# them. Neither stage sees the hidden tests: the job deletes them first, and
+# the drafting model's commands run without network, with the pilot hidden.
+name: laws
+
+on:
+  workflow_dispatch:
+    inputs:
+      stage:
+        description: "draft (a live model writes the laws) or replay (no model)"
+        type: choice
+        options: [draft, replay]
+        default: replay
+      tasks:
+        description: "tasks: @tuning, another batch, or task ids, space-separated"
+        default: "@tuning"
+      base_url:
+        description: "draft: OpenAI-compatible endpoint, e.g. https://host/v1"
+        default: ""
+      model:
+        description: "draft: model name at that endpoint"
+        default: ""
+      seed:
+        description: "draft: the model's seed"
+        default: "1"
+
+permissions:
+  contents: read
+
+env:
+  EMI_VERSION: "0.1.1"
+
+jobs:
+  plan:
+    runs-on: ubuntu-24.04
+    outputs:
+      tasks: ${{ steps.plan.outputs.tasks }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - id: plan
+        env:
+          TASKS: ${{ inputs.tasks }}
+        run: |
+          # shellcheck disable=SC2086 # TASKS is a list of words
+          tasks="$(python3 harness/plan.py chat --arms cooperative --tasks $TASKS --task-list)"
+          echo "tasks=$tasks" | tee -a "$GITHUB_OUTPUT"
+
+  task:
+    needs: plan
+    runs-on: ubuntu-24.04
+    timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      max-parallel: 10
+      matrix:
+        task: ${{ fromJSON(needs.plan.outputs.tasks) }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Remove the hidden tests and the history
+        run: rm -rf .git tasks/*/hidden
+      - name: Drafting sees no saved attempt
+        if: inputs.stage == 'draft'
+        run: rm -rf results
+      - name: Sandbox
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq bubblewrap
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+      - name: EMI and uv
+        run: |
+          python3 -m venv "$RUNNER_TEMP/tools"
+          "$RUNNER_TEMP/tools/bin/pip" install -q "emicode==$EMI_VERSION" uv
+          echo "$RUNNER_TEMP/tools/bin" >>"$GITHUB_PATH"
+      - name: Draft the laws
+        if: inputs.stage == 'draft'
+        env:
+          EMI: ${{ runner.temp }}/tools/bin/emi
+          WORK: ${{ runner.temp }}/work
+          MODEL_API_KEY: ${{ secrets.MODEL_API_KEY }}
+          MODEL_BASE_URL: ${{ inputs.base_url }}
+          MODEL_NAME: ${{ inputs.model }}
+          SEED: ${{ inputs.seed }}
+          TASK: ${{ matrix.task }}
+        run: |
+          mkdir -p "$WORK"
+          python3 harness/prepare.py --task "$TASK" --arm cooperative --work "$WORK/$TASK" --emi "$EMI"
+          python3 harness/draft_laws.py --task "$TASK" --work "$WORK/$TASK" --out "out/$TASK" \
+            --emi "$EMI" --base-url "${MODEL_BASE_URL:?}" --model "${MODEL_NAME:?}" \
+            --api-key-env MODEL_API_KEY --seed "$SEED"
+      - name: Replay the saved attempts
+        if: inputs.stage == 'replay'
+        env:
+          EMI: ${{ runner.temp }}/tools/bin/emi
+          WORK: ${{ runner.temp }}/work
+          TASK: ${{ matrix.task }}
+        run: |
+          mkdir -p "$WORK"
+          python3 harness/replay_laws.py --task "$TASK" --attempts results/harvest-tuning/runs \
+            --laws "results/laws-trial/drafts/$TASK/laws" --out "out" --emi "$EMI"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ${{ inputs.stage }}-${{ matrix.task }}
+          path: out/
+          if-no-files-found: error
+
+  table:
+    needs: task
+    if: always() && inputs.stage == 'replay' && needs.task.result != 'skipped'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: replay-*
+          path: out/
+          merge-multiple: true
+      - name: Table
+        run: python3 harness/laws_table.py out/*/result.json | tee table.md >>"$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: laws-trial-results
+          path: |
+            out/
+            table.md

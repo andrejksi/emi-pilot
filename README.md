@@ -27,7 +27,9 @@ tasks/<id>/hidden/          the oracle: hidden tests (a folder, or test.patch)
 tasks/<id>/replay/          fixed candidate changes (folders or .patch files)
 arms/<arm>.json             EMI settings laid over `emi init --yes`
 harness/                    import, plan, prepare, agent (+ gates), oracle, table
+harness/draft_laws.py ...   the laws trial: draft, plain_check, replay_laws, laws_table
 .github/workflows/pilot.yml the same on GitHub Actions
+.github/workflows/laws.yml  the laws trial on GitHub Actions
 ```
 
 Two kinds of task. The three toy tasks (`calc-median`, `ledger-fee`,
@@ -137,6 +139,26 @@ real, right fix (`gold`, `gold-with-tests`).
 The 30 real tasks are split into batches `@a` and `@b` of 15, so a batch
 fits the free plan's 20 jobs at once. `tasks` also takes task ids,
 space-separated; `batches/*.txt` are the batches.
+
+### The laws trial
+
+Does EMI add anything over a plain check, once a task has laws? Actions →
+**laws** → Run workflow:
+
+1. `stage: draft`, with `base_url` and `model`: a model drafts each tuning
+   task's laws from the task text alone, as `emi rules brief` asks, until
+   `emi rules check` passes them. The text stands in for the person's
+   answers; anything it does not say is "doesn't matter". The **draft-<task>**
+   artifacts keep each draft as first written (`laws/first`) and as last
+   passed (`laws/checked`), with what each check printed. Commit them under
+   `results/laws-trial/drafts/<task>/`.
+2. A person reads each checked draft and approves or refuses it, timed.
+3. `stage: replay`: every saved attempt in `results/harvest-tuning` is
+   judged by EMI and by `harness/plain_check.py` (put the old tests back,
+   then the tests that passed before must pass and every law must pass),
+   under no laws, the first draft and the checked draft. No model runs. The
+   summary has the table: of the attempts that said done, the wrong ones
+   each checker stopped and the right ones it stopped.
 
 ### What happens
 
