@@ -10,3 +10,9 @@ test or test name.
 | cs-si__eodag-2435 | False | True | True | yes |
 | cs-si__eodag-2441 | False | True | True | yes |
 | huggingface__huggingface_hub-5080 | False | True | True | yes |
+
+Replay run 44070548671 (commit 063e270):
+
+| task | nothing (must fail) | gold-with-tests (must pass) | gold | sound |
+|---|---|---|---|---|
+| tornadoweb__tornado-3880 | False | True | True | yes |
