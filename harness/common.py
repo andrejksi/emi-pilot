@@ -2,6 +2,7 @@
 
 import json
 import os
+import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -9,6 +10,8 @@ from pathlib import Path
 PILOT = Path(__file__).resolve().parent.parent
 ARMS = ("control", "naive", "cooperative", "strict")
 EMI_ARMS = ("cooperative", "strict")
+# a path that is a test, or test configuration, rather than product code
+TEST_PATH = re.compile(r"(^|/)(tests?|testing)(/|$)|(^|/)test_[^/]*\.py$|_test\.py$|(^|/)conftest\.py$")
 
 # fixed identity and dates, so a baseline commit is the same on every run
 GIT_ENV = {
@@ -59,3 +62,13 @@ def candidate_diff(repo):
 def write_json(path, value):
     Path(path).parent.mkdir(parents=True, exist_ok=True)
     Path(path).write_text(json.dumps(value, indent=2, sort_keys=True) + "\n")
+
+
+def files_in(patch):
+    """The paths a patch changes, as its `diff --git` lines name them."""
+    return re.findall(r"^diff --git a/(\S+) b/", patch, flags=re.M)
+
+
+def changed_lines(patch):
+    return sum(1 for line in patch.splitlines()
+               if line[:1] in "+-" and not line.startswith(("+++", "---")))

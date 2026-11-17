@@ -24,20 +24,8 @@ from pathlib import Path
 
 import pandas as pd
 
-from common import PILOT, write_json
+from common import PILOT, TEST_PATH, changed_lines, files_in, write_json
 from trees import test_files
-
-TEST_PATH = re.compile(r"(^|/)(tests?|testing)(/|$)|(^|/)test_[^/]*\.py$|_test\.py$|(^|/)conftest\.py$")
-
-
-def files_in(patch):
-    return re.findall(r"^diff --git a/(\S+) b/", patch, flags=re.M)
-
-
-def changed_lines(patch):
-    return sum(1 for line in patch.splitlines()
-               if line[:1] in "+-" and not line.startswith(("+++", "---")))
-
 
 def python_of(install_config):
     m = re.search(r"python_base_(\d)(\d+)", install_config.get("base_image_name") or "")
