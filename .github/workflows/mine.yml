@@ -1,0 +1,121 @@
+# Mine new tasks from pull requests merged after a date (harness/mine_prs.py),
+# turn each into a task by running its tests before and after the fix
+# (harness/validate_pr.py), and upload the tasks as one artifact. Nothing is
+# committed: a person reads the report and commits the tasks to keep, which
+# a replay run (pilot, backend replay) then checks are sound.
+#
+# The summary and the report name each pull request and what happened to it,
+# never its fix, so the held-out answers stay unread.
+name: mine
+
+on:
+  workflow_dispatch:
+    inputs:
+      since:
+        description: "oldest merge date to keep, YYYY-MM-DD (after every model's release)"
+        default: "2026-10-24"
+      repos:
+        description: "owner/name, space-separated, or @tasks for the pilot's own repositories"
+        default: "@tasks"
+      per_repo:
+        description: "most candidates per repository"
+        default: "3"
+
+permissions:
+  contents: read
+
+jobs:
+  mine:
+    runs-on: ubuntu-24.04
+    outputs:
+      ids: ${{ steps.ids.outputs.ids }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Candidates
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SINCE: ${{ inputs.since }}
+          REPOS: ${{ inputs.repos }}
+          PER_REPO: ${{ inputs.per_repo }}
+        run: |
+          # shellcheck disable=SC2086 # REPOS is a list of words
+          python3 harness/mine_prs.py --since "$SINCE" --repos $REPOS --per-repo "$PER_REPO" \
+            --out candidates.jsonl | tee -a "$GITHUB_STEP_SUMMARY"
+      - id: ids
+        run: |
+          echo "ids=$(python3 -c 'import json,sys; print(json.dumps([json.loads(l)["instance_id"] for l in open("candidates.jsonl")]))')" >>"$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: candidates
+          path: candidates.jsonl
+          if-no-files-found: error
+
+  validate:
+    needs: mine
+    if: needs.mine.outputs.ids != '[]'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      max-parallel: 15
+      matrix:
+        id: ${{ fromJSON(needs.mine.outputs.ids) }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: candidates
+      - name: uv
+        run: |
+          python3 -m venv "$RUNNER_TEMP/tools"
+          "$RUNNER_TEMP/tools/bin/pip" install -q uv
+          echo "$RUNNER_TEMP/tools/bin" >>"$GITHUB_PATH"
+      - name: Run its tests before and after the fix
+        env:
+          ID: ${{ matrix.id }}
+        run: python3 harness/validate_pr.py candidates.jsonl --out "mined" --ids "$ID"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mined-${{ matrix.id }}
+          path: mined/
+          if-no-files-found: ignore
+
+  collect:
+    needs: validate
+    if: always() && needs.validate.result != 'skipped'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: mined-*
+          path: parts/
+      - name: Report
+        run: |
+          mkdir -p mined
+          for d in parts/*/; do
+            find "$d" -mindepth 1 -maxdepth 1 -type d -exec cp -r {} mined/ \;
+            if [ -f "$d/report.jsonl" ]; then cat "$d/report.jsonl" >>mined/report.jsonl; fi
+          done
+          touch mined/report.jsonl
+          python3 - >>"$GITHUB_STEP_SUMMARY" <<'EOF'
+          import json
+          rows = [json.loads(l) for l in open("mined/report.jsonl")]
+          kept = [r for r in rows if r["kept"]]
+          print(f"## Mined tasks: {len(kept)} kept of {len(rows)} candidates\n")
+          print("| task | kept | fail to pass | pass to pass | unstable | why not |")
+          print("|---|---|---|---|---|---|")
+          for r in sorted(rows, key=lambda r: r["instance_id"]):
+              why = r.get("why", "").splitlines()[0][:120] if r.get("why") else ""
+              print(f"| {r['instance_id']} | {'yes' if r['kept'] else 'no'} | "
+                    f"{r.get('fail_to_pass', '')} | {r.get('pass_to_pass', '')} | "
+                    f"{r.get('unstable', '')} | {why} |")
+          EOF
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mined-tasks
+          path: mined/

@@ -2,6 +2,7 @@
 
     python3 harness/plan.py replay            # one line per run
     python3 harness/plan.py chat --seeds 3 --json
+    python3 harness/plan.py chat --seeds 3 --arms control   # ungated candidates only
 """
 
 import argparse
@@ -24,7 +25,7 @@ def expand(tasks):
     return out
 
 
-def plan(mode, seeds, tasks=None):
+def plan(mode, seeds, tasks=None, arms=ARMS):
     out = []
     for task_dir in sorted((PILOT / "tasks").iterdir()):
         if tasks and task_dir.name not in tasks:
@@ -33,7 +34,7 @@ def plan(mode, seeds, tasks=None):
             whiches = sorted(p.name.removesuffix(".patch") for p in (task_dir / "replay").iterdir())
         else:
             whiches = [str(s) for s in range(1, seeds + 1)]
-        for arm in ARMS:
+        for arm in arms:
             for which in whiches:
                 out.append({"task": task_dir.name, "arm": arm, "which": which,
                             "id": f"{task_dir.name}.{arm}.{which}"})
@@ -45,12 +46,14 @@ def main():
     a.add_argument("mode", choices=("replay", "chat"))
     a.add_argument("--seeds", type=int, default=1)
     a.add_argument("--tasks", nargs="*")
+    a.add_argument("--arms", nargs="+", choices=ARMS, default=list(ARMS),
+                   help="arms to run, in the order given (default: every arm)")
     a.add_argument("--json", action="store_true")
     a.add_argument("--task-list", action="store_true", help="print the plan's task ids as JSON")
     a.add_argument("--max", type=int, help="refuse a plan with more runs (GitHub: 256 jobs)")
     args = a.parse_args()
     args.tasks = expand(args.tasks)
-    runs = plan(args.mode, args.seeds, args.tasks)
+    runs = plan(args.mode, args.seeds, args.tasks, args.arms)
     if args.tasks and len({r["task"] for r in runs}) != len(set(args.tasks)):
         missing = set(args.tasks) - {r["task"] for r in runs}
         raise SystemExit(f"no such task: {' '.join(sorted(missing))}")

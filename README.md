@@ -102,6 +102,30 @@ Actions → **pilot** → Run workflow, then fill in the form:
 | 1. Smoke test | `replay` | `@toy` | | The table matches `sample-replay-results/table.md`. |
 | 2. Check the real tasks | `replay` | `@a`, then `@b` | | **Task check** in the summary: every task `sound: yes`. Drop any that is not. |
 | 3. Live trial | `chat` | `@a`, then `@b` | `3` | Also fill in `base_url` and `model`. |
+| Harvest only | `chat` | task ids | `3` | Set `arms` to `control`: ungated candidates, a quarter of the cost. |
+
+### Mining new tasks
+
+The models the study uses were released after every Python task in
+SWE-rebench-V2, so held-out tasks are mined from pull requests merged after
+the newest model's release. Actions → **mine** → Run workflow, with `since`
+after every model's release date:
+
+1. `harness/mine_prs.py` lists merged pull requests in the pilot's own
+   repositories (`@tasks`) that close one issue with enough text and change
+   tests and 1 to 4 Python files in at most 150 lines. At most `per_repo`
+   from each repository.
+2. `harness/validate_pr.py` builds each one's environment with the install
+   steps of the pilot's newest task from that repository, and runs its tests
+   twice with only the test changes and twice with the fix too. Tests that
+   go from failing to passing are FAIL_TO_PASS, tests that pass throughout
+   are PASS_TO_PASS, and a test whose two runs disagree is in neither.
+3. The **mined-tasks** artifact holds the tasks that came out, and the run's
+   summary says why each other candidate did not. Commit the tasks to keep
+   under `tasks/`, then check them with a replay run (step 2 below).
+
+Nothing prints a fix, so the person mining has not read the answers. A pull
+request someone did read goes in `batches/seen.txt`, and the miner skips it.
 
 Step 2 is the first time the real tasks run anywhere. It also gives the
 first number that means something: how often EMI's arms send back the

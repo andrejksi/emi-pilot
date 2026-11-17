@@ -5,7 +5,8 @@
 #   harness/run_local.sh chat SEEDS                  # a live model; needs MODEL_BASE_URL,
 #                                                    # MODEL_NAME and MODEL_API_KEY set
 #
-# EMI (the `emi` binary, or $EMI), bubblewrap, and a virtualenv with
+# ARMS (space-separated) runs only those arms. EMI (the `emi` binary, or
+# $EMI), bubblewrap, and a virtualenv with
 # pytest<9, coverage>=7.9 and hypothesis at $VENV are needed.
 set -euo pipefail
 
@@ -19,7 +20,8 @@ out="${OUT:-$here/runs/$(date -u +%Y%m%dT%H%M%SZ)-$mode}"
 mkdir -p "$out/work"
 
 plan="$out/plan.txt"
-python3 "$here/harness/plan.py" "$mode" --seeds "$seeds" ${TASKS:+--tasks $TASKS} >"$plan"
+# shellcheck disable=SC2086 # TASKS and ARMS are lists of words
+python3 "$here/harness/plan.py" "$mode" --seeds "$seeds" ${TASKS:+--tasks $TASKS} ${ARMS:+--arms $ARMS} >"$plan"
 
 one() {
   read -r task arm which <<<"$1"
