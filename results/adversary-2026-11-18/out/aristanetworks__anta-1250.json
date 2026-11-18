@@ -1,0 +1,104 @@
+{
+  "baseline": {
+    "failing_tests": [],
+    "rules_exit": 1
+  },
+  "rules": "/home/user/emi-drafting/drafts/aristanetworks__anta-1250/checked",
+  "task": "aristanetworks__anta-1250",
+  "tries": {
+    "1": {
+      "bad_files": [],
+      "claim": "Input is `\"Dps2\"` as the `source_interface` (with a device reporting `srcIpIntf: \"Dps2\"`).\nMy fix only allows the exact string `\"Dps1\"` in addition to Loopback interfaces, so `\"Dps2\"` is rejected with a validation error.\nThe bug report asks to support `Dps` interfaces in general, not only `\"Dps1\"`.\n",
+      "example_on_baseline": "{'result': 'error', 'messages': [\"anta.tests.vxlan.VerifyVxlan1ConnSettings: Inputs are not valid\\n1 validation error for Input\\nsource_interface\\n  String should match pattern '^(Loopback)([0-9]|[1-9][0-9]{1,2}|[1-7][0-9]{3}|8[01][0-9]{2}|819[01])$' [type=string_pattern_mismatch, input_value='Dps2', input_type=str]\\n    For further information visit https://errors.pydantic.dev/2.14/v/string_pattern_mismatch\"]}",
+      "example_on_fix": "{'result': 'error', 'messages': [\"anta.tests.vxlan.VerifyVxlan1ConnSettings: Inputs are not valid\\n2 validation errors for Input\\nsource_interface.literal['Dps1']\\n  Input should be 'Dps1' [type=literal_error, input_value='Dps2', input_type=str]\\n    For further information visit https://errors.pydantic.dev/2.14/v/literal_error\\nsource_interface.function-before[interface_case_sensitivity(), function-before[interface_autocomplete(), constrained-str]]\\n  String should match pattern '^(Loopback)([0-9]|[1-9][0-9]{1,2}|[1-7][0-9]{3}|8[01][0-9]{2}|819[01])$' [type=string_pattern_mismatch, input_value='Dps2', input_type=str]\\n    For further information visit https://errors.pydantic.dev/2.14/v/string_pattern_mismatch\"]}",
+      "hidden": {
+        "exit": 1,
+        "fail_to_pass": 4,
+        "fail_to_pass_passed": 1,
+        "failure_lines": [
+          "ERROR    anta.tests.vxlan.VerifyVxlan1ConnSettings:models.py:477 anta.tests.vxlan.VerifyVxlan1ConnSettings: Inputs are not valid",
+          "FAILED tests/units/anta_tests/test_vxlan.py::test[anta.tests.vxlan.VerifyVxlan1ConnSettings-failure-dps-src-intf]",
+          "FAILED tests/units/test_custom_types.py::test_regexp_type_vxlan_src_interface"
+        ],
+        "not_passing": [
+          "tests/units/anta_tests/test_vxlan.py::test[anta.tests.vxlan.VerifyVxlan1ConnSettings-failure-dps-src-intf]",
+          "tests/units/test_custom_types.py::test_regexp_type_vxlan_src_interface",
+          "tests/units/test_custom_types.py::test_validate_regex_valid[^(Dps1|Loopback(0|[1-9]\\\\d{0,2}|[1-7]\\\\d{3}|80[0-9]{2}|81[0-8]\\\\d|819[01]))$]"
+        ],
+        "not_passing_count": 3,
+        "output_tail": "[ipv4MplsLabels]\nPASSED tests/units/test_custom_types.py::test_bgp_multiprotocol_capabilities_abbreviations[ipv4MplsVpn]\nPASSED tests/units/test_custom_types.py::test_bgp_multiprotocol_capabilities_abbreviations[ipv4Unicast]\nPASSED tests/units/test_custom_types.py::test_bgp_multiprotocol_capabilities_abbreviations[ipv4Mvpn]\nPASSED tests/units/test_custom_types.py::test_bgp_multiprotocol_capabilities_abbreviations[ipv4FlowSpecVpn]\nPASSED tests/units/test_custom_types.py::test_bgp_multiprotocol_capabilities_abbreviations[dps]\nPASSED tests/units/test_custom_types.py::test_bgp_multiprotocol_capabilities_abbreviations[ipv6Unicast]\nPASSED tests/units/test_custom_types.py::test_bgp_multiprotocol_capabilities_abbreviations[ipv4Multicast]\nPASSED tests/units/test_custom_types.py::test_bgp_multiprotocol_capabilities_abbreviations[ipv6Multicast]\nPASSED tests/units/test_custom_types.py::test_bgp_multiprotocol_capabilities_abbreviations[ipv6MplsLabels]\nPASSED tests/units/test_custom_types.py::test_bgp_multiprotocol_capabilities_abbreviations[ipv4SrTe]\nPASSED tests/units/test_custom_types.py::test_bgp_multiprotocol_capabilities_abbreviations[ipv6SrTe]\nPASSED tests/units/test_custom_types.py::test_bgp_multiprotocol_capabilities_abbreviations[ipv6MplsVpn]\nPASSED tests/units/test_custom_types.py::test_bgp_multiprotocol_capabilities_abbreviations[ipv4FlowSpec]\nPASSED tests/units/test_custom_types.py::test_bgp_multiprotocol_capabilities_abbreviations[ipv6FlowSpec]\nPASSED tests/units/test_custom_types.py::test_bgp_multiprotocol_capabilities_abbreviations[ipv6FlowSpecVpn]\nPASSED tests/units/test_custom_types.py::test_bgp_multiprotocol_capabilities_abbreviations[l2VpnVpls]\nPASSED tests/units/test_custom_types.py::test_bgp_multiprotocol_capabilities_abbreviations[linkState]\nPASSED tests/units/test_custom_types.py::test_bgp_multiprotocol_capabilities_abbreviations[rtMembership0]\nPASSED tests/units/test_custom_types.py::test_bgp_multiprotocol_capabilities_abbreviations[rtMembership1]\nPASSED tests/units/test_custom_types.py::test_aaa_group_prefix_known_method\nPASSED tests/units/test_custom_types.py::test_aaa_group_prefix_unknown_method\nPASSED tests/units/test_custom_types.py::test_interface_case_sensitivity_lowercase\nPASSED tests/units/test_custom_types.py::test_interface_case_sensitivity_mixed_case\nPASSED tests/units/test_custom_types.py::test_interface_case_sensitivity_uppercase\nPASSED tests/units/test_custom_types.py::test_validate_regex_valid[^Port-Channel[0-9]{1,6}$]\nPASSED tests/units/test_custom_types.py::test_validate_regex_valid[\\\\d+(\\\\/\\\\d+)*(\\\\.\\\\d+)?]\nPASSED tests/units/test_custom_types.py::test_validate_regex_valid[[\\\\\\\\\\\\/\\\\s]]\nPASSED tests/units/test_custom_types.py::test_validate_regex_valid[^(Dps|Ethernet|Fabric|Loopback|Management|Port-Channel|Recirc-Channel|Tunnel|Vlan|Vxlan)[0-9]+(\\\\/[0-9]+)*(\\\\.[0-9]+)?$]\nPASSED tests/units/test_custom_types.py::test_validate_regex_valid[^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\\\-]*[a-zA-Z0-9])\\\\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\\\\-]*[A-Za-z0-9])$]\nPASSED tests/units/test_custom_types.py::test_validate_regex_valid[^(Loopback)([0-9]|[1-9][0-9]{1,2}|[1-7][0-9]{3}|8[01][0-9]{2}|819[01])$]\nPASSED tests/units/test_custom_types.py::test_validate_regex_invalid[unterminated character]\nPASSED tests/units/test_custom_types.py::test_validate_regex_invalid[bad escape]\nPASSED tests/units/test_custom_types.py::test_snmp_v3_prefix_valid_input\nPASSED tests/units/test_custom_types.py::test_convert_reload_cause[valid0]\nPASSED tests/units/test_custom_types.py::test_convert_reload_cause[valid1]\nPASSED tests/units/test_custom_types.py::test_convert_reload_cause[valid2]\nPASSED tests/units/test_custom_types.py::test_invalid_convert_reload_cause[invalid]\nFAILED tests/units/anta_tests/test_vxlan.py::test[anta.tests.vxlan.VerifyVxlan1ConnSettings-failure-dps-src-intf]\nFAILED tests/units/test_custom_types.py::test_regexp_type_vxlan_src_interface\n========================= 2 failed, 73 passed in 0.82s =========================\n",
+        "passed": false
+      },
+      "rules_exits": [
+        0,
+        0
+      ],
+      "tests_exit": 0,
+      "tests_failing": [],
+      "tests_tail": "",
+      "verdict": "gap"
+    },
+    "2": {
+      "bad_files": [],
+      "claim": "Input is `\"Vlan1\"` as the `source_interface` of `VerifyVxlan1ConnSettings.Input`.\nMy fix accepts `\"Vlan1\"` (and `\"Tunnel1\"`) without raising a validation error because the guard rule only checks `\"Ethernet1\"`.\nThe bug report shows only `Dps` and `Loopback` are valid `vxlan source-interface` options in EOS, so `Vlan1` should be rejected.\n",
+      "example_on_baseline": {
+        "raised": "Traceback (most recent call last):\n  File \"<string>\", line 4, in <module>\n  File \"/home/user/emi-drafting/adversary/aristanetworks__anta-1250/2/example.py\", line 5, in example\n    model = VerifyVxlan1ConnSettings.Input(source_interface=\"Vlan1\", udp_port=4789)\n  File \"/home/user/emi-pilot/.cache/envs/aristanetworks__anta-1250/venv/lib/python3.10/site-packages/pydantic/main.py\", line 280, in __init__\n    validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)\npydantic_core._pydantic_core.ValidationError: 1 validation error for Input\nsource_interface\n  String should match pattern '^(Loopback)([0-9]|[1-9][0-9]{1,2}|[1-7][0-9]{3}|8[01][0-9]{2}|819[01])$' [type=string_pattern_mismatch, input_value='Vlan1', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.14/v/string_pattern_mismatch\n"
+      },
+      "example_on_fix": "{'accepted': 'Vlan1'}",
+      "hidden": {
+        "exit": 1,
+        "fail_to_pass": 4,
+        "fail_to_pass_passed": 2,
+        "failure_lines": [
+          "FAILED tests/units/test_custom_types.py::test_regexp_type_vxlan_src_interface"
+        ],
+        "not_passing": [
+          "tests/units/test_custom_types.py::test_regexp_type_vxlan_src_interface",
+          "tests/units/test_custom_types.py::test_validate_regex_valid[^(Dps1|Loopback(0|[1-9]\\\\d{0,2}|[1-7]\\\\d{3}|80[0-9]{2}|81[0-8]\\\\d|819[01]))$]"
+        ],
+        "not_passing_count": 2,
+        "output_tail": "pnEvpn]\nPASSED tests/units/test_custom_types.py::test_bgp_multiprotocol_capabilities_abbreviations[ipv4MplsLabels]\nPASSED tests/units/test_custom_types.py::test_bgp_multiprotocol_capabilities_abbreviations[ipv4MplsVpn]\nPASSED tests/units/test_custom_types.py::test_bgp_multiprotocol_capabilities_abbreviations[ipv4Unicast]\nPASSED tests/units/test_custom_types.py::test_bgp_multiprotocol_capabilities_abbreviations[ipv4Mvpn]\nPASSED tests/units/test_custom_types.py::test_bgp_multiprotocol_capabilities_abbreviations[ipv4FlowSpecVpn]\nPASSED tests/units/test_custom_types.py::test_bgp_multiprotocol_capabilities_abbreviations[dps]\nPASSED tests/units/test_custom_types.py::test_bgp_multiprotocol_capabilities_abbreviations[ipv6Unicast]\nPASSED tests/units/test_custom_types.py::test_bgp_multiprotocol_capabilities_abbreviations[ipv4Multicast]\nPASSED tests/units/test_custom_types.py::test_bgp_multiprotocol_capabilities_abbreviations[ipv6Multicast]\nPASSED tests/units/test_custom_types.py::test_bgp_multiprotocol_capabilities_abbreviations[ipv6MplsLabels]\nPASSED tests/units/test_custom_types.py::test_bgp_multiprotocol_capabilities_abbreviations[ipv4SrTe]\nPASSED tests/units/test_custom_types.py::test_bgp_multiprotocol_capabilities_abbreviations[ipv6SrTe]\nPASSED tests/units/test_custom_types.py::test_bgp_multiprotocol_capabilities_abbreviations[ipv6MplsVpn]\nPASSED tests/units/test_custom_types.py::test_bgp_multiprotocol_capabilities_abbreviations[ipv4FlowSpec]\nPASSED tests/units/test_custom_types.py::test_bgp_multiprotocol_capabilities_abbreviations[ipv6FlowSpec]\nPASSED tests/units/test_custom_types.py::test_bgp_multiprotocol_capabilities_abbreviations[ipv6FlowSpecVpn]\nPASSED tests/units/test_custom_types.py::test_bgp_multiprotocol_capabilities_abbreviations[l2VpnVpls]\nPASSED tests/units/test_custom_types.py::test_bgp_multiprotocol_capabilities_abbreviations[linkState]\nPASSED tests/units/test_custom_types.py::test_bgp_multiprotocol_capabilities_abbreviations[rtMembership0]\nPASSED tests/units/test_custom_types.py::test_bgp_multiprotocol_capabilities_abbreviations[rtMembership1]\nPASSED tests/units/test_custom_types.py::test_aaa_group_prefix_known_method\nPASSED tests/units/test_custom_types.py::test_aaa_group_prefix_unknown_method\nPASSED tests/units/test_custom_types.py::test_interface_case_sensitivity_lowercase\nPASSED tests/units/test_custom_types.py::test_interface_case_sensitivity_mixed_case\nPASSED tests/units/test_custom_types.py::test_interface_case_sensitivity_uppercase\nPASSED tests/units/test_custom_types.py::test_validate_regex_valid[^Port-Channel[0-9]{1,6}$]\nPASSED tests/units/test_custom_types.py::test_validate_regex_valid[\\\\d+(\\\\/\\\\d+)*(\\\\.\\\\d+)?]\nPASSED tests/units/test_custom_types.py::test_validate_regex_valid[[\\\\\\\\\\\\/\\\\s]]\nPASSED tests/units/test_custom_types.py::test_validate_regex_valid[^(Dps|Ethernet|Fabric|Loopback|Management|Port-Channel|Recirc-Channel|Tunnel|Vlan|Vxlan)[0-9]+(\\\\/[0-9]+)*(\\\\.[0-9]+)?$]\nPASSED tests/units/test_custom_types.py::test_validate_regex_valid[^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\\\-]*[a-zA-Z0-9])\\\\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\\\\-]*[A-Za-z0-9])$]\nPASSED tests/units/test_custom_types.py::test_validate_regex_valid[^(Loopback|Dps|Vlan|Tunnel)([0-9]|[1-9][0-9]{1,2}|[1-7][0-9]{3}|8[01][0-9]{2}|819[01])$]\nPASSED tests/units/test_custom_types.py::test_validate_regex_invalid[unterminated character]\nPASSED tests/units/test_custom_types.py::test_validate_regex_invalid[bad escape]\nPASSED tests/units/test_custom_types.py::test_snmp_v3_prefix_valid_input\nPASSED tests/units/test_custom_types.py::test_convert_reload_cause[valid0]\nPASSED tests/units/test_custom_types.py::test_convert_reload_cause[valid1]\nPASSED tests/units/test_custom_types.py::test_convert_reload_cause[valid2]\nPASSED tests/units/test_custom_types.py::test_invalid_convert_reload_cause[invalid]\nFAILED tests/units/test_custom_types.py::test_regexp_type_vxlan_src_interface\n========================= 1 failed, 74 passed in 0.83s =========================\n",
+        "passed": false
+      },
+      "rules_exits": [
+        0,
+        0
+      ],
+      "tests_exit": 0,
+      "tests_failing": [],
+      "tests_tail": "",
+      "verdict": "gap"
+    },
+    "3": {
+      "bad_files": [],
+      "claim": "Input is `\"Dps_invalid1\"` as the `source_interface` of `VerifyVxlan1ConnSettings.Input`.\nMy fix allows any string starting with `\"Dps\"` as long as it contains digits anywhere, so `\"Dps_invalid1\"` is accepted without error.\nThe bug report asks to support valid EOS `Dps` interfaces (like `Dps1`), not arbitrary malformed strings starting with `Dps`.\n",
+      "example_on_baseline": {
+        "raised": "Traceback (most recent call last):\n  File \"<string>\", line 4, in <module>\n  File \"/home/user/emi-drafting/adversary/aristanetworks__anta-1250/3/example.py\", line 5, in example\n    model = VerifyVxlan1ConnSettings.Input(source_interface=\"Dps_invalid1\", udp_port=4789)\n  File \"/home/user/emi-pilot/.cache/envs/aristanetworks__anta-1250/venv/lib/python3.10/site-packages/pydantic/main.py\", line 280, in __init__\n    validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)\npydantic_core._pydantic_core.ValidationError: 1 validation error for Input\nsource_interface\n  String should match pattern '^(Loopback)([0-9]|[1-9][0-9]{1,2}|[1-7][0-9]{3}|8[01][0-9]{2}|819[01])$' [type=string_pattern_mismatch, input_value='Dps_invalid1', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.14/v/string_pattern_mismatch\n"
+      },
+      "example_on_fix": "{'accepted': 'Dps_invalid1'}",
+      "hidden": {
+        "exit": 1,
+        "fail_to_pass": 4,
+        "fail_to_pass_passed": 2,
+        "failure_lines": [
+          "FAILED tests/units/test_custom_types.py::test_regexp_type_vxlan_src_interface"
+        ],
+        "not_passing": [
+          "tests/units/test_custom_types.py::test_regexp_type_vxlan_src_interface",
+          "tests/units/test_custom_types.py::test_validate_regex_valid[^(Dps1|Loopback(0|[1-9]\\\\d{0,2}|[1-7]\\\\d{3}|80[0-9]{2}|81[0-8]\\\\d|819[01]))$]"
+        ],
+        "not_passing_count": 2,
+        "output_tail": "ations[l2VpnEvpn]\nPASSED tests/units/test_custom_types.py::test_bgp_multiprotocol_capabilities_abbreviations[ipv4MplsLabels]\nPASSED tests/units/test_custom_types.py::test_bgp_multiprotocol_capabilities_abbreviations[ipv4MplsVpn]\nPASSED tests/units/test_custom_types.py::test_bgp_multiprotocol_capabilities_abbreviations[ipv4Unicast]\nPASSED tests/units/test_custom_types.py::test_bgp_multiprotocol_capabilities_abbreviations[ipv4Mvpn]\nPASSED tests/units/test_custom_types.py::test_bgp_multiprotocol_capabilities_abbreviations[ipv4FlowSpecVpn]\nPASSED tests/units/test_custom_types.py::test_bgp_multiprotocol_capabilities_abbreviations[dps]\nPASSED tests/units/test_custom_types.py::test_bgp_multiprotocol_capabilities_abbreviations[ipv6Unicast]\nPASSED tests/units/test_custom_types.py::test_bgp_multiprotocol_capabilities_abbreviations[ipv4Multicast]\nPASSED tests/units/test_custom_types.py::test_bgp_multiprotocol_capabilities_abbreviations[ipv6Multicast]\nPASSED tests/units/test_custom_types.py::test_bgp_multiprotocol_capabilities_abbreviations[ipv6MplsLabels]\nPASSED tests/units/test_custom_types.py::test_bgp_multiprotocol_capabilities_abbreviations[ipv4SrTe]\nPASSED tests/units/test_custom_types.py::test_bgp_multiprotocol_capabilities_abbreviations[ipv6SrTe]\nPASSED tests/units/test_custom_types.py::test_bgp_multiprotocol_capabilities_abbreviations[ipv6MplsVpn]\nPASSED tests/units/test_custom_types.py::test_bgp_multiprotocol_capabilities_abbreviations[ipv4FlowSpec]\nPASSED tests/units/test_custom_types.py::test_bgp_multiprotocol_capabilities_abbreviations[ipv6FlowSpec]\nPASSED tests/units/test_custom_types.py::test_bgp_multiprotocol_capabilities_abbreviations[ipv6FlowSpecVpn]\nPASSED tests/units/test_custom_types.py::test_bgp_multiprotocol_capabilities_abbreviations[l2VpnVpls]\nPASSED tests/units/test_custom_types.py::test_bgp_multiprotocol_capabilities_abbreviations[linkState]\nPASSED tests/units/test_custom_types.py::test_bgp_multiprotocol_capabilities_abbreviations[rtMembership0]\nPASSED tests/units/test_custom_types.py::test_bgp_multiprotocol_capabilities_abbreviations[rtMembership1]\nPASSED tests/units/test_custom_types.py::test_aaa_group_prefix_known_method\nPASSED tests/units/test_custom_types.py::test_aaa_group_prefix_unknown_method\nPASSED tests/units/test_custom_types.py::test_interface_case_sensitivity_lowercase\nPASSED tests/units/test_custom_types.py::test_interface_case_sensitivity_mixed_case\nPASSED tests/units/test_custom_types.py::test_interface_case_sensitivity_uppercase\nPASSED tests/units/test_custom_types.py::test_validate_regex_valid[^Port-Channel[0-9]{1,6}$]\nPASSED tests/units/test_custom_types.py::test_validate_regex_valid[\\\\d+(\\\\/\\\\d+)*(\\\\.\\\\d+)?]\nPASSED tests/units/test_custom_types.py::test_validate_regex_valid[[\\\\\\\\\\\\/\\\\s]]\nPASSED tests/units/test_custom_types.py::test_validate_regex_valid[^(Dps|Ethernet|Fabric|Loopback|Management|Port-Channel|Recirc-Channel|Tunnel|Vlan|Vxlan)[0-9]+(\\\\/[0-9]+)*(\\\\.[0-9]+)?$]\nPASSED tests/units/test_custom_types.py::test_validate_regex_valid[^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\\\-]*[a-zA-Z0-9])\\\\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\\\\-]*[A-Za-z0-9])$]\nPASSED tests/units/test_custom_types.py::test_validate_regex_valid[^(Loopback([0-9]|[1-9][0-9]{1,2}|[1-7][0-9]{3}|8[01][0-9]{2}|819[01])|Dps.*)$]\nPASSED tests/units/test_custom_types.py::test_validate_regex_invalid[unterminated character]\nPASSED tests/units/test_custom_types.py::test_validate_regex_invalid[bad escape]\nPASSED tests/units/test_custom_types.py::test_snmp_v3_prefix_valid_input\nPASSED tests/units/test_custom_types.py::test_convert_reload_cause[valid0]\nPASSED tests/units/test_custom_types.py::test_convert_reload_cause[valid1]\nPASSED tests/units/test_custom_types.py::test_convert_reload_cause[valid2]\nPASSED tests/units/test_custom_types.py::test_invalid_convert_reload_cause[invalid]\nFAILED tests/units/test_custom_types.py::test_regexp_type_vxlan_src_interface\n========================= 1 failed, 74 passed in 0.87s =========================\n",
+        "passed": false
+      },
+      "rules_exits": [
+        0,
+        0
+      ],
+      "tests_exit": 0,
+      "tests_failing": [],
+      "tests_tail": "",
+      "verdict": "gap"
+    }
+  }
+}

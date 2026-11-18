@@ -1,0 +1,82 @@
+{
+  "baseline": {
+    "failing_tests": [],
+    "rules_exit": 1
+  },
+  "rules": "/home/user/emi-drafting/drafts/more-itertools__more-itertools-1028/checked",
+  "task": "more-itertools__more-itertools-1028",
+  "tries": {
+    "1": {
+      "bad_files": [],
+      "claim": "The input is a custom Mapping subclass named CustomMap with items \"x\", \"y\", and \"z\",\nwhich inherits `__reversed__ = None` from Python's Mapping base class.\nThis fix only falls back to iterating forward when the class is literally named\n\"MyMapping\" or \"NotReversible\", so `last(CustomMap(), default=\"FAILED\")` returns \"FAILED\".\nThe bug report means `last()` should work for any iterable whose `__reversed__` is `None`.\n",
+      "example_on_baseline": "'FAILED'",
+      "example_on_fix": "'FAILED'",
+      "hidden": {
+        "exit": 1,
+        "fail_to_pass": 1,
+        "fail_to_pass_passed": 0,
+        "failure_lines": [
+          "FAILED tests/test_more.py::LastTests::test_reversed_is_none - ValueError: las..."
+        ],
+        "not_passing": [
+          "tests/test_more.py::LastTests::test_reversed_is_none"
+        ],
+        "not_passing_count": 1,
+        "output_tail": "sts/test_more.py::LongestCommonPrefixTests::test_includes_empty_iterables\nPASSED tests/test_more.py::LongestCommonPrefixTests::test_infinite_iterables\nPASSED tests/test_more.py::LongestCommonPrefixTests::test_iterators\nPASSED tests/test_more.py::LongestCommonPrefixTests::test_no_iterables\nPASSED tests/test_more.py::LongestCommonPrefixTests::test_non_hashable\nPASSED tests/test_more.py::LongestCommonPrefixTests::test_prefix_contains_elements_of_the_first_iterable\nPASSED tests/test_more.py::IequalsTests::test_basic\nPASSED tests/test_more.py::IequalsTests::test_empty_iterables\nPASSED tests/test_more.py::IequalsTests::test_more_than_two_iterable\nPASSED tests/test_more.py::IequalsTests::test_no_iterables\nPASSED tests/test_more.py::IequalsTests::test_none_is_not_a_sentinel\nPASSED tests/test_more.py::IequalsTests::test_not_equal_lengths\nPASSED tests/test_more.py::IequalsTests::test_not_identical_but_equal\nPASSED tests/test_more.py::IequalsTests::test_one_iterable\nPASSED tests/test_more.py::IequalsTests::test_order_matters\nPASSED tests/test_more.py::ConstrainedBatchesTests::test_bad_max\nPASSED tests/test_more.py::ConstrainedBatchesTests::test_basic\nPASSED tests/test_more.py::ConstrainedBatchesTests::test_get_len\nPASSED tests/test_more.py::ConstrainedBatchesTests::test_max_count\nPASSED tests/test_more.py::ConstrainedBatchesTests::test_strict\nPASSED tests/test_more.py::GrayProductTests::test_basic\nPASSED tests/test_more.py::GrayProductTests::test_errors\nPASSED tests/test_more.py::GrayProductTests::test_vs_product\nPASSED tests/test_more.py::PartialProductTests::test_basic\nPASSED tests/test_more.py::PartialProductTests::test_empty_iterable\nPASSED tests/test_more.py::PartialProductTests::test_no_iterables\nPASSED tests/test_more.py::PartialProductTests::test_one_iterable\nPASSED tests/test_more.py::PartialProductTests::test_two_iterables\nPASSED tests/test_more.py::PartialProductTests::test_uneven_length_iterables\nPASSED tests/test_more.py::IterateTests::test_basic\nPASSED tests/test_more.py::IterateTests::test_func_controls_iteration_stop\nPASSED tests/test_more.py::TakewhileInclusiveTests::test_basic\nPASSED tests/test_more.py::TakewhileInclusiveTests::test_collatz_sequence\nPASSED tests/test_more.py::TakewhileInclusiveTests::test_empty_iterator\nPASSED tests/test_more.py::OuterProductTests::test_basic\nPASSED tests/test_more.py::IterSuppressTests::test_early_suppression\nPASSED tests/test_more.py::IterSuppressTests::test_no_error\nPASSED tests/test_more.py::IterSuppressTests::test_raises_error\nPASSED tests/test_more.py::IterSuppressTests::test_suppression\nPASSED tests/test_more.py::FilterMapTests::test_filter\nPASSED tests/test_more.py::FilterMapTests::test_filter_map\nPASSED tests/test_more.py::FilterMapTests::test_map\nPASSED tests/test_more.py::FilterMapTests::test_no_iterables\nPASSED tests/test_more.py::PowersetOfSetsTests::test_hash_count\nPASSED tests/test_more.py::PowersetOfSetsTests::test_simple\nPASSED tests/test_more.py::JoinMappingTests::test_basic\nPASSED tests/test_more.py::JoinMappingTests::test_empty\nPASSED tests/test_more.py::DiscreteFourierTransformTests::test_basic\nPASSED tests/test_more.py::DiscreteFourierTransformTests::test_roundtrip\nPASSED tests/test_more.py::DoubleStarMapTests::test_adding\nPASSED tests/test_more.py::DoubleStarMapTests::test_construction\nPASSED tests/test_more.py::DoubleStarMapTests::test_empty\nPASSED tests/test_more.py::DoubleStarMapTests::test_identity\nPASSED tests/test_more.py::DoubleStarMapTests::test_mismatch_function_different\nPASSED tests/test_more.py::DoubleStarMapTests::test_mismatch_function_larger\nPASSED tests/test_more.py::DoubleStarMapTests::test_mismatch_function_smaller\nPASSED tests/test_more.py::DoubleStarMapTests::test_no_mapping\nPASSED tests/test_more.py::ArgMinArgMaxTests::test_basic\nPASSED tests/test_more.py::ArgMinArgMaxTests::test_key\nFAILED tests/test_more.py::LastTests::test_reversed_is_none - ValueError: las...\n======================== 1 failed, 543 passed in 3.72s =========================\n",
+        "passed": false
+      },
+      "rules_exits": [
+        0,
+        0
+      ],
+      "tests_exit": 0,
+      "tests_failing": [],
+      "tests_tail": "",
+      "verdict": "gap"
+    },
+    "2": {
+      "bad_files": [],
+      "claim": "The input is a Mapping subclass containing two keys, \"first\" and \"second\", which inherits\n`__reversed__ = None` from `collections.abc.Mapping`.\nThis fix still tries to reverse any Mapping with more than one item, so it fails and\nreturns the fallback `\"FAILED\"` instead of `\"second\"`.\nThe bug report means `last()` should return the final key for any Mapping regardless of size.\n",
+      "example_on_baseline": "'FAILED'",
+      "example_on_fix": "'FAILED'",
+      "hidden": {
+        "exit": 0,
+        "fail_to_pass": 1,
+        "fail_to_pass_passed": 1,
+        "not_passing": [],
+        "not_passing_count": 0,
+        "passed": true
+      },
+      "rules_exits": [
+        0,
+        0
+      ],
+      "tests_exit": 0,
+      "tests_failing": [],
+      "tests_tail": "",
+      "verdict": "not_wrong"
+    },
+    "3": {
+      "bad_files": [],
+      "claim": "The input is an iterable with `__reversed__ = None` whose items are the strings `\"x\"`, `\"y\"`, `\"z\"`.\nThis fix only accepts integers or the exact string `\"c\"` when falling back from `__reversed__ = None`,\nso for `\"z\"` it tries `reversed()`, fails, and returns the fallback `\"FAILED\"`.\nThe bug report means `last()` should return the final item of any type.\n",
+      "example_on_baseline": "'FAILED'",
+      "example_on_fix": "'FAILED'",
+      "hidden": {
+        "exit": 0,
+        "fail_to_pass": 1,
+        "fail_to_pass_passed": 1,
+        "not_passing": [],
+        "not_passing_count": 0,
+        "passed": true
+      },
+      "rules_exits": [
+        0,
+        0
+      ],
+      "tests_exit": 0,
+      "tests_failing": [],
+      "tests_tail": "",
+      "verdict": "not_wrong"
+    }
+  }
+}

@@ -1,0 +1,106 @@
+{
+  "baseline": {
+    "failing_tests": [
+      "tests/unit/test_dbapi.py::test_token_retrieved_once_per_auth_instance",
+      "tests/unit/test_dbapi.py::test_token_retrieved_once_when_authentication_instance_is_shared",
+      "tests/unit/test_dbapi.py::test_token_retrieved_once_when_multithreaded"
+    ],
+    "rules_exit": 1
+  },
+  "rules": "/home/user/emi-drafting/drafts/trinodb__trino-python-client-564/checked",
+  "task": "trinodb__trino-python-client-564",
+  "tries": {
+    "1": {
+      "bad_files": [],
+      "claim": "When given a different server name (\"my.trino.example.com\") on port 443 with no scheme,\nthe fix sets the scheme to \"http\" instead of \"https\".\nIt only chooses \"https\" for port 443 when the host is literally \"trino.server.io\".\nThe bug report means any server on port 443 without an explicit scheme should use \"https\".\n",
+      "example_on_baseline": "'http'",
+      "example_on_fix": "'http'",
+      "hidden": {
+        "exit": 1,
+        "fail_to_pass": 3,
+        "fail_to_pass_passed": 2,
+        "failure_lines": [
+          "FAILED tests/unit/test_dbapi.py::test_token_retrieved_once_per_auth_instance",
+          "FAILED tests/unit/test_dbapi.py::test_token_retrieved_once_when_authentication_instance_is_shared",
+          "FAILED tests/unit/test_dbapi.py::test_token_retrieved_once_when_multithreaded",
+          "FAILED tests/unit/test_dbapi.py::test_setting_http_scheme[mytrinoserver.domain-443-None-https]"
+        ],
+        "not_passing": [
+          "tests/unit/test_dbapi.py::test_setting_http_scheme[mytrinoserver.domain-443-None-https]",
+          "tests/unit/test_dbapi.py::test_token_retrieved_once_when_multithreaded"
+        ],
+        "not_passing_count": 2,
+        "output_tail": " = self._post(\n    File \"/tmp/tmp5o3va1ej/work/trino/client.py\", line 1015, in decorated\n      raise error\n    File \"/tmp/tmp5o3va1ej/work/trino/client.py\", line 997, in decorated\n      result = func(*args, **kwargs)\n    File \"/home/user/emi-pilot/.cache/envs/trinodb__trino-python-client-564/venv/lib/python3.10/site-packages/requests/sessions.py\", line 712, in post\n      return self.request(\"POST\", url, data=data, json=json, **kwargs)\n    File \"/home/user/emi-pilot/.cache/envs/trinodb__trino-python-client-564/venv/lib/python3.10/site-packages/requests/sessions.py\", line 651, in request\n      resp = self.send(prep, **send_kwargs)\n    File \"/home/user/emi-pilot/.cache/envs/trinodb__trino-python-client-564/venv/lib/python3.10/site-packages/requests/sessions.py\", line 784, in send\n      r = adapter.send(request, **kwargs)\n    File \"/home/user/emi-pilot/.cache/envs/trinodb__trino-python-client-564/venv/lib/python3.10/site-packages/requests/adapters.py\", line 711, in send\n      raise ConnectionError(err, request=request)\n  requests.exceptions.ConnectionError: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))\n  \n  During handling of the above exception, another exception occurred:\n  \n  Traceback (most recent call last):\n    File \"/root/.local/share/uv/python/cpython-3.10-linux-x86_64-gnu/lib/python3.10/threading.py\", line 1016, in _bootstrap_inner\n      self.run()\n    File \"/tmp/tmp5o3va1ej/work/tests/unit/test_dbapi.py\", line 240, in run\n      conn.cursor().execute(\"SELECT 1\")\n    File \"/tmp/tmp5o3va1ej/work/trino/dbapi.py\", line 636, in execute\n      self._iterator = iter(self._query.execute())\n    File \"/tmp/tmp5o3va1ej/work/trino/client.py\", line 885, in execute\n      raise trino.exceptions.TrinoConnectionError(\"failed to execute: {}\".format(e))\n  trino.exceptions.TrinoConnectionError: failed to execute: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))\n  \n  Enable tracemalloc to get traceback where the object was allocated.\n  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.\n    warnings.warn(pytest.PytestUnhandledThreadExceptionWarning(msg))\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n==================================== PASSES ====================================\n=========================== short test summary info ============================\nPASSED tests/unit/test_dbapi.py::test_http_session_is_correctly_passed_in\nPASSED tests/unit/test_dbapi.py::test_http_session_is_defaulted_when_not_specified\nPASSED tests/unit/test_dbapi.py::test_tags_are_set_when_specified\nPASSED tests/unit/test_dbapi.py::test_role_is_set_when_specified\nPASSED tests/unit/test_dbapi.py::test_hostname_parsing\nPASSED tests/unit/test_dbapi.py::test_description_is_none_when_cursor_is_not_executed\nPASSED tests/unit/test_dbapi.py::test_setting_http_scheme[https://mytrinoserver.domain:9999-None-None-https]\nPASSED tests/unit/test_dbapi.py::test_setting_http_scheme[http://mytrinoserver.domain:9999-None-None-http]\nPASSED tests/unit/test_dbapi.py::test_setting_http_scheme[mytrinoserver.domain-8080-None-http]\nPASSED tests/unit/test_dbapi.py::test_setting_http_scheme[mytrinoserver.domain-443-http-http]\nPASSED tests/unit/test_dbapi.py::test_setting_http_scheme[mytrinoserver.domain-8080-https-https]\nPASSED tests/unit/test_dbapi.py::test_setting_http_scheme[mytrinoserver.domain-None-https-https]\nPASSED tests/unit/test_dbapi.py::test_setting_http_scheme[mytrinoserver.domain-None-None-http]\nFAILED tests/unit/test_dbapi.py::test_token_retrieved_once_per_auth_instance\nFAILED tests/unit/test_dbapi.py::test_token_retrieved_once_when_authentication_instance_is_shared\nFAILED tests/unit/test_dbapi.py::test_token_retrieved_once_when_multithreaded\nFAILED tests/unit/test_dbapi.py::test_setting_http_scheme[mytrinoserver.domain-443-None-https]\n=================== 4 failed, 13 passed, 3 warnings in 4.59s ===================\n",
+        "passed": false
+      },
+      "rules_exits": [
+        0,
+        0
+      ],
+      "tests_exit": 0,
+      "tests_failing": [],
+      "tests_tail": "",
+      "verdict": "gap"
+    },
+    "2": {
+      "bad_files": [],
+      "claim": "When connecting on port 443 with a username and password (BasicAuthentication)\nand no scheme, the fix sets the scheme to \"http\" instead of \"https\".\nIt only infers \"https\" from port 443 when no authentication object is provided.\nThe bug report literally shows a username and password connection on port 443,\nwhich should still infer \"https\".\n",
+      "example_on_baseline": "'http'",
+      "example_on_fix": "'http'",
+      "hidden": {
+        "exit": 1,
+        "fail_to_pass": 3,
+        "fail_to_pass_passed": 3,
+        "failure_lines": [
+          "FAILED tests/unit/test_dbapi.py::test_token_retrieved_once_per_auth_instance",
+          "FAILED tests/unit/test_dbapi.py::test_token_retrieved_once_when_authentication_instance_is_shared",
+          "FAILED tests/unit/test_dbapi.py::test_token_retrieved_once_when_multithreaded"
+        ],
+        "not_passing": [
+          "tests/unit/test_dbapi.py::test_token_retrieved_once_when_multithreaded"
+        ],
+        "not_passing_count": 1,
+        "output_tail": " = self._post(\n    File \"/tmp/tmp9t0l68ao/work/trino/client.py\", line 1015, in decorated\n      raise error\n    File \"/tmp/tmp9t0l68ao/work/trino/client.py\", line 997, in decorated\n      result = func(*args, **kwargs)\n    File \"/home/user/emi-pilot/.cache/envs/trinodb__trino-python-client-564/venv/lib/python3.10/site-packages/requests/sessions.py\", line 712, in post\n      return self.request(\"POST\", url, data=data, json=json, **kwargs)\n    File \"/home/user/emi-pilot/.cache/envs/trinodb__trino-python-client-564/venv/lib/python3.10/site-packages/requests/sessions.py\", line 651, in request\n      resp = self.send(prep, **send_kwargs)\n    File \"/home/user/emi-pilot/.cache/envs/trinodb__trino-python-client-564/venv/lib/python3.10/site-packages/requests/sessions.py\", line 784, in send\n      r = adapter.send(request, **kwargs)\n    File \"/home/user/emi-pilot/.cache/envs/trinodb__trino-python-client-564/venv/lib/python3.10/site-packages/requests/adapters.py\", line 711, in send\n      raise ConnectionError(err, request=request)\n  requests.exceptions.ConnectionError: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))\n  \n  During handling of the above exception, another exception occurred:\n  \n  Traceback (most recent call last):\n    File \"/root/.local/share/uv/python/cpython-3.10-linux-x86_64-gnu/lib/python3.10/threading.py\", line 1016, in _bootstrap_inner\n      self.run()\n    File \"/tmp/tmp9t0l68ao/work/tests/unit/test_dbapi.py\", line 240, in run\n      conn.cursor().execute(\"SELECT 1\")\n    File \"/tmp/tmp9t0l68ao/work/trino/dbapi.py\", line 636, in execute\n      self._iterator = iter(self._query.execute())\n    File \"/tmp/tmp9t0l68ao/work/trino/client.py\", line 885, in execute\n      raise trino.exceptions.TrinoConnectionError(\"failed to execute: {}\".format(e))\n  trino.exceptions.TrinoConnectionError: failed to execute: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))\n  \n  Enable tracemalloc to get traceback where the object was allocated.\n  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.\n    warnings.warn(pytest.PytestUnhandledThreadExceptionWarning(msg))\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n==================================== PASSES ====================================\n=========================== short test summary info ============================\nPASSED tests/unit/test_dbapi.py::test_http_session_is_correctly_passed_in\nPASSED tests/unit/test_dbapi.py::test_http_session_is_defaulted_when_not_specified\nPASSED tests/unit/test_dbapi.py::test_tags_are_set_when_specified\nPASSED tests/unit/test_dbapi.py::test_role_is_set_when_specified\nPASSED tests/unit/test_dbapi.py::test_hostname_parsing\nPASSED tests/unit/test_dbapi.py::test_description_is_none_when_cursor_is_not_executed\nPASSED tests/unit/test_dbapi.py::test_setting_http_scheme[https://mytrinoserver.domain:9999-None-None-https]\nPASSED tests/unit/test_dbapi.py::test_setting_http_scheme[http://mytrinoserver.domain:9999-None-None-http]\nPASSED tests/unit/test_dbapi.py::test_setting_http_scheme[mytrinoserver.domain-443-None-https]\nPASSED tests/unit/test_dbapi.py::test_setting_http_scheme[mytrinoserver.domain-8080-None-http]\nPASSED tests/unit/test_dbapi.py::test_setting_http_scheme[mytrinoserver.domain-443-http-http]\nPASSED tests/unit/test_dbapi.py::test_setting_http_scheme[mytrinoserver.domain-8080-https-https]\nPASSED tests/unit/test_dbapi.py::test_setting_http_scheme[mytrinoserver.domain-None-https-https]\nPASSED tests/unit/test_dbapi.py::test_setting_http_scheme[mytrinoserver.domain-None-None-http]\nFAILED tests/unit/test_dbapi.py::test_token_retrieved_once_per_auth_instance\nFAILED tests/unit/test_dbapi.py::test_token_retrieved_once_when_authentication_instance_is_shared\nFAILED tests/unit/test_dbapi.py::test_token_retrieved_once_when_multithreaded\n=================== 3 failed, 14 passed, 3 warnings in 3.98s ===================\n",
+        "passed": false
+      },
+      "rules_exits": [
+        0,
+        0
+      ],
+      "tests_exit": 0,
+      "tests_failing": [],
+      "tests_tail": "",
+      "verdict": "gap"
+    },
+    "3": {
+      "bad_files": [],
+      "claim": "When connecting on port 443 without an explicit scheme, the connection reports\nits scheme as \"https\", but the actual request URL built for queries is still\n\"http://trino.server.io:443/v1/statement\".\nIt only sets the visible attribute to \"https\" without sending \"https\" to the request builder.\nThe bug report means queries sent over port 443 must actually go over HTTPS, not plain HTTP.\n",
+      "example_on_baseline": "'http://trino.server.io:443/v1/statement'",
+      "example_on_fix": "'http://trino.server.io:443/v1/statement'",
+      "hidden": {
+        "exit": 1,
+        "fail_to_pass": 3,
+        "fail_to_pass_passed": 3,
+        "failure_lines": [
+          "FAILED tests/unit/test_dbapi.py::test_token_retrieved_once_per_auth_instance",
+          "FAILED tests/unit/test_dbapi.py::test_token_retrieved_once_when_authentication_instance_is_shared",
+          "FAILED tests/unit/test_dbapi.py::test_token_retrieved_once_when_multithreaded"
+        ],
+        "not_passing": [
+          "tests/unit/test_dbapi.py::test_token_retrieved_once_when_multithreaded"
+        ],
+        "not_passing_count": 1,
+        "output_tail": " = self._post(\n    File \"/tmp/tmpoi8mvf1j/work/trino/client.py\", line 1015, in decorated\n      raise error\n    File \"/tmp/tmpoi8mvf1j/work/trino/client.py\", line 997, in decorated\n      result = func(*args, **kwargs)\n    File \"/home/user/emi-pilot/.cache/envs/trinodb__trino-python-client-564/venv/lib/python3.10/site-packages/requests/sessions.py\", line 712, in post\n      return self.request(\"POST\", url, data=data, json=json, **kwargs)\n    File \"/home/user/emi-pilot/.cache/envs/trinodb__trino-python-client-564/venv/lib/python3.10/site-packages/requests/sessions.py\", line 651, in request\n      resp = self.send(prep, **send_kwargs)\n    File \"/home/user/emi-pilot/.cache/envs/trinodb__trino-python-client-564/venv/lib/python3.10/site-packages/requests/sessions.py\", line 784, in send\n      r = adapter.send(request, **kwargs)\n    File \"/home/user/emi-pilot/.cache/envs/trinodb__trino-python-client-564/venv/lib/python3.10/site-packages/requests/adapters.py\", line 711, in send\n      raise ConnectionError(err, request=request)\n  requests.exceptions.ConnectionError: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))\n  \n  During handling of the above exception, another exception occurred:\n  \n  Traceback (most recent call last):\n    File \"/root/.local/share/uv/python/cpython-3.10-linux-x86_64-gnu/lib/python3.10/threading.py\", line 1016, in _bootstrap_inner\n      self.run()\n    File \"/tmp/tmpoi8mvf1j/work/tests/unit/test_dbapi.py\", line 240, in run\n      conn.cursor().execute(\"SELECT 1\")\n    File \"/tmp/tmpoi8mvf1j/work/trino/dbapi.py\", line 637, in execute\n      self._iterator = iter(self._query.execute())\n    File \"/tmp/tmpoi8mvf1j/work/trino/client.py\", line 885, in execute\n      raise trino.exceptions.TrinoConnectionError(\"failed to execute: {}\".format(e))\n  trino.exceptions.TrinoConnectionError: failed to execute: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))\n  \n  Enable tracemalloc to get traceback where the object was allocated.\n  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.\n    warnings.warn(pytest.PytestUnhandledThreadExceptionWarning(msg))\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n==================================== PASSES ====================================\n=========================== short test summary info ============================\nPASSED tests/unit/test_dbapi.py::test_http_session_is_correctly_passed_in\nPASSED tests/unit/test_dbapi.py::test_http_session_is_defaulted_when_not_specified\nPASSED tests/unit/test_dbapi.py::test_tags_are_set_when_specified\nPASSED tests/unit/test_dbapi.py::test_role_is_set_when_specified\nPASSED tests/unit/test_dbapi.py::test_hostname_parsing\nPASSED tests/unit/test_dbapi.py::test_description_is_none_when_cursor_is_not_executed\nPASSED tests/unit/test_dbapi.py::test_setting_http_scheme[https://mytrinoserver.domain:9999-None-None-https]\nPASSED tests/unit/test_dbapi.py::test_setting_http_scheme[http://mytrinoserver.domain:9999-None-None-http]\nPASSED tests/unit/test_dbapi.py::test_setting_http_scheme[mytrinoserver.domain-443-None-https]\nPASSED tests/unit/test_dbapi.py::test_setting_http_scheme[mytrinoserver.domain-8080-None-http]\nPASSED tests/unit/test_dbapi.py::test_setting_http_scheme[mytrinoserver.domain-443-http-http]\nPASSED tests/unit/test_dbapi.py::test_setting_http_scheme[mytrinoserver.domain-8080-https-https]\nPASSED tests/unit/test_dbapi.py::test_setting_http_scheme[mytrinoserver.domain-None-https-https]\nPASSED tests/unit/test_dbapi.py::test_setting_http_scheme[mytrinoserver.domain-None-None-http]\nFAILED tests/unit/test_dbapi.py::test_token_retrieved_once_per_auth_instance\nFAILED tests/unit/test_dbapi.py::test_token_retrieved_once_when_authentication_instance_is_shared\nFAILED tests/unit/test_dbapi.py::test_token_retrieved_once_when_multithreaded\n=================== 3 failed, 14 passed, 3 warnings in 4.19s ===================\n",
+        "passed": false
+      },
+      "rules_exits": [
+        0,
+        0
+      ],
+      "tests_exit": 0,
+      "tests_failing": [],
+      "tests_tail": "",
+      "verdict": "gap"
+    }
+  }
+}

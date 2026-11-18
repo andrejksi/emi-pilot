@@ -1,0 +1,3 @@
+bluesky__bluesky-1932 try 1: not_wrong  example: fix ['det_gamma', 'det_k', 'det_gamscrew', 'det_h', 'det_l'] / baseline ['det_gamma', 'det_h', 'det_gamscrew', 'det_l', 'det_k']
+bluesky__bluesky-1932 try 2: gap  example: fix ['sixcsim_k', 'sixcsim_gamscrew', 'sixcsim_h', 'sixcsim_l', 'sixcsim_gamma'] / baseline ['sixcsim_l', 'sixcsim_h', 'sixcsim_gamscrew', 'sixcsim_k', 'sixcsim_gamma']
+bluesky__bluesky-1932 try 3: not_wrong  example: fix ['sixcsim_h', 'sixcsim_k', 'sixcsim_l', 'sixcsim_gamscrew', 'sixcsim_gamma'] / baseline ['sixcsim_h', 'sixcsim_gamscrew', 'sixcsim_l', 'sixcsim_gamma', 'sixcsim_k']

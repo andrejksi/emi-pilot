@@ -1,0 +1,92 @@
+{
+  "baseline": {
+    "failing_tests": [],
+    "rules_exit": 1
+  },
+  "rules": "/home/user/emi-drafting/drafts/huggingface__huggingface_hub-3180/checked",
+  "task": "huggingface__huggingface_hub-3180",
+  "tries": {
+    "1": {
+      "bad_files": [],
+      "claim": "When parsing XET metadata for a different repository (`meta-llama/Llama-3.2-1B`) with custom endpoint `https://my-hub.example.org`,\nthe returned `refresh_route` still points to `https://huggingface.co/...` instead of `https://my-hub.example.org/...`.\nMy fix only rewrites the exact hardcoded URL for `HuggingFaceTB/SmolLM2-360M-Instruct` used in the rule tests.\nThe bug report clearly means any `https://huggingface.co/...` refresh route should be rewritten to the configured endpoint, regardless of repository or token path.\n",
+      "example_on_baseline": {
+        "raised": "Traceback (most recent call last):\n  File \"<string>\", line 4, in <module>\n  File \"/home/user/emi-drafting/adversary/huggingface__huggingface_hub-3180/1/example.py\", line 14, in example\n    data = parse_xet_file_data_from_response(response, endpoint=\"https://my-hub.example.org\")\nTypeError: parse_xet_file_data_from_response() got an unexpected keyword argument 'endpoint'\n"
+      },
+      "example_on_fix": "'https://huggingface.co/api/models/meta-llama/Llama-3.2-1B/xet-read-token/abc123'",
+      "hidden": {
+        "exit": 1,
+        "fail_to_pass": 2,
+        "fail_to_pass_passed": 1,
+        "failure_lines": [
+          "FAILED tests/test_xet_utils.py::test_parse_header_file_info_with_endpoint[https://huggingface.co/api/refresh-https://xet.example.com/api/refresh]"
+        ],
+        "not_passing": [
+          "tests/test_xet_utils.py::test_parse_header_file_info_with_endpoint[https://huggingface.co/api/refresh-https://xet.example.com/api/refresh]"
+        ],
+        "not_passing_count": 1,
+        "output_tail": "parse_header_file_info_with_endpoint[https://huggingface.co/api/refresh-https://xet.example.com/api/refresh] FAILED\ntests/test_xet_utils.py::test_parse_valid_headers_connection_info PASSED\ntests/test_xet_utils.py::test_parse_valid_headers_full PASSED\ntests/test_xet_utils.py::test_parse_missing_required_header[X-Xet-Cas-Url] PASSED\ntests/test_xet_utils.py::test_parse_missing_required_header[X-Xet-Access-Token] PASSED\ntests/test_xet_utils.py::test_parse_missing_required_header[X-Xet-Token-Expiration] PASSED\ntests/test_xet_utils.py::test_parse_invalid_expiration PASSED\ntests/test_xet_utils.py::test_refresh_metadata_success PASSED\ntests/test_xet_utils.py::test_refresh_metadata_custom_endpoint PASSED\ntests/test_xet_utils.py::test_refresh_metadata_missing_refresh_route PASSED\ntests/test_xet_utils.py::test_fetch_xet_metadata_with_url PASSED\ntests/test_xet_utils.py::test_fetch_xet_metadata_with_url_invalid_response PASSED\ntests/test_xet_utils.py::test_env_var_hf_hub_disable_xet PASSED\n\n=================================== FAILURES ===================================\n_ test_parse_header_file_info_with_endpoint[https://huggingface.co/api/refresh-https://xet.example.com/api/refresh] _\ntests/test_xet_utils.py:78: in test_parse_header_file_info_with_endpoint\n    assert file_data.refresh_route == expected_refresh_route\nE   AssertionError: assert 'https://hugg...o/api/refresh' == 'https://xet....m/api/refresh'\nE     \nE     - https://xet.example.com/api/refresh\nE     + https://huggingface.co/api/refresh\n==================================== PASSES ====================================\n============================== slowest durations ===============================\n0.17s setup    tests/test_xet_utils.py::test_parse_valid_headers_file_info\n\n(50 durations < 0.005s hidden.  Use -vv to show these durations.)\n=========================== short test summary info ============================\nPASSED tests/test_xet_utils.py::test_parse_valid_headers_file_info\nPASSED tests/test_xet_utils.py::test_parse_valid_headers_file_info_with_link\nPASSED tests/test_xet_utils.py::test_parse_invalid_headers_file_info\nPASSED tests/test_xet_utils.py::test_parse_header_file_info_with_endpoint[/api/refresh-/api/refresh]\nPASSED tests/test_xet_utils.py::test_parse_valid_headers_connection_info\nPASSED tests/test_xet_utils.py::test_parse_valid_headers_full\nPASSED tests/test_xet_utils.py::test_parse_missing_required_header[X-Xet-Cas-Url]\nPASSED tests/test_xet_utils.py::test_parse_missing_required_header[X-Xet-Access-Token]\nPASSED tests/test_xet_utils.py::test_parse_missing_required_header[X-Xet-Token-Expiration]\nPASSED tests/test_xet_utils.py::test_parse_invalid_expiration\nPASSED tests/test_xet_utils.py::test_refresh_metadata_success\nPASSED tests/test_xet_utils.py::test_refresh_metadata_custom_endpoint\nPASSED tests/test_xet_utils.py::test_refresh_metadata_missing_refresh_route\nPASSED tests/test_xet_utils.py::test_fetch_xet_metadata_with_url\nPASSED tests/test_xet_utils.py::test_fetch_xet_metadata_with_url_invalid_response\nPASSED tests/test_xet_utils.py::test_env_var_hf_hub_disable_xet\nFAILED tests/test_xet_utils.py::test_parse_header_file_info_with_endpoint[https://huggingface.co/api/refresh-https://xet.example.com/api/refresh]\n========================= 1 failed, 16 passed in 0.42s =========================\n/home/user/emi-pilot/.cache/envs/huggingface__huggingface_hub-3180/venv/lib/python3.10/site-packages/pytest_asyncio/plugin.py:247: PytestDeprecationWarning: The configuration option \"asyncio_default_fixture_loop_scope\" is unset.\nThe event loop scope for asynchronous fixtures will default to the fixture caching scope. Future versions of pytest-asyncio will default the loop scope for asynchronous fixtures to function scope. Set the default fixture loop scope explicitly in order to avoid unexpected behavior in the future. Valid fixture loop scopes are: \"function\", \"class\", \"module\", \"package\", \"session\"\n\n  warnings.warn(PytestDeprecationWarning(_DEFAULT_FIXTURE_LOOP_SCOPE_UNSET))\n",
+        "passed": false
+      },
+      "rules_exits": [
+        0,
+        0
+      ],
+      "tests_exit": 0,
+      "tests_failing": [],
+      "tests_tail": "",
+      "verdict": "gap"
+    },
+    "2": {
+      "bad_files": [],
+      "claim": "When parsing XET metadata for a dataset repository (`/api/datasets/squad/...`) with custom endpoint `https://my-hub.example.org`,\nthe returned `refresh_route` still points to `https://huggingface.co/api/datasets/...`.\nMy fix only rewrites refresh routes starting with `https://huggingface.co/api/models/`, ignoring datasets and spaces.\nThe bug report means any `https://huggingface.co` refresh route should be rewritten to the custom endpoint regardless of repo type.\n",
+      "example_on_baseline": {
+        "raised": "Traceback (most recent call last):\n  File \"<string>\", line 4, in <module>\n  File \"/home/user/emi-drafting/adversary/huggingface__huggingface_hub-3180/2/example.py\", line 14, in example\n    data = parse_xet_file_data_from_response(response, endpoint=\"https://my-hub.example.org\")\nTypeError: parse_xet_file_data_from_response() got an unexpected keyword argument 'endpoint'\n"
+      },
+      "example_on_fix": "'https://huggingface.co/api/datasets/squad/xet-read-token/abc123'",
+      "hidden": {
+        "exit": 1,
+        "fail_to_pass": 2,
+        "fail_to_pass_passed": 1,
+        "failure_lines": [
+          "FAILED tests/test_xet_utils.py::test_parse_header_file_info_with_endpoint[https://huggingface.co/api/refresh-https://xet.example.com/api/refresh]"
+        ],
+        "not_passing": [
+          "tests/test_xet_utils.py::test_parse_header_file_info_with_endpoint[https://huggingface.co/api/refresh-https://xet.example.com/api/refresh]"
+        ],
+        "not_passing_count": 1,
+        "output_tail": "parse_header_file_info_with_endpoint[https://huggingface.co/api/refresh-https://xet.example.com/api/refresh] FAILED\ntests/test_xet_utils.py::test_parse_valid_headers_connection_info PASSED\ntests/test_xet_utils.py::test_parse_valid_headers_full PASSED\ntests/test_xet_utils.py::test_parse_missing_required_header[X-Xet-Cas-Url] PASSED\ntests/test_xet_utils.py::test_parse_missing_required_header[X-Xet-Access-Token] PASSED\ntests/test_xet_utils.py::test_parse_missing_required_header[X-Xet-Token-Expiration] PASSED\ntests/test_xet_utils.py::test_parse_invalid_expiration PASSED\ntests/test_xet_utils.py::test_refresh_metadata_success PASSED\ntests/test_xet_utils.py::test_refresh_metadata_custom_endpoint PASSED\ntests/test_xet_utils.py::test_refresh_metadata_missing_refresh_route PASSED\ntests/test_xet_utils.py::test_fetch_xet_metadata_with_url PASSED\ntests/test_xet_utils.py::test_fetch_xet_metadata_with_url_invalid_response PASSED\ntests/test_xet_utils.py::test_env_var_hf_hub_disable_xet PASSED\n\n=================================== FAILURES ===================================\n_ test_parse_header_file_info_with_endpoint[https://huggingface.co/api/refresh-https://xet.example.com/api/refresh] _\ntests/test_xet_utils.py:78: in test_parse_header_file_info_with_endpoint\n    assert file_data.refresh_route == expected_refresh_route\nE   AssertionError: assert 'https://hugg...o/api/refresh' == 'https://xet....m/api/refresh'\nE     \nE     - https://xet.example.com/api/refresh\nE     + https://huggingface.co/api/refresh\n==================================== PASSES ====================================\n============================== slowest durations ===============================\n0.19s setup    tests/test_xet_utils.py::test_parse_valid_headers_file_info\n\n(50 durations < 0.005s hidden.  Use -vv to show these durations.)\n=========================== short test summary info ============================\nPASSED tests/test_xet_utils.py::test_parse_valid_headers_file_info\nPASSED tests/test_xet_utils.py::test_parse_valid_headers_file_info_with_link\nPASSED tests/test_xet_utils.py::test_parse_invalid_headers_file_info\nPASSED tests/test_xet_utils.py::test_parse_header_file_info_with_endpoint[/api/refresh-/api/refresh]\nPASSED tests/test_xet_utils.py::test_parse_valid_headers_connection_info\nPASSED tests/test_xet_utils.py::test_parse_valid_headers_full\nPASSED tests/test_xet_utils.py::test_parse_missing_required_header[X-Xet-Cas-Url]\nPASSED tests/test_xet_utils.py::test_parse_missing_required_header[X-Xet-Access-Token]\nPASSED tests/test_xet_utils.py::test_parse_missing_required_header[X-Xet-Token-Expiration]\nPASSED tests/test_xet_utils.py::test_parse_invalid_expiration\nPASSED tests/test_xet_utils.py::test_refresh_metadata_success\nPASSED tests/test_xet_utils.py::test_refresh_metadata_custom_endpoint\nPASSED tests/test_xet_utils.py::test_refresh_metadata_missing_refresh_route\nPASSED tests/test_xet_utils.py::test_fetch_xet_metadata_with_url\nPASSED tests/test_xet_utils.py::test_fetch_xet_metadata_with_url_invalid_response\nPASSED tests/test_xet_utils.py::test_env_var_hf_hub_disable_xet\nFAILED tests/test_xet_utils.py::test_parse_header_file_info_with_endpoint[https://huggingface.co/api/refresh-https://xet.example.com/api/refresh]\n========================= 1 failed, 16 passed in 0.44s =========================\n/home/user/emi-pilot/.cache/envs/huggingface__huggingface_hub-3180/venv/lib/python3.10/site-packages/pytest_asyncio/plugin.py:247: PytestDeprecationWarning: The configuration option \"asyncio_default_fixture_loop_scope\" is unset.\nThe event loop scope for asynchronous fixtures will default to the fixture caching scope. Future versions of pytest-asyncio will default the loop scope for asynchronous fixtures to function scope. Set the default fixture loop scope explicitly in order to avoid unexpected behavior in the future. Valid fixture loop scopes are: \"function\", \"class\", \"module\", \"package\", \"session\"\n\n  warnings.warn(PytestDeprecationWarning(_DEFAULT_FIXTURE_LOOP_SCOPE_UNSET))\n",
+        "passed": false
+      },
+      "rules_exits": [
+        0,
+        0
+      ],
+      "tests_exit": 0,
+      "tests_failing": [],
+      "tests_tail": "",
+      "verdict": "gap"
+    },
+    "3": {
+      "bad_files": [],
+      "claim": "When `huggingface_hub.constants.ENDPOINT` is set in Python (e.g. `https://hub-ci.huggingface.co`, as in staging mode) without `HF_ENDPOINT` in the environment,\n`parse_xet_file_data_from_response(response)` returns a `refresh_route` still pointing to `https://huggingface.co/...`.\nMy fix only reads the `HF_ENDPOINT` environment variable when `endpoint` is omitted, ignoring `constants.ENDPOINT`.\nThe bug report and interface spec expect omitting `endpoint` to default to the library's configured `constants.ENDPOINT`.\n",
+      "example_on_baseline": "'https://huggingface.co/api/models/org/model/xet-read-token/tok123'",
+      "example_on_fix": "'https://huggingface.co/api/models/org/model/xet-read-token/tok123'",
+      "hidden": {
+        "exit": 0,
+        "fail_to_pass": 2,
+        "fail_to_pass_passed": 2,
+        "not_passing": [],
+        "not_passing_count": 0,
+        "passed": true
+      },
+      "rules_exits": [
+        0,
+        0
+      ],
+      "tests_exit": 0,
+      "tests_failing": [],
+      "tests_tail": "",
+      "verdict": "not_wrong"
+    }
+  }
+}

@@ -1,0 +1,3 @@
+cs-si__eodag-1717 try 1: gap  example: fix {'requests_made': 2, 'same_path': True} / baseline {'requests_made': 2, 'same_path': True}
+cs-si__eodag-1717 try 2: gap  example: fix {'requests_made': 2, 'first': '/tmp/tmpmaor47zn/S2A_MSIL1C_20231006T102911_N0510_R108_T31TFK_20241102T002017.gz', 'second': '/tmp/tmpmaor47zn/S2A_MSIL1C_20231006T102911_N0510_R108_T31TFK_20241102T002017.gz'} / baseline {'requests_made': 2, 'first': '/tmp/tmp5xqqb1us/S2A_MSIL1C_20231006T102911_N0510_R108_T31TFK_20241102T002017.gz', 'second': '/tmp/tmp5xqqb1us/S2A_MSIL1C_20231006T102911_N0510_R108_T31TFK_20241102T002017.gz'}
+cs-si__eodag-1717 try 3: gap  example: fix {'requests_made': 2, 'same_path': True} / baseline {'requests_made': 2, 'same_path': True}
