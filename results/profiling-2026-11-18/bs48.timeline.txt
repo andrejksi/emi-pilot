@@ -1,0 +1,11 @@
+wall 55.9 s, 371 processes
+what                             n   total s  median s    max s
+python pytest run               60      86.9      1.38     3.27
+emi                              1      55.9     55.91    55.91
+python pytest listing            2      10.3      9.19     9.19
+python coverage run              1       3.7      3.72     3.72
+git -C                         212       2.7      0.00     0.39
+
+some python process running: 47.5 s of 55.9 s (85%)
+some git process running:    1.5 s
+python process-seconds 100.9: 2.12 at once on average while any runs

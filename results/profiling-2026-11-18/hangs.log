@@ -1,0 +1,37 @@
+== 02:14:54 pid 5978 alive 64s
+--- /tmp/claude-0/-home-user/5eb0ad45-fb5d-502b-baac-1e9e75db553c/scratchpad/drafting-repo/work/bluesky__bluesky-1932/src/bluesky/run_engine.py	2026-11-17 14:17:59.495623603 +0000
++++ /tmp/emi-profile-rules-1721-1794968029018049159-217/src/bluesky/run_engine.py	2026-11-18 02:13:49.298719522 +0000
+@@ -979,7 +979,7 @@
+             self._task_fut = asyncio.run_coroutine_threadsafe(self._run(), loop=self.loop)
+ 
+             def set_blocking_event(future):
+-                self._blocking_event.set()
++                raise NotImplementedError
+ 
+             self._task_fut.add_done_callback(set_blocking_event)
+ 
+== 02:14:54 pid 5981 alive 64s
+--- /tmp/claude-0/-home-user/5eb0ad45-fb5d-502b-baac-1e9e75db553c/scratchpad/drafting-repo/work/bluesky__bluesky-1932/src/bluesky/run_engine.py	2026-11-17 14:17:59.495623603 +0000
++++ /tmp/emi-profile-rules-1721-1794968029018032724-216/src/bluesky/run_engine.py	2026-11-18 02:13:49.314526488 +0000
+@@ -979,7 +979,7 @@
+             self._task_fut = asyncio.run_coroutine_threadsafe(self._run(), loop=self.loop)
+ 
+             def set_blocking_event(future):
+-                self._blocking_event.set()
++                return None
+ 
+             self._task_fut.add_done_callback(set_blocking_event)
+ 
+== 02:14:54 pid 5984 alive 64s
+--- /tmp/claude-0/-home-user/5eb0ad45-fb5d-502b-baac-1e9e75db553c/scratchpad/drafting-repo/work/bluesky__bluesky-1932/src/bluesky/run_engine.py	2026-11-17 14:17:59.495623603 +0000
++++ /tmp/emi-profile-rules-1721-1794968029017990354-215/src/bluesky/run_engine.py	2026-11-18 02:13:49.362373867 +0000
+@@ -979,7 +979,7 @@
+             self._task_fut = asyncio.run_coroutine_threadsafe(self._run(), loop=self.loop)
+ 
+             def set_blocking_event(future):
+-                self._blocking_event.set()
++                return future
+ 
+             self._task_fut.add_done_callback(set_blocking_event)
+ 
+watch ended 02:19:00
