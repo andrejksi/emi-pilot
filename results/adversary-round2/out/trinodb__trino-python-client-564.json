@@ -1,0 +1,18 @@
+{
+  "baseline": {
+    "failing_tests": [
+      "tests/unit/test_dbapi.py::test_token_retrieved_once_per_auth_instance",
+      "tests/unit/test_dbapi.py::test_token_retrieved_once_when_authentication_instance_is_shared",
+      "tests/unit/test_dbapi.py::test_token_retrieved_once_when_multithreaded"
+    ],
+    "rules_exit": 1
+  },
+  "rules": "/home/user/emi-drafting/drafts2/trinodb__trino-python-client-564/checked",
+  "task": "trinodb__trino-python-client-564",
+  "tries": {
+    "1": {
+      "problem": "neither fix.diff nor none.md",
+      "verdict": "invalid"
+    }
+  }
+}

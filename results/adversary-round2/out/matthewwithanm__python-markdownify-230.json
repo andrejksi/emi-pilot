@@ -1,0 +1,70 @@
+{
+  "baseline": {
+    "failing_tests": [],
+    "rules_exit": 1
+  },
+  "rules": "/home/user/emi-drafting/drafts2/matthewwithanm__python-markdownify-230/checked",
+  "task": "matthewwithanm__python-markdownify-230",
+  "tries": {
+    "1": {
+      "bad_files": [],
+      "claim": "The input is an inline code span containing backticks (\"We have to `manage` this.\") placed inside a division block rather than at the top level or inside a paragraph.\nWith this fix, backticks inside inline code spans are only handled at the top level or inside a paragraph, so the code span inside a division block is still wrapped in single backticks ('`We have to `manage` this.`').\nThe bug report means any inline code span containing single backticks should be wrapped in double backticks ('``We have to `manage` this.``'), regardless of which block element contains it.\n",
+      "example_on_baseline": "'`We have to `manage` this.`'",
+      "example_on_fix": "'`We have to `manage` this.`'",
+      "hidden": {
+        "exit": 1,
+        "fail_to_pass": 1,
+        "fail_to_pass_passed": 0,
+        "failure_lines": [
+          "FAILED tests/test_conversions.py::test_code - AssertionError: assert 'foo`` `..."
+        ],
+        "not_passing": [
+          "tests/test_conversions.py::test_code"
+        ],
+        "not_passing_count": 1,
+        "output_tail": "============================= test session starts ==============================\ncollected 50 items\n\ntests/test_conversions.py .............F................................ [ 92%]\n....                                                                     [100%]\n\n=================================== FAILURES ===================================\n__________________________________ test_code ___________________________________\ntests/test_conversions.py:106: in test_code\n    assert md('foo<code> `bar` </code>baz') == 'foo `` `bar` `` baz'\nE   AssertionError: assert 'foo`` `bar` ``baz' == 'foo `` `bar` `` baz'\nE     \nE     - foo `` `bar` `` baz\nE     ?    -           -\nE     + foo`` `bar` ``baz\n==================================== PASSES ====================================\n=========================== short test summary info ============================\nPASSED tests/test_conversions.py::test_a\nPASSED tests/test_conversions.py::test_a_spaces\nPASSED tests/test_conversions.py::test_a_with_title\nPASSED tests/test_conversions.py::test_a_shortcut\nPASSED tests/test_conversions.py::test_a_no_autolinks\nPASSED tests/test_conversions.py::test_a_in_code\nPASSED tests/test_conversions.py::test_b\nPASSED tests/test_conversions.py::test_b_spaces\nPASSED tests/test_conversions.py::test_blockquote\nPASSED tests/test_conversions.py::test_blockquote_with_nested_paragraph\nPASSED tests/test_conversions.py::test_blockquote_with_paragraph\nPASSED tests/test_conversions.py::test_blockquote_nested\nPASSED tests/test_conversions.py::test_br\nPASSED tests/test_conversions.py::test_dl\nPASSED tests/test_conversions.py::test_del\nPASSED tests/test_conversions.py::test_div_section_article\nPASSED tests/test_conversions.py::test_em\nPASSED tests/test_conversions.py::test_figcaption\nPASSED tests/test_conversions.py::test_header_with_space\nPASSED tests/test_conversions.py::test_h1\nPASSED tests/test_conversions.py::test_h2\nPASSED tests/test_conversions.py::test_hn\nPASSED tests/test_conversions.py::test_hn_chained\nPASSED tests/test_conversions.py::test_hn_nested_tag_heading_style\nPASSED tests/test_conversions.py::test_hn_nested_simple_tag\nPASSED tests/test_conversions.py::test_hn_nested_img\nPASSED tests/test_conversions.py::test_hn_atx_headings\nPASSED tests/test_conversions.py::test_hn_atx_closed_headings\nPASSED tests/test_conversions.py::test_hn_newlines\nPASSED tests/test_conversions.py::test_head\nPASSED tests/test_conversions.py::test_hr\nPASSED tests/test_conversions.py::test_i\nPASSED tests/test_conversions.py::test_img\nPASSED tests/test_conversions.py::test_video\nPASSED tests/test_conversions.py::test_kbd\nPASSED tests/test_conversions.py::test_p\nPASSED tests/test_conversions.py::test_pre\nPASSED tests/test_conversions.py::test_q\nPASSED tests/test_conversions.py::test_script\nPASSED tests/test_conversions.py::test_style\nPASSED tests/test_conversions.py::test_s\nPASSED tests/test_conversions.py::test_samp\nPASSED tests/test_conversions.py::test_strong\nPASSED tests/test_conversions.py::test_strong_em_symbol\nPASSED tests/test_conversions.py::test_sub\nPASSED tests/test_conversions.py::test_sup\nPASSED tests/test_conversions.py::test_lang\nPASSED tests/test_conversions.py::test_lang_callback\nPASSED tests/test_conversions.py::test_spaces\nFAILED tests/test_conversions.py::test_code - AssertionError: assert 'foo`` `...\n========================= 1 failed, 49 passed in 0.38s =========================\n",
+        "passed": false
+      },
+      "rules_exits": [
+        0,
+        0
+      ],
+      "tests_exit": 0,
+      "tests_failing": [],
+      "tests_tail": "",
+      "verdict": "gap"
+    },
+    "2": {
+      "bad_files": [],
+      "claim": "The input is a paragraph containing two inline code spans that each hold backticks (\"We have to `manage` this.\" and \"We have to `handle` that.\").\nWith this fix, only the first inline code span in the document is wrapped in double backticks, while the second inline code span is left in single backticks ('``We have to `manage` this.`` and `We have to `handle` that.`').\nThe bug report means every inline code span containing backticks should be wrapped in double backticks ('``We have to `manage` this.`` and ``We have to `handle` that.``'), not just the first one.\n",
+      "example_on_baseline": "'`We have to `manage` this.` and `We have to `handle` that.`'",
+      "example_on_fix": "'``We have to `manage` this.`` and `We have to `handle` that.`'",
+      "hidden": {
+        "exit": 1,
+        "fail_to_pass": 1,
+        "fail_to_pass_passed": 0,
+        "failure_lines": [
+          "FAILED tests/test_conversions.py::test_code - AssertionError: assert 'foo`` `..."
+        ],
+        "not_passing": [
+          "tests/test_conversions.py::test_code"
+        ],
+        "not_passing_count": 1,
+        "output_tail": "============================= test session starts ==============================\ncollected 50 items\n\ntests/test_conversions.py .............F................................ [ 92%]\n....                                                                     [100%]\n\n=================================== FAILURES ===================================\n__________________________________ test_code ___________________________________\ntests/test_conversions.py:106: in test_code\n    assert md('foo<code> `bar` </code>baz') == 'foo `` `bar` `` baz'\nE   AssertionError: assert 'foo`` `bar` ``baz' == 'foo `` `bar` `` baz'\nE     \nE     - foo `` `bar` `` baz\nE     ?    -           -\nE     + foo`` `bar` ``baz\n==================================== PASSES ====================================\n=========================== short test summary info ============================\nPASSED tests/test_conversions.py::test_a\nPASSED tests/test_conversions.py::test_a_spaces\nPASSED tests/test_conversions.py::test_a_with_title\nPASSED tests/test_conversions.py::test_a_shortcut\nPASSED tests/test_conversions.py::test_a_no_autolinks\nPASSED tests/test_conversions.py::test_a_in_code\nPASSED tests/test_conversions.py::test_b\nPASSED tests/test_conversions.py::test_b_spaces\nPASSED tests/test_conversions.py::test_blockquote\nPASSED tests/test_conversions.py::test_blockquote_with_nested_paragraph\nPASSED tests/test_conversions.py::test_blockquote_with_paragraph\nPASSED tests/test_conversions.py::test_blockquote_nested\nPASSED tests/test_conversions.py::test_br\nPASSED tests/test_conversions.py::test_dl\nPASSED tests/test_conversions.py::test_del\nPASSED tests/test_conversions.py::test_div_section_article\nPASSED tests/test_conversions.py::test_em\nPASSED tests/test_conversions.py::test_figcaption\nPASSED tests/test_conversions.py::test_header_with_space\nPASSED tests/test_conversions.py::test_h1\nPASSED tests/test_conversions.py::test_h2\nPASSED tests/test_conversions.py::test_hn\nPASSED tests/test_conversions.py::test_hn_chained\nPASSED tests/test_conversions.py::test_hn_nested_tag_heading_style\nPASSED tests/test_conversions.py::test_hn_nested_simple_tag\nPASSED tests/test_conversions.py::test_hn_nested_img\nPASSED tests/test_conversions.py::test_hn_atx_headings\nPASSED tests/test_conversions.py::test_hn_atx_closed_headings\nPASSED tests/test_conversions.py::test_hn_newlines\nPASSED tests/test_conversions.py::test_head\nPASSED tests/test_conversions.py::test_hr\nPASSED tests/test_conversions.py::test_i\nPASSED tests/test_conversions.py::test_img\nPASSED tests/test_conversions.py::test_video\nPASSED tests/test_conversions.py::test_kbd\nPASSED tests/test_conversions.py::test_p\nPASSED tests/test_conversions.py::test_pre\nPASSED tests/test_conversions.py::test_q\nPASSED tests/test_conversions.py::test_script\nPASSED tests/test_conversions.py::test_style\nPASSED tests/test_conversions.py::test_s\nPASSED tests/test_conversions.py::test_samp\nPASSED tests/test_conversions.py::test_strong\nPASSED tests/test_conversions.py::test_strong_em_symbol\nPASSED tests/test_conversions.py::test_sub\nPASSED tests/test_conversions.py::test_sup\nPASSED tests/test_conversions.py::test_lang\nPASSED tests/test_conversions.py::test_lang_callback\nPASSED tests/test_conversions.py::test_spaces\nFAILED tests/test_conversions.py::test_code - AssertionError: assert 'foo`` `...\n========================= 1 failed, 49 passed in 0.40s =========================\n",
+        "passed": false
+      },
+      "rules_exits": [
+        0,
+        0
+      ],
+      "tests_exit": 0,
+      "tests_failing": [],
+      "tests_tail": "",
+      "verdict": "gap"
+    },
+    "3": {
+      "problem": "neither fix.diff nor none.md",
+      "verdict": "invalid"
+    }
+  }
+}

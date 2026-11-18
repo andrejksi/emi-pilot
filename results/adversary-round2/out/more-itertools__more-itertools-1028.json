@@ -1,0 +1,76 @@
+{
+  "baseline": {
+    "failing_tests": [],
+    "rules_exit": 1
+  },
+  "rules": "/home/user/emi-drafting/drafts2/more-itertools__more-itertools-1028/checked",
+  "task": "more-itertools__more-itertools-1028",
+  "tries": {
+    "1": {
+      "bad_files": [],
+      "claim": "When asking last() for the final item of the non-empty Mapping from the bug report (which holds the single item 1) with a default value of 0, this fix treats the mapping as empty and returns 0.\nThe bug report means that last() on a non-empty Mapping should return its final item (1), using the default value only when the input is empty.\n",
+      "example_on_baseline": "0",
+      "example_on_fix": "0",
+      "hidden": {
+        "exit": 0,
+        "fail_to_pass": 1,
+        "fail_to_pass_passed": 1,
+        "not_passing": [],
+        "not_passing_count": 0,
+        "passed": true
+      },
+      "rules_exits": [
+        0,
+        0
+      ],
+      "tests_exit": 0,
+      "tests_failing": [],
+      "tests_tail": "",
+      "verdict": "not_wrong"
+    },
+    "2": {
+      "bad_files": [],
+      "claim": "When asking last() for the final item of a Mapping that yields the items 1, 2, 3 from a one-pass iterator (with \"empty\" as the default value), this fix iterates the mapping twice: the first pass consumes all three items, and the second pass finds nothing left and returns \"empty\".\nThe bug report means that last() should consume the Mapping in a single pass and return its final item (3).\n",
+      "example_on_baseline": "'empty'",
+      "example_on_fix": "'empty'",
+      "hidden": {
+        "exit": 0,
+        "fail_to_pass": 1,
+        "fail_to_pass_passed": 1,
+        "not_passing": [],
+        "not_passing_count": 0,
+        "passed": true
+      },
+      "rules_exits": [
+        0,
+        0
+      ],
+      "tests_exit": 0,
+      "tests_failing": [],
+      "tests_tail": "",
+      "verdict": "not_wrong"
+    },
+    "3": {
+      "bad_files": [],
+      "claim": "When asking last() for the final item of a custom mapping-like iterable (with reversal disabled) that yields keys \"a\" then \"b\" when iterated and returns the value 1 for any key lookup, this fix looks up key -1 and returns the value 1.\nThe bug report means that last() should iterate through the iterable and return the final item yielded by iteration (\"b\").\n",
+      "example_on_baseline": "'empty'",
+      "example_on_fix": "1",
+      "hidden": {
+        "exit": 0,
+        "fail_to_pass": 1,
+        "fail_to_pass_passed": 1,
+        "not_passing": [],
+        "not_passing_count": 0,
+        "passed": true
+      },
+      "rules_exits": [
+        0,
+        0
+      ],
+      "tests_exit": 0,
+      "tests_failing": [],
+      "tests_tail": "",
+      "verdict": "not_wrong"
+    }
+  }
+}

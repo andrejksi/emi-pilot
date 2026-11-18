@@ -1,0 +1,3 @@
+narwhals-dev__narwhals-2864 try 1: not_wrong  example: fix ['a', 'b', 'c'] / baseline 'Index 1 out of bounds'
+narwhals-dev__narwhals-2864 try 2: not_wrong  example: fix [1, 2, 3] / baseline 'Index 1 out of bounds'
+narwhals-dev__narwhals-2864 try 3: not_wrong  example: fix [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] / baseline 'Index 2 out of bounds'

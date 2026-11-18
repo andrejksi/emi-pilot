@@ -1,0 +1,76 @@
+{
+  "baseline": {
+    "failing_tests": [],
+    "rules_exit": 1
+  },
+  "rules": "/home/user/emi-drafting/drafts2/narwhals-dev__narwhals-2864/checked",
+  "task": "narwhals-dev__narwhals-2864",
+  "tries": {
+    "1": {
+      "bad_files": [],
+      "claim": "When scattering a single value 'z' at index 1 of a pyarrow-backed string series ['a', 'b', 'c'], every rule passes because the rules only test a single integer index on integer series.\nWith this fix, scatter leaves the series unchanged and returns ['a', 'b', 'c'].\nThe bug report means that scattering a value at index 1 should replace the item at position 1 and return ['a', 'z', 'c'].\n",
+      "example_on_baseline": "'Index 1 out of bounds'",
+      "example_on_fix": "['a', 'b', 'c']",
+      "hidden": {
+        "exit": 0,
+        "fail_to_pass": 1,
+        "fail_to_pass_passed": 1,
+        "not_passing": [],
+        "not_passing_count": 0,
+        "passed": true
+      },
+      "rules_exits": [
+        0,
+        0
+      ],
+      "tests_exit": 0,
+      "tests_failing": [],
+      "tests_tail": "",
+      "verdict": "not_wrong"
+    },
+    "2": {
+      "bad_files": [],
+      "claim": "When scattering the value 2000 at index 1 of a pyarrow-backed series [1, 2, 3], every rule passes because the rules only generate integer values between -1000 and 1000.\nWith this fix, integer replacements outside [-1000, 1000] are ignored and scatter returns [1, 2, 3].\nThe bug report means that scattering 2000 at index 1 should replace position 1 with 2000 and return [1, 2000, 3].\n",
+      "example_on_baseline": "'Index 1 out of bounds'",
+      "example_on_fix": "[1, 2, 3]",
+      "hidden": {
+        "exit": 0,
+        "fail_to_pass": 1,
+        "fail_to_pass_passed": 1,
+        "not_passing": [],
+        "not_passing_count": 0,
+        "passed": true
+      },
+      "rules_exits": [
+        0,
+        0
+      ],
+      "tests_exit": 0,
+      "tests_failing": [],
+      "tests_tail": "",
+      "verdict": "not_wrong"
+    },
+    "3": {
+      "bad_files": [],
+      "claim": "When scattering values [999, 888] at indices [0, 2] of a 13-element pyarrow-backed series of zeros, every rule passes because the rules only test index lists on series of length at most 12.\nWith this fix, scatter leaves any series longer than 12 items unchanged when given a list of indices, returning [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0].\nThe bug report means that scattering [999, 888] at indices [0, 2] should replace positions 0 and 2 and return [999, 0, 888, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0].\n",
+      "example_on_baseline": "'Index 2 out of bounds'",
+      "example_on_fix": "[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]",
+      "hidden": {
+        "exit": 0,
+        "fail_to_pass": 1,
+        "fail_to_pass_passed": 1,
+        "not_passing": [],
+        "not_passing_count": 0,
+        "passed": true
+      },
+      "rules_exits": [
+        0,
+        0
+      ],
+      "tests_exit": 0,
+      "tests_failing": [],
+      "tests_tail": "",
+      "verdict": "not_wrong"
+    }
+  }
+}
