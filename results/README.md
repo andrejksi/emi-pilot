@@ -13,6 +13,7 @@ tests' verdict in `oracle.json`.
 | `rerun-2026-11-18` | the drafting study's drafts checked again on EMI with the plan's phases 1 to 3 | see its README | claude/confident-johnson-zcpmkk 9d727d1 |
 | `adversary-2026-11-18` | an agent writing wrong fixes that pass the drafted rules, scored against the rules, the existing tests and the hidden tests | see its README | none (plain pytest) |
 | `rivals-2026-11-18` | the two wrong attempts that passed both checkers, run on the drafted rules and side by side with the passing attempts on inputs the rules do not name | see its README | none (plain pytest) |
+| `adversary-round2` | round 2 of the adversary: rules strengthened with a lesson file, predictions and a fixed-example remark, attacked afresh; `PREREG.md` was committed before drafting | see its `PREREG.md` | 0.1.1 (drafting); none (scoring) |
 | `harvest-tuning` | live runs of both models, no checker, on the 10 tuning tasks, 3 seeds each: 50 attempts (10 refused by the provider), the inputs of the laws trial | see its README | none |
 
 Run 8 predates the src-layout fix (c674a06): both huggingface_hub tasks
