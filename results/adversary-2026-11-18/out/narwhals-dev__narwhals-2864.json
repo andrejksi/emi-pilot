@@ -1,0 +1,80 @@
+{
+  "baseline": {
+    "failing_tests": [],
+    "rules_exit": 1
+  },
+  "rules": "/home/user/emi-drafting/drafts/narwhals-dev__narwhals-2864/first",
+  "task": "narwhals-dev__narwhals-2864",
+  "tries": {
+    "1": {
+      "bad_files": [],
+      "claim": "Input: a PyArrow-backed series of 13 integers (0 through 12), replacing index 1 with 999.\nThis fix passes all rules and existing tests because they only test series up to 12 items,\nbut for any series longer than 12 items it returns the original series unchanged (`[0, 1, ..., 12]`).\nThe bug report clearly expects `scatter` to replace the given positions regardless of series length, yielding `[0, 999, 2, ..., 12]`.\n",
+      "example_on_baseline": {
+        "raised": "Traceback (most recent call last):\n  File \"<string>\", line 4, in <module>\n  File \"/home/user/emi-drafting/adversary/narwhals-dev__narwhals-2864/1/example.py\", line 7, in example\n    return s.scatter(1, 999).to_list()\n  File \"/tmp/tmp8_xg1gtr/work/./narwhals/series.py\", line 284, in scatter\n    self._compliant_series.scatter(indices, self._extract_native(values))\n  File \"/tmp/tmp8_xg1gtr/work/./narwhals/_arrow/series.py\", line 471, in scatter\n    pc_replace_with_mask(self.native, mask, values_native.take(indices_native))\n  File \"pyarrow/array.pxi\", line 1669, in pyarrow.lib.Array.take\n  File \"/home/user/emi-pilot/.cache/envs/narwhals-dev__narwhals-2864/venv/lib/python3.10/site-packages/pyarrow/compute.py\", line 508, in take\n    return call_function('take', [data, indices], options, memory_pool)\n  File \"pyarrow/_compute.pyx\", line 610, in pyarrow._compute.call_function\n  File \"pyarrow/_compute.pyx\", line 405, in pyarrow._compute.Function.call\n  File \"pyarrow/error.pxi\", line 155, in pyarrow.lib.pyarrow_internal_check_status\n  File \"pyarrow/error.pxi\", line 92, in pyarrow.lib.check_status\npyarrow.lib.ArrowIndexError: Index 1 out of bounds\n"
+      },
+      "example_on_fix": "[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]",
+      "hidden": {
+        "exit": 0,
+        "fail_to_pass": 1,
+        "fail_to_pass_passed": 1,
+        "not_passing": [],
+        "not_passing_count": 0,
+        "passed": true
+      },
+      "rules_exits": [
+        0,
+        0
+      ],
+      "tests_exit": 0,
+      "tests_failing": [],
+      "tests_tail": "",
+      "verdict": "not_wrong"
+    },
+    "2": {
+      "bad_files": [],
+      "claim": "Input: a PyArrow-backed series `[1, 2, 3]` with duplicate index `[1, 1]` and replacement values `[10, 20]`.\nThis fix passes all rules because they only generate unique indices, so it skips deduplicating indices and passes extra values to `replace_with_mask`.\nAs a result, index `1` gets the first value `10` (`[1, 10, 3]`) instead of the final assigned value `20` (as pandas and Polars do: `[1, 20, 3]`).\nEven worse, if there are duplicate indices alongside later indices (e.g., `[1, 1, 2]` with `[10, 20, 30]`), position `2` receives `20` instead of `30`.\n",
+      "example_on_baseline": "[1, 20, 3]",
+      "example_on_fix": "[1, 10, 3]",
+      "hidden": {
+        "exit": 0,
+        "fail_to_pass": 1,
+        "fail_to_pass_passed": 1,
+        "not_passing": [],
+        "not_passing_count": 0,
+        "passed": true
+      },
+      "rules_exits": [
+        0,
+        0
+      ],
+      "tests_exit": 0,
+      "tests_failing": [],
+      "tests_tail": "",
+      "verdict": "not_wrong"
+    },
+    "3": {
+      "bad_files": [],
+      "claim": "Input: a PyArrow-backed string series `[\"x\", \"y\", \"z\"]`, replacing index `1` with `\"w\"`.\nThis fix passes all rules and existing tests because they only test integer series,\nso for any non-integer series (strings, floats, booleans, etc.) it silently returns the original series unchanged (`[\"x\", \"y\", \"z\"]`).\nThe bug report expects `scatter` to replace the given positions on any PyArrow series regardless of data type, yielding `[\"x\", \"w\", \"z\"]`.\n",
+      "example_on_baseline": {
+        "raised": "Traceback (most recent call last):\n  File \"<string>\", line 4, in <module>\n  File \"/home/user/emi-drafting/adversary/narwhals-dev__narwhals-2864/3/example.py\", line 7, in example\n    return s.scatter(1, \"w\").to_list()\n  File \"/tmp/tmptmzj7_f_/work/./narwhals/series.py\", line 284, in scatter\n    self._compliant_series.scatter(indices, self._extract_native(values))\n  File \"/tmp/tmptmzj7_f_/work/./narwhals/_arrow/series.py\", line 471, in scatter\n    pc_replace_with_mask(self.native, mask, values_native.take(indices_native))\n  File \"pyarrow/array.pxi\", line 1669, in pyarrow.lib.Array.take\n  File \"/home/user/emi-pilot/.cache/envs/narwhals-dev__narwhals-2864/venv/lib/python3.10/site-packages/pyarrow/compute.py\", line 508, in take\n    return call_function('take', [data, indices], options, memory_pool)\n  File \"pyarrow/_compute.pyx\", line 610, in pyarrow._compute.call_function\n  File \"pyarrow/_compute.pyx\", line 405, in pyarrow._compute.Function.call\n  File \"pyarrow/error.pxi\", line 155, in pyarrow.lib.pyarrow_internal_check_status\n  File \"pyarrow/error.pxi\", line 92, in pyarrow.lib.check_status\npyarrow.lib.ArrowIndexError: Index 1 out of bounds\n"
+      },
+      "example_on_fix": "['x', 'y', 'z']",
+      "hidden": {
+        "exit": 0,
+        "fail_to_pass": 1,
+        "fail_to_pass_passed": 1,
+        "not_passing": [],
+        "not_passing_count": 0,
+        "passed": true
+      },
+      "rules_exits": [
+        0,
+        0
+      ],
+      "tests_exit": 0,
+      "tests_failing": [],
+      "tests_tail": "",
+      "verdict": "not_wrong"
+    }
+  }
+}

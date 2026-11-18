@@ -1,0 +1,11 @@
+{
+ "_about": "The kind (emi-drafting LESSONS.md) of each first-round try that the hidden tests prove wrong or left unclear, read from the try's claim.md before round 2 was drafted.",
+ "aristanetworks__anta-1250": {"1": "C1", "2": "C3", "3": "C3"},
+ "bluesky__bluesky-1932": {"2": "C1"},
+ "conan-io__conan-18444": {"3": "C2"},
+ "cs-si__eodag-1717": {"1": "C2", "2": "C2", "3": "C4"},
+ "huggingface__huggingface_hub-3180": {"1": "C2", "2": "C2"},
+ "matthewwithanm__python-markdownify-230": {"1": "C1", "2": "C5", "3": "C5"},
+ "more-itertools__more-itertools-1028": {"1": "C1"},
+ "trinodb__trino-python-client-564": {"1": "C1", "2": "C2", "3": "C4"}
+}

@@ -1,0 +1,213 @@
+<title>__TITLE__</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column of review cards, grouped by project, with a sticky tally bar. */
+:root{
+  --bg:#f6f7f9; --card:#ffffff; --fg:#1b2129; --muted:#5d6774; --line:#dde2e8;
+  --accent:#2f5bd3; --wrong:#b42318; --wrong-bg:#fdecea; --fine:#1e7a46; --fine-bg:#e7f5ec;
+  --unsure:#8a6100; --unsure-bg:#fdf4dc; --code-bg:#f0f2f5;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#12161c; --card:#1a2028; --fg:#e4e8ee; --muted:#9aa4b1; --line:#2c3440;
+  --accent:#7d9cf0; --wrong:#f2877c; --wrong-bg:#3a1d1a; --fine:#6fd39b; --fine-bg:#173225;
+  --unsure:#e8c26a; --unsure-bg:#352a12; --code-bg:#11161d; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12161c; --card:#1a2028; --fg:#e4e8ee; --muted:#9aa4b1; --line:#2c3440;
+  --accent:#7d9cf0; --wrong:#f2877c; --wrong-bg:#3a1d1a; --fine:#6fd39b; --fine-bg:#173225;
+  --unsure:#e8c26a; --unsure-bg:#352a12; --code-bg:#11161d; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:15px/1.55 var(--sans);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 48px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.wrap{max-width:820px;margin:0 auto}
+header.intro{padding-block:28px 8px}
+h1{font-size:26px;font-weight:600;margin:0 0 8px;text-wrap:balance}
+.intro p{margin:0 0 10px;color:var(--muted);max-width:65ch}
+.intro strong{color:var(--fg);font-weight:600}
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line);
+  display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;padding-block:10px;margin-bottom:8px}
+.tally{display:flex;gap:12px;flex-wrap:wrap;font-variant-numeric:tabular-nums;font-size:14px}
+.tally b{font-weight:600}
+.status{font-size:13px;color:var(--muted);margin-left:auto}
+.filter{display:flex;gap:6px}
+.filter button{font:500 13px var(--sans);border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:6px;padding:4px 10px;cursor:pointer}
+.filter button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
+h2{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:28px 0 4px}
+.bug{margin:0 0 12px;font-size:15px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px;margin-bottom:14px;display:grid;gap:12px}
+.card[data-answer="yes"],.card[data-answer="no"]{border-left:4px solid var(--accent)}
+.card[data-answer="unsure"]{border-left:4px solid var(--unsure)}
+.head{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.head .t{font-weight:600}
+.pill{font-size:12px;font-weight:600;border-radius:999px;padding:2px 9px}
+.pill.wrong{background:var(--wrong-bg);color:var(--wrong)}.pill.fine{background:var(--fine-bg);color:var(--fine)}.pill.unsure{background:var(--unsure-bg);color:var(--unsure)}.pill.none{color:var(--muted);border:1px solid var(--line)}
+.label{font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.claim{white-space:pre-wrap;margin:0;max-width:72ch}
+.claim code,.claim .c{font-family:var(--mono);font-size:13px;background:var(--code-bg);padding:0 3px;border-radius:3px}
+.results{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:620px){.results{grid-template-columns:1fr}}
+.results>div{min-width:0}
+pre{margin:0;font:13px/1.45 var(--mono);background:var(--code-bg);border:1px solid var(--line);border-radius:6px;padding:8px 10px;white-space:pre-wrap;word-break:break-word;max-height:220px;overflow:auto}
+.same{font-size:13px;color:var(--muted)}
+.actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.actions button{font:500 14px var(--sans);border-radius:6px;padding:7px 14px;cursor:pointer;border:1px solid var(--line);background:var(--card);color:var(--fg)}
+.actions button:focus-visible,.filter button:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.actions button.wrong[aria-pressed="true"]{background:var(--wrong-bg);border-color:var(--wrong);color:var(--wrong)}
+.actions button.fine[aria-pressed="true"]{background:var(--fine-bg);border-color:var(--fine);color:var(--fine)}
+.actions button.unsure[aria-pressed="true"]{background:var(--unsure-bg);border-color:var(--unsure);color:var(--unsure)}
+.actions button:disabled{opacity:.5;cursor:not-allowed}
+textarea{width:100%;min-height:38px;font:14px var(--sans);color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:6px 8px;resize:vertical}
+.saved{font-size:12px;color:var(--muted)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+.q{font-size:17px;font-weight:600;line-height:1.45;margin:0;max-width:65ch;text-wrap:pretty}
+.sit{margin:0;max-width:72ch}
+.pill.yes,.pill.no{background:var(--code-bg);color:var(--accent);border:1px solid var(--accent)}
+.actions button.yes[aria-pressed="true"],.actions button.no[aria-pressed="true"]{background:var(--code-bg);border-color:var(--accent);color:var(--accent)}
+details{border-top:1px solid var(--line);padding-top:8px}
+summary{cursor:pointer;color:var(--muted);font-size:13px;font-weight:500}
+details .inner{display:grid;gap:10px;margin-top:10px}
+details.report{border:1px solid var(--line);border-radius:8px;padding:8px 12px;background:var(--card);margin-bottom:12px}
+details.report pre{max-height:360px}
+.kv{margin:0}.kv b{font-weight:600}
+
+.choice{display:grid;gap:8px}
+.choice button{display:flex;gap:10px;align-items:flex-start;text-align:left;width:100%;font:15px/1.45 var(--sans);border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:var(--card);color:var(--fg);cursor:pointer}
+.choice button .k{font:600 13px var(--mono);color:var(--muted);flex:none;padding-top:2px}
+.choice button[aria-pressed="true"]{border-color:var(--accent);background:var(--code-bg)}
+.choice button[aria-pressed="true"] .k{color:var(--accent)}
+.choice button:disabled{opacity:.5;cursor:not-allowed}
+.choice button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.ask{font-size:13px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.pill.picked{background:var(--code-bg);color:var(--accent);border:1px solid var(--accent)}
+.card[data-answer="A"],.card[data-answer="B"]{border-left:4px solid var(--accent)}
+</style>
+<div class="wrap">
+<header class="intro">
+<h1>__TITLE__</h1>
+<p>Each card describes one situation from a project's bug report and <strong>two things the program could do</strong>. Pick the one that should happen, as the person who filed the report would: from the report alone, without reading code.</p>
+<p>The order of the two is fixed in advance for each card, so neither position means anything. Your picks are compared afterwards with what each fix does. If the report gives you no basis to choose, pick <strong>Can't tell</strong>.</p>
+</header>
+<div class="bar">
+  <div class="tally"><span><b id="n-done">0</b> of <span id="n-all">0</span> answered</span><span>Can't tell <b id="n-unsure">0</b></span></div>
+  <div class="filter"><button id="f-all" aria-pressed="true">All</button><button id="f-open" aria-pressed="false">Not yet answered</button></div>
+  <div class="status" id="status">Connecting to saved answers…</div>
+</div>
+<main id="list"></main>
+</div>
+<script>
+const DATA = __DATA__;
+const ITEMS = DATA.items, REPORTS = DATA.reports, STORE = DATA.collection;
+const answers = {};
+let db = null, canWrite = true, onlyOpen = false;
+const busy = {};
+function el(tag, cls, text){const e=document.createElement(tag); if(cls) e.className=cls; if(text!=null) e.textContent=text; return e}
+function kv(k,v){const p=el('p','kv'); p.appendChild(el('b',null,k+': ')); p.appendChild(document.createTextNode(v)); return p}
+
+function build(){
+  const list=document.getElementById('list'); list.textContent='';
+  document.getElementById('n-all').textContent=ITEMS.length;
+  let last=null;
+  ITEMS.forEach(it=>{
+    if(it.project!==last){
+      last=it.project;
+      const h=el('h2',null,it.project); h.dataset.project=it.project; list.appendChild(h);
+      const b=el('p','bug','Bug report: '+it.bug); b.dataset.project=it.project; list.appendChild(b);
+      const d=el('details','report'); d.dataset.project=it.project; d.appendChild(el('summary',null,'Read the full bug report'));
+      d.appendChild(el('pre',null,REPORTS[it.project])); list.appendChild(d);
+    }
+    const card=el('section','card'); card.id='card-'+it.id; card.dataset.project=it.project;
+    const head=el('div','head'); head.appendChild(el('span','t','Situation '+it.try)); head.appendChild(el('span','pill none','not answered')); card.appendChild(head);
+    card.appendChild(el('p','sit',it.situation));
+    card.appendChild(el('div','ask','Which should happen?'));
+    const ch=el('div','choice');
+    it.shown.forEach((text,i)=>{
+      const key='AB'[i];
+      const b=document.createElement('button'); b.type='button'; b.id='b-'+it.id+'-'+key; b.setAttribute('aria-pressed','false');
+      b.appendChild(el('span','k',key)); b.appendChild(el('span',null,text));
+      b.addEventListener('click',()=>answer(it.id,key)); ch.appendChild(b);
+    });
+    card.appendChild(ch);
+    const acts=el('div','actions');
+    const u=el('button','unsure',"Can't tell"); u.type='button'; u.id='b-'+it.id+'-unsure'; u.setAttribute('aria-pressed','false');
+    u.addEventListener('click',()=>answer(it.id,'unsure')); acts.appendChild(u);
+    const sv=el('span','saved'); sv.id='s-'+it.id; acts.appendChild(sv); card.appendChild(acts);
+    const ta=document.createElement('textarea'); ta.id='n-'+it.id; ta.placeholder='Why (optional)'; ta.setAttribute('aria-label','Why, for situation '+it.id);
+    ta.addEventListener('change',()=>{ if(answers[it.id]) save(it.id,{...answers[it.id],note:ta.value}) });
+    card.appendChild(ta);
+    const det=el('details'); det.appendChild(el('summary',null,'What the program did before any fix'));
+    const inner=el('div','inner'); inner.appendChild(kv('Before the fix',it.before_fix)); det.appendChild(inner); card.appendChild(det);
+    list.appendChild(card);
+  });
+}
+
+function paint(){
+  let done=0,u=0;
+  ITEMS.forEach(it=>{
+    const a=answers[it.id], k=a?a.pick:null, card=document.getElementById('card-'+it.id);
+    card.dataset.answer=k||'';
+    const pill=card.querySelector('.pill');
+    pill.className='pill '+(k==='unsure'?'unsure':k?'picked':'none');
+    pill.textContent=k==='unsure'?"can't tell":k?'picked '+k:'not answered';
+    ['A','B','unsure'].forEach(x=>{const b=document.getElementById('b-'+it.id+'-'+x); b.setAttribute('aria-pressed',String(k===x)); b.disabled=!canWrite});
+    const ta=document.getElementById('n-'+it.id); ta.disabled=!canWrite||!a;
+    if(a && document.activeElement!==ta) ta.value=a.note||'';
+    card.hidden=onlyOpen && !!a;
+    if(k) done++; if(k==='unsure') u++;
+  });
+  document.querySelectorAll('[data-project]:not(.card)').forEach(h=>{
+    h.hidden=onlyOpen && ITEMS.filter(i=>i.project===h.dataset.project).every(i=>answers[i.id]);
+  });
+  document.getElementById('n-done').textContent=done;
+  document.getElementById('n-unsure').textContent=u;
+}
+
+async function save(id, body){
+  const s=document.getElementById('s-'+id);
+  if(!db){ s.textContent='Not saved: answers cannot be stored in this view.'; return }
+  if(busy[id]){ busy[id].next=body; return }
+  busy[id]={}; s.textContent='Saving…';
+  try{ await db.doc(STORE+'/'+id).set(body); s.textContent='Saved' }
+  catch(e){
+    if(e && e.code==='invalid_argument'){ canWrite=false; s.textContent='Only the owner can record answers here.'; paint() }
+    else s.textContent='Not saved ('+(e&&e.code||'error')+'). Try again.';
+  }
+  const next=busy[id].next; delete busy[id];
+  if(next) save(id,next);
+}
+function answer(id,k){
+  const ta=document.getElementById('n-'+id);
+  // the outcome's text is kept with the pick, so the record reads on its own
+  const it=ITEMS.find(i=>i.id===id);
+  const body={pick:k, picked_text:k==='unsure'?'':it.shown['AB'.indexOf(k)], note:ta.value||'', at:new Date().toISOString()};
+  answers[id]=body; paint(); save(id,body);
+}
+function setFilter(open){
+  onlyOpen=open;
+  document.getElementById('f-all').setAttribute('aria-pressed',String(!open));
+  document.getElementById('f-open').setAttribute('aria-pressed',String(open));
+  paint();
+}
+document.getElementById('f-all').addEventListener('click',()=>setFilter(false));
+document.getElementById('f-open').addEventListener('click',()=>setFilter(true));
+build(); paint();
+(async()=>{
+  const status=document.getElementById('status');
+  db = window.claude ? await window.claude.use('db') : null;
+  const user = window.claude ? await window.claude.use('user') : null;
+  if(!db){ status.textContent='Answers cannot be saved in this view. Open the page on claude.ai, signed in.'; return }
+  if(user){ try{ if(!(await user.isOwner())){ canWrite=false; status.textContent='Read only: only the owner records answers.' } }catch(_){} }
+  let loaded=false;
+  const timer=setTimeout(()=>{ if(!loaded) status.textContent='Saved answers cannot be reached yet.' },10000);
+  db.collection(STORE).onSnapshot(snap=>{
+    snap.docs.forEach(d=>{ if(!busy[d.id]) answers[d.id]=d.data() });
+    snap.docChanges().forEach(c=>{ if(c.type==='removed') delete answers[c.doc.id] });
+    if(!snap.metadata.fromCache){ loaded=true; clearTimeout(timer); if(canWrite) status.textContent='Answers save as you click.' }
+    paint();
+  }, e=>{ clearTimeout(timer); status.textContent='Saved answers unavailable ('+e.code+').' });
+})();
+</script>

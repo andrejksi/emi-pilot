@@ -1,0 +1,102 @@
+{
+  "baseline": {
+    "failing_tests": [],
+    "rules_exit": 1
+  },
+  "rules": "/home/user/emi-drafting/drafts/bluesky__bluesky-1932/last",
+  "task": "bluesky__bluesky-1932",
+  "tries": {
+    "1": {
+      "bad_files": [],
+      "claim": "Running `scan` with five detectors when `BLUESKY_PREDECLARE=1` is set in the environment.\nThe fix only preserves detector order when building a descriptor during the first save, not when pre-declaring the stream.\nWith `BLUESKY_PREDECLARE=1`, the descriptor keys still come out in scrambled hash-set order instead of the order given.\nThe bug report means `scan` should keep detector column order consistently, including when pre-declaration is enabled.\n",
+      "example_on_baseline": "['det_gamma', 'det_h', 'det_gamscrew', 'det_l', 'det_k']",
+      "example_on_fix": "['det_gamma', 'det_k', 'det_gamscrew', 'det_h', 'det_l']",
+      "hidden": {
+        "exit": 0,
+        "fail_to_pass": 2,
+        "fail_to_pass_passed": 2,
+        "not_passing": [],
+        "not_passing_count": 0,
+        "passed": true
+      },
+      "rules_exits": [
+        0,
+        0
+      ],
+      "tests_exit": 0,
+      "tests_failing": [],
+      "tests_tail": "",
+      "verdict": "not_wrong"
+    },
+    "2": {
+      "bad_files": [],
+      "claim": "Running `scan` with five detectors named like the bug report (`sixcsim_gamma`, `sixcsim_gamscrew`, `sixcsim_h`, `sixcsim_k`, `sixcsim_l`) and default settings.\nThe fix only keeps the given detector order when every signal name starts with the prefixes used by the test rules (`det_` or `d_`).\nFor any real detector names like `sixcsim_gamma` and `sixcsim_h`, the descriptor keys still come out in scrambled hash-set order.\nThe bug report means detector order should be preserved regardless of how the detectors or motors are named.\n",
+      "example_on_baseline": "['sixcsim_l', 'sixcsim_h', 'sixcsim_gamscrew', 'sixcsim_k', 'sixcsim_gamma']",
+      "example_on_fix": "['sixcsim_k', 'sixcsim_gamscrew', 'sixcsim_h', 'sixcsim_l', 'sixcsim_gamma']",
+      "hidden": {
+        "exit": 1,
+        "fail_to_pass": 2,
+        "fail_to_pass_passed": 0,
+        "failure_lines": [
+          "ERROR    bluesky:run_engine.py:1767 Run aborted",
+          "ERROR    bluesky:run_engine.py:1767 Run aborted",
+          "ERROR    bluesky:run_engine.py:1759 Run aborted",
+          "ERROR    bluesky:run_engine.py:1759 Run aborted",
+          "ERROR    bluesky:run_engine.py:1759 Run aborted",
+          "ERROR    bluesky:run_engine.py:1759 Run aborted",
+          "ERROR    bluesky:run_engine.py:1767 Run aborted",
+          "ERROR    bluesky:run_engine.py:1767 Run aborted",
+          "ERROR    bluesky:run_engine.py:1474 Failed to stop SynAxis(prefix='', name='motor2', read_attrs=['readback', 'setpoint'], configuration_attrs=['velocity', 'acceleration']).",
+          "ERROR    bluesky:run_engine.py:1474 Failed to stop SynAxis(prefix='', name='motor2', read_attrs=['readback', 'setpoint'], configuration_attrs=['velocity', 'acceleration']).",
+          "ERROR    bluesky:run_engine.py:1474 Failed to stop SynAxis(prefix='', name='motor2', read_attrs=['readback', 'setpoint'], configuration_attrs=['velocity', 'acceleration']).",
+          "ERROR    bluesky:run_engine.py:1474 Failed to stop SynAxis(prefix='', name='motor2', read_attrs=['readback', 'setpoint'], configuration_attrs=['velocity', 'acceleration']).",
+          "ERROR    bluesky:run_engine.py:1474 Failed to stop SynAxis(prefix='', name='motor2', read_attrs=['readback', 'setpoint'], configuration_attrs=['velocity', 'acceleration']).",
+          "ERROR    bluesky:run_engine.py:1474 Failed to stop SynAxis(prefix='', name='motor2', read_attrs=['readback', 'setpoint'], configuration_attrs=['velocity', 'acceleration']).",
+          "ERROR    bluesky:run_engine.py:1474 Failed to stop SynAxis(prefix='', name='motor2', read_attrs=['readback', 'setpoint'], configuration_attrs=['velocity', 'acceleration']).",
+          "ERROR    bluesky:run_engine.py:1474 Failed to stop SynAxis(prefix='', name='motor2', read_attrs=['readback', 'setpoint'], configuration_attrs=['velocity', 'acceleration']).",
+          "ERROR    bluesky:run_engine.py:1767 Run aborted",
+          "ERROR    bluesky:run_engine.py:1767 Run aborted",
+          "ERROR    bluesky:run_engine.py:1767 Run aborted",
+          "ERROR    bluesky:run_engine.py:1767 Run aborted"
+        ],
+        "not_passing": [
+          "src/bluesky/tests/test_run_engine.py::test_descriptor_order[False]",
+          "src/bluesky/tests/test_run_engine.py::test_descriptor_order[True]"
+        ],
+        "not_passing_count": 2,
+        "output_tail": "-halt-abort]\nPASSED src/bluesky/tests/test_run_engine.py::test_exceptions_exit_status[False]\nPASSED src/bluesky/tests/test_run_engine.py::test_exceptions_exit_status[True]\nPASSED src/bluesky/tests/test_run_engine.py::test_plan_return[True]\nPASSED src/bluesky/tests/test_run_engine.py::test_plan_return_resume[True]\nPASSED src/bluesky/tests/test_run_engine.py::test_drop[False]\nPASSED src/bluesky/tests/test_run_engine.py::test_drop[True]\nPASSED src/bluesky/tests/test_run_engine.py::test_failing_describe_callback[False]\nPASSED src/bluesky/tests/test_run_engine.py::test_failing_describe_callback[True]\nPASSED src/bluesky/tests/test_run_engine.py::test_print_commands[False]\nPASSED src/bluesky/tests/test_run_engine.py::test_print_commands[True]\nPASSED src/bluesky/tests/test_run_engine.py::test_broken_read_exception[False]\nPASSED src/bluesky/tests/test_run_engine.py::test_broken_read_exception[True]\nPASSED src/bluesky/tests/test_run_engine.py::test_self_describe[False]\nPASSED src/bluesky/tests/test_run_engine.py::test_self_describe[True]\nPASSED src/bluesky/tests/test_run_engine.py::test_thread_name[False]\nPASSED src/bluesky/tests/test_run_engine.py::test_thread_name[True]\nPASSED src/bluesky/tests/test_run_engine.py::test_unsubscribe[False]\nPASSED src/bluesky/tests/test_run_engine.py::test_unsubscribe[True]\nPASSED src/bluesky/tests/test_run_engine.py::test_wait_with_timeout[False-True]\nPASSED src/bluesky/tests/test_run_engine.py::test_wait_with_timeout[False-False]\nPASSED src/bluesky/tests/test_run_engine.py::test_wait_with_timeout[True-True]\nPASSED src/bluesky/tests/test_run_engine.py::test_wait_with_timeout[True-False]\nPASSED src/bluesky/tests/test_run_engine.py::test_wait_with_planstub_coroutine[False]\nPASSED src/bluesky/tests/test_run_engine.py::test_wait_with_planstub_coroutine[True]\nPASSED src/bluesky/tests/test_run_engine.py::test_wait_with_planstub_status[False]\nPASSED src/bluesky/tests/test_run_engine.py::test_wait_with_planstub_status[True]\nPASSED src/bluesky/tests/test_run_engine.py::test_wait_with_planstub_timeout[False]\nPASSED src/bluesky/tests/test_run_engine.py::test_wait_with_planstub_timeout[True]\nPASSED src/bluesky/tests/test_run_engine.py::test_1event_rewind[False]\nPASSED src/bluesky/tests/test_run_engine.py::test_1event_rewind[True]\nPASSED src/bluesky/tests/test_run_engine.py::test_configure_multiple_descritpors[False]\nPASSED src/bluesky/tests/test_run_engine.py::test_configure_multiple_descritpors[True]\nPASSED src/bluesky/tests/test_run_engine.py::test_sync_scan_id_source[False]\nPASSED src/bluesky/tests/test_run_engine.py::test_sync_scan_id_source[True]\nPASSED src/bluesky/tests/test_run_engine.py::test_async_scan_id_source[False]\nPASSED src/bluesky/tests/test_run_engine.py::test_async_scan_id_source[True]\nSKIPPED [2] src/bluesky/tests/test_run_engine.py:789: hangs tests on exit\nSKIPPED [2] src/bluesky/tests/test_run_engine.py:1637: Databroker v2 still missing temp.\nSKIPPED [4] src/bluesky/tests/test_run_engine.py:1662: Databroker v2 still missing temp.\nSKIPPED [1] src/bluesky/tests/test_run_engine.py:1770: Skipped\nSKIPPED [1] src/bluesky/tests/test_run_engine.py:1784: Skipped\nFAILED src/bluesky/tests/test_run_engine.py::test_descriptor_order[False] - AssertionError: assert ['i1930_alpha', 'i1930_charlie', 'i1930_bravo'] == ['i1930_alpha', 'i1930_bravo', 'i1930_charlie']\n  \n  At index 1 diff: 'i1930_charlie' != 'i1930_bravo'\n  \n  Full diff:\n    [\n        'i1930_alpha',\n  +     'i1930_charlie',\n        'i1930_bravo',\n  -     'i1930_charlie',\n    ]\nFAILED src/bluesky/tests/test_run_engine.py::test_descriptor_order[True] - AssertionError: assert ['i1930_charlie', 'i1930_bravo', 'i1930_alpha'] == ['i1930_alpha', 'i1930_bravo', 'i1930_charlie']\n  \n  At index 0 diff: 'i1930_charlie' != 'i1930_alpha'\n  \n  Full diff:\n    [\n  +     'i1930_charlie',\n  +     'i1930_bravo',\n        'i1930_alpha',\n  -     'i1930_bravo',\n  -     'i1930_charlie',\n    ]\n================== 2 failed, 218 passed, 10 skipped in 36.70s ==================\n",
+        "passed": false
+      },
+      "rules_exits": [
+        0,
+        0
+      ],
+      "tests_exit": 0,
+      "tests_failing": [],
+      "tests_tail": "",
+      "verdict": "gap"
+    },
+    "3": {
+      "bad_files": [],
+      "claim": "Running `scan` with five detectors (`sixcsim_gamma`, `sixcsim_gamscrew`, `sixcsim_h`, `sixcsim_k`, `sixcsim_l`) and inspecting the column order used by `BestEffortCallback` (`hinted_fields`).\nThe fix orders `data_keys` in the descriptor but still builds `descriptor[\"object_keys\"]` from an unordered `frozenset`.\nBecause `BestEffortCallback` (`LiveTable` and `LivePlot`) gets its column order from `object_keys`, the displayed columns still come out in scrambled hash-set order.\nThe bug report specifically asks for predictable column order in `BestEffortCallback` (`LiveTable` and `LivePlot`), not just in `data_keys`.\n",
+      "example_on_baseline": "['sixcsim_h', 'sixcsim_gamscrew', 'sixcsim_l', 'sixcsim_gamma', 'sixcsim_k']",
+      "example_on_fix": "['sixcsim_h', 'sixcsim_k', 'sixcsim_l', 'sixcsim_gamscrew', 'sixcsim_gamma']",
+      "hidden": {
+        "exit": 0,
+        "fail_to_pass": 2,
+        "fail_to_pass_passed": 2,
+        "not_passing": [],
+        "not_passing_count": 0,
+        "passed": true
+      },
+      "rules_exits": [
+        0,
+        0
+      ],
+      "tests_exit": 0,
+      "tests_failing": [],
+      "tests_tail": "",
+      "verdict": "not_wrong"
+    }
+  }
+}

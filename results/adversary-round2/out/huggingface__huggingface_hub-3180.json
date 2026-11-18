@@ -1,0 +1,82 @@
+{
+  "baseline": {
+    "failing_tests": [],
+    "rules_exit": 1
+  },
+  "rules": "/home/user/emi-drafting/drafts2/huggingface__huggingface_hub-3180/checked",
+  "task": "huggingface__huggingface_hub-3180",
+  "tries": {
+    "1": {
+      "bad_files": [],
+      "claim": "When HF_ENDPOINT is set to https://hf-mirror.example.com and no explicit endpoint is passed, we parse a response whose xet-auth Link header gives the refresh route https://huggingface.co/api/models/HuggingFaceTB/SmolLM2-360M-Instruct/xet-read-token/cxx3xx.\nThis fix only falls back to the configured HF_ENDPOINT for the X-Xet-Refresh-Route header, so for the Link header it leaves the refresh route as 'https://huggingface.co/api/models/HuggingFaceTB/SmolLM2-360M-Instruct/xet-read-token/cxx3xx'.\nThe bug report means that any huggingface.co refresh route should use the configured HF_ENDPOINT, returning 'https://hf-mirror.example.com/api/models/HuggingFaceTB/SmolLM2-360M-Instruct/xet-read-token/cxx3xx'.\n",
+      "example_on_baseline": "'https://huggingface.co/api/models/HuggingFaceTB/SmolLM2-360M-Instruct/xet-read-token/cxx3xx'",
+      "example_on_fix": "'https://huggingface.co/api/models/HuggingFaceTB/SmolLM2-360M-Instruct/xet-read-token/cxx3xx'",
+      "hidden": {
+        "exit": 0,
+        "fail_to_pass": 2,
+        "fail_to_pass_passed": 2,
+        "not_passing": [],
+        "not_passing_count": 0,
+        "passed": true
+      },
+      "rules_exits": [
+        0,
+        0
+      ],
+      "tests_exit": 0,
+      "tests_failing": [],
+      "tests_tail": "",
+      "verdict": "not_wrong"
+    },
+    "2": {
+      "bad_files": [],
+      "claim": "When HF_ENDPOINT is set to https://hf-mirror.example.com, we parse a response whose X-Xet-Refresh-Route header is the write-token URL https://huggingface.co/api/models/HuggingFaceTB/SmolLM2-360M-Instruct/xet-write-token/cxx3xx.\nThis fix only rewrites refresh routes containing /xet-read-token/, so it leaves the write-token refresh route as 'https://huggingface.co/api/models/HuggingFaceTB/SmolLM2-360M-Instruct/xet-write-token/cxx3xx'.\nThe bug report means that any refresh route starting with https://huggingface.co/ should be rewritten to the endpoint, returning 'https://hf-mirror.example.com/api/models/HuggingFaceTB/SmolLM2-360M-Instruct/xet-write-token/cxx3xx'.\n",
+      "example_on_baseline": "'https://huggingface.co/api/models/HuggingFaceTB/SmolLM2-360M-Instruct/xet-write-token/cxx3xx'",
+      "example_on_fix": "'https://huggingface.co/api/models/HuggingFaceTB/SmolLM2-360M-Instruct/xet-write-token/cxx3xx'",
+      "hidden": {
+        "exit": 1,
+        "fail_to_pass": 2,
+        "fail_to_pass_passed": 1,
+        "failure_lines": [
+          "FAILED tests/test_xet_utils.py::test_parse_header_file_info_with_endpoint[https://huggingface.co/api/refresh-https://xet.example.com/api/refresh]"
+        ],
+        "not_passing": [
+          "tests/test_xet_utils.py::test_parse_header_file_info_with_endpoint[https://huggingface.co/api/refresh-https://xet.example.com/api/refresh]"
+        ],
+        "not_passing_count": 1,
+        "output_tail": "parse_header_file_info_with_endpoint[https://huggingface.co/api/refresh-https://xet.example.com/api/refresh] FAILED\ntests/test_xet_utils.py::test_parse_valid_headers_connection_info PASSED\ntests/test_xet_utils.py::test_parse_valid_headers_full PASSED\ntests/test_xet_utils.py::test_parse_missing_required_header[X-Xet-Cas-Url] PASSED\ntests/test_xet_utils.py::test_parse_missing_required_header[X-Xet-Access-Token] PASSED\ntests/test_xet_utils.py::test_parse_missing_required_header[X-Xet-Token-Expiration] PASSED\ntests/test_xet_utils.py::test_parse_invalid_expiration PASSED\ntests/test_xet_utils.py::test_refresh_metadata_success PASSED\ntests/test_xet_utils.py::test_refresh_metadata_custom_endpoint PASSED\ntests/test_xet_utils.py::test_refresh_metadata_missing_refresh_route PASSED\ntests/test_xet_utils.py::test_fetch_xet_metadata_with_url PASSED\ntests/test_xet_utils.py::test_fetch_xet_metadata_with_url_invalid_response PASSED\ntests/test_xet_utils.py::test_env_var_hf_hub_disable_xet PASSED\n\n=================================== FAILURES ===================================\n_ test_parse_header_file_info_with_endpoint[https://huggingface.co/api/refresh-https://xet.example.com/api/refresh] _\ntests/test_xet_utils.py:78: in test_parse_header_file_info_with_endpoint\n    assert file_data.refresh_route == expected_refresh_route\nE   AssertionError: assert 'https://hugg...o/api/refresh' == 'https://xet....m/api/refresh'\nE     \nE     - https://xet.example.com/api/refresh\nE     + https://huggingface.co/api/refresh\n==================================== PASSES ====================================\n============================== slowest durations ===============================\n0.17s setup    tests/test_xet_utils.py::test_parse_valid_headers_file_info\n\n(50 durations < 0.005s hidden.  Use -vv to show these durations.)\n=========================== short test summary info ============================\nPASSED tests/test_xet_utils.py::test_parse_valid_headers_file_info\nPASSED tests/test_xet_utils.py::test_parse_valid_headers_file_info_with_link\nPASSED tests/test_xet_utils.py::test_parse_invalid_headers_file_info\nPASSED tests/test_xet_utils.py::test_parse_header_file_info_with_endpoint[/api/refresh-/api/refresh]\nPASSED tests/test_xet_utils.py::test_parse_valid_headers_connection_info\nPASSED tests/test_xet_utils.py::test_parse_valid_headers_full\nPASSED tests/test_xet_utils.py::test_parse_missing_required_header[X-Xet-Cas-Url]\nPASSED tests/test_xet_utils.py::test_parse_missing_required_header[X-Xet-Access-Token]\nPASSED tests/test_xet_utils.py::test_parse_missing_required_header[X-Xet-Token-Expiration]\nPASSED tests/test_xet_utils.py::test_parse_invalid_expiration\nPASSED tests/test_xet_utils.py::test_refresh_metadata_success\nPASSED tests/test_xet_utils.py::test_refresh_metadata_custom_endpoint\nPASSED tests/test_xet_utils.py::test_refresh_metadata_missing_refresh_route\nPASSED tests/test_xet_utils.py::test_fetch_xet_metadata_with_url\nPASSED tests/test_xet_utils.py::test_fetch_xet_metadata_with_url_invalid_response\nPASSED tests/test_xet_utils.py::test_env_var_hf_hub_disable_xet\nFAILED tests/test_xet_utils.py::test_parse_header_file_info_with_endpoint[https://huggingface.co/api/refresh-https://xet.example.com/api/refresh]\n========================= 1 failed, 16 passed in 0.43s =========================\n/home/user/emi-pilot/.cache/envs/huggingface__huggingface_hub-3180/venv/lib/python3.10/site-packages/pytest_asyncio/plugin.py:247: PytestDeprecationWarning: The configuration option \"asyncio_default_fixture_loop_scope\" is unset.\nThe event loop scope for asynchronous fixtures will default to the fixture caching scope. Future versions of pytest-asyncio will default the loop scope for asynchronous fixtures to function scope. Set the default fixture loop scope explicitly in order to avoid unexpected behavior in the future. Valid fixture loop scopes are: \"function\", \"class\", \"module\", \"package\", \"session\"\n\n  warnings.warn(PytestDeprecationWarning(_DEFAULT_FIXTURE_LOOP_SCOPE_UNSET))\n",
+        "passed": false
+      },
+      "rules_exits": [
+        0,
+        0
+      ],
+      "tests_exit": 0,
+      "tests_failing": [],
+      "tests_tail": "",
+      "verdict": "gap"
+    },
+    "3": {
+      "bad_files": [],
+      "claim": "When HF_ENDPOINT is set to https://hf-mirror.example.com, we parse a response whose X-Xet-Refresh-Route header is for version tag v1.0: https://huggingface.co/api/models/HuggingFaceTB/SmolLM2-360M-Instruct/xet-read-token/v1.0.\nThis fix skips rewriting refresh routes whose trailing revision segment contains a dot, returning 'https://huggingface.co/api/models/HuggingFaceTB/SmolLM2-360M-Instruct/xet-read-token/v1.0'.\nThe bug report means that any refresh route starting with https://huggingface.co/ should be rewritten to the endpoint regardless of the revision name, returning 'https://hf-mirror.example.com/api/models/HuggingFaceTB/SmolLM2-360M-Instruct/xet-read-token/v1.0'.\n",
+      "example_on_baseline": "'https://huggingface.co/api/models/HuggingFaceTB/SmolLM2-360M-Instruct/xet-read-token/v1.0'",
+      "example_on_fix": "'https://huggingface.co/api/models/HuggingFaceTB/SmolLM2-360M-Instruct/xet-read-token/v1.0'",
+      "hidden": {
+        "exit": 0,
+        "fail_to_pass": 2,
+        "fail_to_pass_passed": 2,
+        "not_passing": [],
+        "not_passing_count": 0,
+        "passed": true
+      },
+      "rules_exits": [
+        0,
+        0
+      ],
+      "tests_exit": 0,
+      "tests_failing": [],
+      "tests_tail": "",
+      "verdict": "not_wrong"
+    }
+  }
+}

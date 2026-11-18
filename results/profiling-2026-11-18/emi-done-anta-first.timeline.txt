@@ -1,0 +1,17 @@
+wall 36.8 s, 367 processes
+what                             n   total s  median s    max s
+emi                              1      36.8     36.84    36.84
+python pytest run                9      16.8      1.89     2.13
+python pytest listing            4       7.8      1.94     2.22
+python coverage run              1       5.4      5.42     5.42
+python other                     6       5.3      0.47     2.41
+git -C                         165       1.0      0.00     0.05
+gcc                             28       0.5      0.01     0.29
+collect2                        28       0.4      0.01     0.29
+ld                              56       0.4      0.00     0.21
+ldconfig.real                   42       0.1      0.00     0.00
+uname                           14       0.0      0.00     0.00
+
+some python process running: 30.1 s of 36.8 s (82%)
+some git process running:    1.0 s
+python process-seconds 35.3: 1.17 at once on average while any runs

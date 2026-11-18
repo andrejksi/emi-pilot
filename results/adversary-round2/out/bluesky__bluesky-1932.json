@@ -1,0 +1,62 @@
+{
+  "baseline": {
+    "failing_tests": [],
+    "rules_exit": 1
+  },
+  "rules": "/home/user/emi-drafting/drafts2/bluesky__bluesky-1932/checked",
+  "task": "bluesky__bluesky-1932",
+  "tries": {
+    "1": {
+      "bad_files": [],
+      "claim": "When scan is given the detectors sixcsim_gamma, sixcsim_gamscrew, sixcsim_h, sixcsim_k, and sixcsim_l in that order while scanning the motor sixcsim_gamscrew (as in the bug report's example), the scanned motor is also one of the detectors.\nThis fix places the scanned motor before the detectors when taking a reading, so the emitted descriptor lists the detector keys as ['sixcsim_gamscrew', 'sixcsim_gamma', 'sixcsim_h', 'sixcsim_k', 'sixcsim_l'].\nThe bug report means that the detector keys in the emitted descriptor and event documents should follow the order of the detectors supplied to scan, which is ['sixcsim_gamma', 'sixcsim_gamscrew', 'sixcsim_h', 'sixcsim_k', 'sixcsim_l'].\n",
+      "example_on_baseline": "['sixcsim_gamma', 'sixcsim_gamscrew', 'sixcsim_k', 'sixcsim_l', 'sixcsim_h']",
+      "example_on_fix": "['sixcsim_gamscrew', 'sixcsim_gamma', 'sixcsim_h', 'sixcsim_k', 'sixcsim_l']",
+      "hidden": {
+        "exit": 1,
+        "fail_to_pass": 2,
+        "fail_to_pass_passed": 0,
+        "failure_lines": [
+          "ERROR    bluesky:run_engine.py:1767 Run aborted",
+          "ERROR    bluesky:run_engine.py:1767 Run aborted",
+          "ERROR    bluesky:run_engine.py:1759 Run aborted",
+          "ERROR    bluesky:run_engine.py:1759 Run aborted",
+          "ERROR    bluesky:run_engine.py:1759 Run aborted",
+          "ERROR    bluesky:run_engine.py:1759 Run aborted",
+          "ERROR    bluesky:run_engine.py:1767 Run aborted",
+          "ERROR    bluesky:run_engine.py:1767 Run aborted",
+          "ERROR    bluesky:run_engine.py:1474 Failed to stop SynAxis(prefix='', name='motor2', read_attrs=['readback', 'setpoint'], configuration_attrs=['velocity', 'acceleration']).",
+          "ERROR    bluesky:run_engine.py:1474 Failed to stop SynAxis(prefix='', name='motor2', read_attrs=['readback', 'setpoint'], configuration_attrs=['velocity', 'acceleration']).",
+          "ERROR    bluesky:run_engine.py:1474 Failed to stop SynAxis(prefix='', name='motor2', read_attrs=['readback', 'setpoint'], configuration_attrs=['velocity', 'acceleration']).",
+          "ERROR    bluesky:run_engine.py:1474 Failed to stop SynAxis(prefix='', name='motor2', read_attrs=['readback', 'setpoint'], configuration_attrs=['velocity', 'acceleration']).",
+          "ERROR    bluesky:run_engine.py:1474 Failed to stop SynAxis(prefix='', name='motor2', read_attrs=['readback', 'setpoint'], configuration_attrs=['velocity', 'acceleration']).",
+          "ERROR    bluesky:run_engine.py:1474 Failed to stop SynAxis(prefix='', name='motor2', read_attrs=['readback', 'setpoint'], configuration_attrs=['velocity', 'acceleration']).",
+          "ERROR    bluesky:run_engine.py:1474 Failed to stop SynAxis(prefix='', name='motor2', read_attrs=['readback', 'setpoint'], configuration_attrs=['velocity', 'acceleration']).",
+          "ERROR    bluesky:run_engine.py:1474 Failed to stop SynAxis(prefix='', name='motor2', read_attrs=['readback', 'setpoint'], configuration_attrs=['velocity', 'acceleration']).",
+          "ERROR    bluesky:run_engine.py:1767 Run aborted",
+          "ERROR    bluesky:run_engine.py:1767 Run aborted",
+          "ERROR    bluesky:run_engine.py:1767 Run aborted",
+          "ERROR    bluesky:run_engine.py:1767 Run aborted"
+        ],
+        "not_passing": [
+          "src/bluesky/tests/test_run_engine.py::test_descriptor_order[False]",
+          "src/bluesky/tests/test_run_engine.py::test_descriptor_order[True]"
+        ],
+        "not_passing_count": 2,
+        "output_tail": "e_stop_exit_status[True-halt-abort]\nPASSED src/bluesky/tests/test_run_engine.py::test_exceptions_exit_status[False]\nPASSED src/bluesky/tests/test_run_engine.py::test_exceptions_exit_status[True]\nPASSED src/bluesky/tests/test_run_engine.py::test_plan_return[True]\nPASSED src/bluesky/tests/test_run_engine.py::test_plan_return_resume[True]\nPASSED src/bluesky/tests/test_run_engine.py::test_drop[False]\nPASSED src/bluesky/tests/test_run_engine.py::test_drop[True]\nPASSED src/bluesky/tests/test_run_engine.py::test_failing_describe_callback[False]\nPASSED src/bluesky/tests/test_run_engine.py::test_failing_describe_callback[True]\nPASSED src/bluesky/tests/test_run_engine.py::test_print_commands[False]\nPASSED src/bluesky/tests/test_run_engine.py::test_print_commands[True]\nPASSED src/bluesky/tests/test_run_engine.py::test_broken_read_exception[False]\nPASSED src/bluesky/tests/test_run_engine.py::test_broken_read_exception[True]\nPASSED src/bluesky/tests/test_run_engine.py::test_self_describe[False]\nPASSED src/bluesky/tests/test_run_engine.py::test_self_describe[True]\nPASSED src/bluesky/tests/test_run_engine.py::test_thread_name[False]\nPASSED src/bluesky/tests/test_run_engine.py::test_thread_name[True]\nPASSED src/bluesky/tests/test_run_engine.py::test_unsubscribe[False]\nPASSED src/bluesky/tests/test_run_engine.py::test_unsubscribe[True]\nPASSED src/bluesky/tests/test_run_engine.py::test_wait_with_timeout[False-True]\nPASSED src/bluesky/tests/test_run_engine.py::test_wait_with_timeout[False-False]\nPASSED src/bluesky/tests/test_run_engine.py::test_wait_with_timeout[True-True]\nPASSED src/bluesky/tests/test_run_engine.py::test_wait_with_timeout[True-False]\nPASSED src/bluesky/tests/test_run_engine.py::test_wait_with_planstub_coroutine[False]\nPASSED src/bluesky/tests/test_run_engine.py::test_wait_with_planstub_coroutine[True]\nPASSED src/bluesky/tests/test_run_engine.py::test_wait_with_planstub_status[False]\nPASSED src/bluesky/tests/test_run_engine.py::test_wait_with_planstub_status[True]\nPASSED src/bluesky/tests/test_run_engine.py::test_wait_with_planstub_timeout[False]\nPASSED src/bluesky/tests/test_run_engine.py::test_wait_with_planstub_timeout[True]\nPASSED src/bluesky/tests/test_run_engine.py::test_1event_rewind[False]\nPASSED src/bluesky/tests/test_run_engine.py::test_1event_rewind[True]\nPASSED src/bluesky/tests/test_run_engine.py::test_configure_multiple_descritpors[False]\nPASSED src/bluesky/tests/test_run_engine.py::test_configure_multiple_descritpors[True]\nPASSED src/bluesky/tests/test_run_engine.py::test_sync_scan_id_source[False]\nPASSED src/bluesky/tests/test_run_engine.py::test_sync_scan_id_source[True]\nPASSED src/bluesky/tests/test_run_engine.py::test_async_scan_id_source[False]\nPASSED src/bluesky/tests/test_run_engine.py::test_async_scan_id_source[True]\nSKIPPED [2] src/bluesky/tests/test_run_engine.py:789: hangs tests on exit\nSKIPPED [2] src/bluesky/tests/test_run_engine.py:1637: Databroker v2 still missing temp.\nSKIPPED [4] src/bluesky/tests/test_run_engine.py:1662: Databroker v2 still missing temp.\nSKIPPED [1] src/bluesky/tests/test_run_engine.py:1770: Skipped\nSKIPPED [1] src/bluesky/tests/test_run_engine.py:1784: Skipped\nFAILED src/bluesky/tests/test_run_engine.py::test_descriptor_order[False] - AssertionError: assert ['i1930_charlie', 'i1930_alpha', 'i1930_bravo'] == ['i1930_alpha', 'i1930_bravo', 'i1930_charlie']\n  \n  At index 0 diff: 'i1930_charlie' != 'i1930_alpha'\n  \n  Full diff:\n    [\n  +     'i1930_charlie',\n        'i1930_alpha',\n        'i1930_bravo',\n  -     'i1930_charlie',\n    ]\nFAILED src/bluesky/tests/test_run_engine.py::test_descriptor_order[True] - AssertionError: assert ['i1930_charlie', 'i1930_alpha', 'i1930_bravo'] == ['i1930_alpha', 'i1930_bravo', 'i1930_charlie']\n  \n  At index 0 diff: 'i1930_charlie' != 'i1930_alpha'\n  \n  Full diff:\n    [\n  +     'i1930_charlie',\n        'i1930_alpha',\n        'i1930_bravo',\n  -     'i1930_charlie',\n    ]\n================== 2 failed, 218 passed, 10 skipped in 36.30s ==================\n",
+        "passed": false
+      },
+      "rules_exits": [
+        0,
+        0
+      ],
+      "tests_exit": 0,
+      "tests_failing": [],
+      "tests_tail": "",
+      "verdict": "gap"
+    },
+    "2": {
+      "problem": "neither fix.diff nor none.md",
+      "verdict": "invalid"
+    }
+  }
+}

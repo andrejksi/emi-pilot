@@ -1,0 +1,76 @@
+{
+  "baseline": {
+    "failing_tests": [],
+    "rules_exit": 1
+  },
+  "rules": "/home/user/emi-drafting/drafts/meltano__sdk-3091/checked",
+  "task": "meltano__sdk-3091",
+  "tries": {
+    "1": {
+      "bad_files": [],
+      "claim": "When two properties (\"home_address\" and \"work_address\") share the same reference\n\"components#/schemas/Address\", the fix only exempts the exact reference name\n\"components#/schemas/ComputeUnit\" from the visited check, so \"work_address\"\nstill resolves to an empty object `{}`. The bug report expects any shared\nreference name to resolve for every property that uses it.\n",
+      "example_on_baseline": "{'type': 'object', 'properties': {'home_address': {'type': 'string'}, 'work_address': {}}}",
+      "example_on_fix": "{'type': 'object', 'properties': {'home_address': {'type': 'string'}, 'work_address': {}}}",
+      "hidden": {
+        "exit": 0,
+        "fail_to_pass": 1,
+        "fail_to_pass_passed": 1,
+        "not_passing": [],
+        "not_passing_count": 0,
+        "passed": true
+      },
+      "rules_exits": [
+        0,
+        0
+      ],
+      "tests_exit": 0,
+      "tests_failing": [],
+      "tests_tail": "",
+      "verdict": "not_wrong"
+    },
+    "2": {
+      "bad_files": [],
+      "claim": "When a schema uses the same reference in two entries of `patternProperties`\n(\"^min_\" and \"^max_\"), or in `anyOf`/`oneOf`/`allOf` or a `properties` sibling\nalongside `items`/`patternProperties`, this fix only isolates visited\nreferences inside `properties`, so \"^max_\" still resolves to an empty `{}`.\nThe bug report expects shared references across any schema branches to resolve.\n",
+      "example_on_baseline": "{'type': 'object', 'patternProperties': {'^min_': {'type': 'number'}, '^max_': {}}}",
+      "example_on_fix": "{'type': 'object', 'patternProperties': {'^min_': {'type': 'number'}, '^max_': {}}}",
+      "hidden": {
+        "exit": 0,
+        "fail_to_pass": 1,
+        "fail_to_pass_passed": 1,
+        "not_passing": [],
+        "not_passing_count": 0,
+        "passed": true
+      },
+      "rules_exits": [
+        0,
+        0
+      ],
+      "tests_exit": 0,
+      "tests_failing": [],
+      "tests_tail": "",
+      "verdict": "not_wrong"
+    },
+    "3": {
+      "bad_files": [],
+      "claim": "When a schema contains a circular reference other than the hardcoded\n\"components#/schemas/Filter\" (here, a linked-list \"Node\" referencing itself),\nthis fix disables cycle detection for all other references, causing infinite\nrecursion (`RecursionError`). A proper fix must preserve cycle detection along\neach branch while allowing non-circular shared references across sibling paths.\n",
+      "example_on_baseline": "{'type': 'object', 'properties': {'node': {'type': 'object', 'properties': {'value': {'type': 'string'}, 'next': {}}}}}",
+      "example_on_fix": "'RecursionError: maximum recursion depth exceeded while calling a Python object'",
+      "hidden": {
+        "exit": 0,
+        "fail_to_pass": 1,
+        "fail_to_pass_passed": 1,
+        "not_passing": [],
+        "not_passing_count": 0,
+        "passed": true
+      },
+      "rules_exits": [
+        0,
+        0
+      ],
+      "tests_exit": 0,
+      "tests_failing": [],
+      "tests_tail": "",
+      "verdict": "not_wrong"
+    }
+  }
+}

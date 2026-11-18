@@ -1,0 +1,13 @@
+{
+  "_what": "For each question (emi-drafting adversary/<task>/<try>/question.md), the answer the fix gives: read off its 'With this fix' line against its 'Question' line. A person's answer that differs from this marks the fix wrong; one that matches marks it fine.",
+  "anta-1": "no", "anta-2": "yes", "anta-3": "yes",
+  "bluesky-1": "no", "bluesky-2": "no", "bluesky-3": "no",
+  "conan-1": "no", "conan-2": "no", "conan-3": "no",
+  "eodag-1": "no", "eodag-2": "no", "eodag-3": "no",
+  "huggingface_hub-1": "no", "huggingface_hub-2": "no", "huggingface_hub-3": "no",
+  "markdownify-1": "no", "markdownify-2": "no", "markdownify-3": "no",
+  "meltano-1": "no", "meltano-2": "no", "meltano-3": "no",
+  "more-itertools-1": "no", "more-itertools-2": "no", "more-itertools-3": "no",
+  "narwhals-1": "no", "narwhals-2": "no", "narwhals-3": "no",
+  "trino-1": "no", "trino-2": "no", "trino-3": "no"
+}

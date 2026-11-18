@@ -1,0 +1,105 @@
+{
+  "baseline": {
+    "failing_tests": [
+      "tests/units/test_download_plugins.py::TestDownloadPluginBase::test_plugins_download_base_prepare_download_dir_permission"
+    ],
+    "rules_exit": 1
+  },
+  "rules": "/home/user/emi-drafting/drafts/cs-si__eodag-1717/last",
+  "task": "cs-si__eodag-1717",
+  "tries": {
+    "1": {
+      "bad_files": [],
+      "claim": "Input: Downloading the same cop_dataspace zip product twice with extract=False into the same folder.\nFix behavior: Because the fix only checks for an existing .zip file when the provider is \"geodes\", it skips the cache check for cop_dataspace and downloads the file from the server a second time (2 requests instead of 1).\nExpected behavior: EODAG should detect that the downloaded product file already exists locally for any HTTP provider, not just geodes, and skip the second download.\n",
+      "example_on_baseline": "{'requests_made': 2, 'same_path': True}",
+      "example_on_fix": "{'requests_made': 2, 'same_path': True}",
+      "hidden": {
+        "exit": 1,
+        "fail_to_pass": 1,
+        "fail_to_pass_passed": 0,
+        "failure_lines": [
+          "ERROR    eodag.download.http:http.py:1318 Unexpected error at download of asset http://somewhere/something:",
+          "ERROR    eodag.download.http:http.py:1318 Unexpected error at download of asset http://somewhere/something:",
+          "FAILED tests/units/test_download_plugins.py::TestDownloadPluginBase::test_plugins_download_base_prepare_download_dir_permission",
+          "FAILED tests/units/test_download_plugins.py::TestDownloadPluginBase::test_plugins_download_base_prepare_download_record_file"
+        ],
+        "not_passing": [
+          "tests/units/test_download_plugins.py::TestDownloadPluginBase::test_plugins_download_base_prepare_download_record_file"
+        ],
+        "not_passing_count": 1,
+        "output_tail": "zip_extension_ok\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginHttp::test_plugins_download_http_one_local_asset\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginHttp::test_plugins_download_http_order_download_cop_ads\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginHttp::test_plugins_download_http_order_get\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginHttp::test_plugins_download_http_order_get_raises_if_request_400\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginHttp::test_plugins_download_http_order_get_raises_if_request_500\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginHttp::test_plugins_download_http_order_post\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginHttp::test_plugins_download_http_order_status\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginHttp::test_plugins_download_http_order_status_get_raises_if_request_400\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginHttp::test_plugins_download_http_order_status_get_raises_if_request_500\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginHttp::test_plugins_download_http_order_status_search_again\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginHttp::test_plugins_download_http_order_status_search_again_raises_if_request_failed\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginHttp::test_plugins_download_http_several_local_assets\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginHttp::test_plugins_download_http_zip_file_ok\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginHttpRetry::test_plugins_download_http_retry_error_timeout\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginHttpRetry::test_plugins_download_http_retry_notready_timeout\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginHttpRetry::test_plugins_download_http_retry_ok\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginHttpRetry::test_plugins_download_http_retry_once_timeout\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginHttpRetry::test_plugins_download_http_retry_short_timeout\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginHttpRetry::test_plugins_download_http_retry_timeout_disabled\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginAws::test_plugins_download_aws_get_bucket_prefix\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginAws::test_plugins_download_aws_get_rio_env\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginAws::test_plugins_download_aws_in_zip\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginAws::test_plugins_download_aws_no_matching_product_type\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginAws::test_plugins_download_aws_no_safe_build_flatten_top_dirs\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginAws::test_plugins_download_aws_no_safe_build_no_flatten_top_dirs\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginAws::test_plugins_download_aws_safe_build\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginAws::test_plugins_download_aws_safe_build_assets\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginS3Rest::test_plugins_download_s3rest_offline\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginS3Rest::test_plugins_download_s3rest_online\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginCreodiasS3::test_plugins_download_creodias_s3\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginCreodiasS3::test_plugins_download_creodias_s3_without_assets\nFAILED tests/units/test_download_plugins.py::TestDownloadPluginBase::test_plugins_download_base_prepare_download_dir_permission\nFAILED tests/units/test_download_plugins.py::TestDownloadPluginBase::test_plugins_download_base_prepare_download_record_file\n========================= 2 failed, 47 passed in 3.48s =========================\n",
+        "passed": false
+      },
+      "rules_exits": [
+        0,
+        0
+      ],
+      "tests_exit": 0,
+      "tests_failing": [],
+      "tests_tail": "",
+      "verdict": "gap"
+    },
+    "2": {
+      "bad_files": [],
+      "claim": "Input: Downloading the same .tar.gz product twice with extract=False into the same folder.\nFix behavior: Because the fix only checks for an existing \".zip\" file when extract is False, it misses the \".gz\" archive on disk, deletes the download record, and downloads the product from the server a second time.\nExpected behavior: EODAG should detect that the downloaded product file already exists locally regardless of archive extension (such as .tar.gz or .gz) or whether extract is configured via plugin config vs kwargs, and skip the second download.\n",
+      "example_on_baseline": "{'requests_made': 2, 'first': '/tmp/tmp5xqqb1us/S2A_MSIL1C_20231006T102911_N0510_R108_T31TFK_20241102T002017.gz', 'second': '/tmp/tmp5xqqb1us/S2A_MSIL1C_20231006T102911_N0510_R108_T31TFK_20241102T002017.gz'}",
+      "example_on_fix": "{'requests_made': 2, 'first': '/tmp/tmpmaor47zn/S2A_MSIL1C_20231006T102911_N0510_R108_T31TFK_20241102T002017.gz', 'second': '/tmp/tmpmaor47zn/S2A_MSIL1C_20231006T102911_N0510_R108_T31TFK_20241102T002017.gz'}",
+      "hidden": {
+        "exit": 1,
+        "fail_to_pass": 1,
+        "fail_to_pass_passed": 0,
+        "failure_lines": [
+          "ERROR    eodag.download.http:http.py:1318 Unexpected error at download of asset http://somewhere/something:",
+          "ERROR    eodag.download.http:http.py:1318 Unexpected error at download of asset http://somewhere/something:",
+          "FAILED tests/units/test_download_plugins.py::TestDownloadPluginBase::test_plugins_download_base_prepare_download_dir_permission",
+          "FAILED tests/units/test_download_plugins.py::TestDownloadPluginBase::test_plugins_download_base_prepare_download_record_file"
+        ],
+        "not_passing": [
+          "tests/units/test_download_plugins.py::TestDownloadPluginBase::test_plugins_download_base_prepare_download_record_file"
+        ],
+        "not_passing_count": 1,
+        "output_tail": "zip_extension_ok\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginHttp::test_plugins_download_http_one_local_asset\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginHttp::test_plugins_download_http_order_download_cop_ads\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginHttp::test_plugins_download_http_order_get\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginHttp::test_plugins_download_http_order_get_raises_if_request_400\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginHttp::test_plugins_download_http_order_get_raises_if_request_500\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginHttp::test_plugins_download_http_order_post\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginHttp::test_plugins_download_http_order_status\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginHttp::test_plugins_download_http_order_status_get_raises_if_request_400\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginHttp::test_plugins_download_http_order_status_get_raises_if_request_500\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginHttp::test_plugins_download_http_order_status_search_again\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginHttp::test_plugins_download_http_order_status_search_again_raises_if_request_failed\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginHttp::test_plugins_download_http_several_local_assets\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginHttp::test_plugins_download_http_zip_file_ok\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginHttpRetry::test_plugins_download_http_retry_error_timeout\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginHttpRetry::test_plugins_download_http_retry_notready_timeout\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginHttpRetry::test_plugins_download_http_retry_ok\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginHttpRetry::test_plugins_download_http_retry_once_timeout\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginHttpRetry::test_plugins_download_http_retry_short_timeout\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginHttpRetry::test_plugins_download_http_retry_timeout_disabled\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginAws::test_plugins_download_aws_get_bucket_prefix\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginAws::test_plugins_download_aws_get_rio_env\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginAws::test_plugins_download_aws_in_zip\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginAws::test_plugins_download_aws_no_matching_product_type\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginAws::test_plugins_download_aws_no_safe_build_flatten_top_dirs\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginAws::test_plugins_download_aws_no_safe_build_no_flatten_top_dirs\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginAws::test_plugins_download_aws_safe_build\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginAws::test_plugins_download_aws_safe_build_assets\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginS3Rest::test_plugins_download_s3rest_offline\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginS3Rest::test_plugins_download_s3rest_online\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginCreodiasS3::test_plugins_download_creodias_s3\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginCreodiasS3::test_plugins_download_creodias_s3_without_assets\nFAILED tests/units/test_download_plugins.py::TestDownloadPluginBase::test_plugins_download_base_prepare_download_dir_permission\nFAILED tests/units/test_download_plugins.py::TestDownloadPluginBase::test_plugins_download_base_prepare_download_record_file\n========================= 2 failed, 47 passed in 3.28s =========================\n",
+        "passed": false
+      },
+      "rules_exits": [
+        0,
+        0
+      ],
+      "tests_exit": 0,
+      "tests_failing": [],
+      "tests_tail": "",
+      "verdict": "gap"
+    },
+    "3": {
+      "bad_files": [],
+      "claim": "Input: Downloading the same geodes product with extract=False into the same folder from two consecutive gateway/plugin instances (as in two separate script runs).\nFix behavior: Because the fix remembers the downloaded .zip path only in memory on the first download plugin instance, the second instance does not see it, removes the record file, and downloads the product from the server again (2 requests).\nExpected behavior: Two consecutive executions should detect the already-downloaded file on disk via the .downloaded record and skip the second download.\n",
+      "example_on_baseline": "{'requests_made': 2, 'same_path': True}",
+      "example_on_fix": "{'requests_made': 2, 'same_path': True}",
+      "hidden": {
+        "exit": 1,
+        "fail_to_pass": 1,
+        "fail_to_pass_passed": 0,
+        "failure_lines": [
+          "ERROR    eodag.download.http:http.py:1321 Unexpected error at download of asset http://somewhere/something:",
+          "ERROR    eodag.download.http:http.py:1321 Unexpected error at download of asset http://somewhere/something:",
+          "FAILED tests/units/test_download_plugins.py::TestDownloadPluginBase::test_plugins_download_base_prepare_download_dir_permission",
+          "FAILED tests/units/test_download_plugins.py::TestDownloadPluginBase::test_plugins_download_base_prepare_download_record_file"
+        ],
+        "not_passing": [
+          "tests/units/test_download_plugins.py::TestDownloadPluginBase::test_plugins_download_base_prepare_download_record_file"
+        ],
+        "not_passing_count": 1,
+        "output_tail": "zip_extension_ok\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginHttp::test_plugins_download_http_one_local_asset\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginHttp::test_plugins_download_http_order_download_cop_ads\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginHttp::test_plugins_download_http_order_get\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginHttp::test_plugins_download_http_order_get_raises_if_request_400\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginHttp::test_plugins_download_http_order_get_raises_if_request_500\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginHttp::test_plugins_download_http_order_post\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginHttp::test_plugins_download_http_order_status\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginHttp::test_plugins_download_http_order_status_get_raises_if_request_400\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginHttp::test_plugins_download_http_order_status_get_raises_if_request_500\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginHttp::test_plugins_download_http_order_status_search_again\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginHttp::test_plugins_download_http_order_status_search_again_raises_if_request_failed\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginHttp::test_plugins_download_http_several_local_assets\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginHttp::test_plugins_download_http_zip_file_ok\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginHttpRetry::test_plugins_download_http_retry_error_timeout\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginHttpRetry::test_plugins_download_http_retry_notready_timeout\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginHttpRetry::test_plugins_download_http_retry_ok\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginHttpRetry::test_plugins_download_http_retry_once_timeout\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginHttpRetry::test_plugins_download_http_retry_short_timeout\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginHttpRetry::test_plugins_download_http_retry_timeout_disabled\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginAws::test_plugins_download_aws_get_bucket_prefix\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginAws::test_plugins_download_aws_get_rio_env\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginAws::test_plugins_download_aws_in_zip\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginAws::test_plugins_download_aws_no_matching_product_type\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginAws::test_plugins_download_aws_no_safe_build_flatten_top_dirs\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginAws::test_plugins_download_aws_no_safe_build_no_flatten_top_dirs\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginAws::test_plugins_download_aws_safe_build\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginAws::test_plugins_download_aws_safe_build_assets\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginS3Rest::test_plugins_download_s3rest_offline\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginS3Rest::test_plugins_download_s3rest_online\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginCreodiasS3::test_plugins_download_creodias_s3\nPASSED tests/units/test_download_plugins.py::TestDownloadPluginCreodiasS3::test_plugins_download_creodias_s3_without_assets\nFAILED tests/units/test_download_plugins.py::TestDownloadPluginBase::test_plugins_download_base_prepare_download_dir_permission\nFAILED tests/units/test_download_plugins.py::TestDownloadPluginBase::test_plugins_download_base_prepare_download_record_file\n========================= 2 failed, 47 passed in 3.27s =========================\n",
+        "passed": false
+      },
+      "rules_exits": [
+        0,
+        0
+      ],
+      "tests_exit": 0,
+      "tests_failing": [],
+      "tests_tail": "",
+      "verdict": "gap"
+    }
+  }
+}
