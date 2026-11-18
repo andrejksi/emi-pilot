@@ -1,0 +1,109 @@
+{
+ "written": "from the adversary's claim.md only, before the hidden tests' results were read (PREREG measure 5)",
+ "missing_tasks": [
+  "aristanetworks__anta-1250",
+  "meltano__sdk-3091"
+ ],
+ "kinds": {
+  "bluesky__bluesky-1932": {
+   "1": {
+    "kind": "other",
+    "why": "the scanned motor is also a detector, a case the drafter left open on purpose"
+   },
+   "2": {
+    "kind": "incomplete",
+    "why": "example only, no fix.diff"
+   }
+  },
+  "conan-io__conan-18444": {
+   "1": {
+    "kind": "C5",
+    "why": "a path with a space, which the drafter left open"
+   },
+   "2": {
+    "kind": "C2",
+    "why": "a remote with a separate push URL"
+   },
+   "3": {
+    "kind": "C5",
+    "why": "an IPv6 host in brackets"
+   }
+  },
+  "cs-si__eodag-1717": {
+   "1": {
+    "kind": "C2",
+    "why": "only one product type checked"
+   },
+   "2": {
+    "kind": "C1",
+    "why": "outside what a many-input rule generates: an id that differs from the title"
+   },
+   "3": {
+    "kind": "C5",
+    "why": "a title ending in .SAFE"
+   }
+  },
+  "huggingface__huggingface_hub-3180": {
+   "1": {
+    "kind": "C2",
+    "why": "only one of the two headers"
+   },
+   "2": {
+    "kind": "C2",
+    "why": "read-token routes only, not write-token"
+   },
+   "3": {
+    "kind": "C1",
+    "why": "outside what a many-input rule generates: a revision with a dot"
+   }
+  },
+  "matthewwithanm__python-markdownify-230": {
+   "1": {
+    "kind": "C2",
+    "why": "code inside a div, not only top level or a paragraph"
+   },
+   "2": {
+    "kind": "C1",
+    "why": "outside what a many-input rule generates: a second code span"
+   },
+   "3": {
+    "kind": "incomplete",
+    "why": "example only, no fix.diff"
+   }
+  },
+  "more-itertools__more-itertools-1028": {
+   "1": {
+    "kind": "other",
+    "why": "wrong on a non-empty mapping with a default"
+   },
+   "2": {
+    "kind": "C2",
+    "why": "a mapping that can be iterated only once"
+   },
+   "3": {
+    "kind": "C2",
+    "why": "a mapping-like object with reversal disabled"
+   }
+  },
+  "narwhals-dev__narwhals-2864": {
+   "1": {
+    "kind": "C2",
+    "why": "a string series, not an integer one"
+   },
+   "2": {
+    "kind": "C1",
+    "why": "outside what a many-input rule generates: values beyond +-1000"
+   },
+   "3": {
+    "kind": "C1",
+    "why": "outside what a many-input rule generates: a series longer than 12"
+   }
+  },
+  "trinodb__trino-python-client-564": {
+   "1": {
+    "kind": "incomplete",
+    "why": "example only, no fix.diff"
+   }
+  }
+ }
+}
