@@ -33,14 +33,30 @@ on:
       max_steps:
         description: "chat: model replies an agent may take before it counts as given up"
         default: "150"
+      emi_ref:
+        description: "andrejksi/EMI git tag, branch, or commit to build"
+        default: "study-gate-v1"
 
 permissions:
   contents: read
 
-env:
-  EMI_VERSION: "0.1.1"   # one reviewed release for every arm
-
 jobs:
+  build-emi:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: andrejksi/EMI
+          ref: ${{ inputs.emi_ref }}
+          persist-credentials: false
+      - name: Build emi
+        run: cargo build --release -p emi-cli --bin emi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: emi-bin
+          path: target/release/emi
+          if-no-files-found: error
+
   plan:
     runs-on: ubuntu-24.04
     outputs:
@@ -62,7 +78,7 @@ jobs:
           echo "tasks=$tasks" >>"$GITHUB_OUTPUT"
 
   agent:
-    needs: plan
+    needs: [plan, build-emi]
     runs-on: ubuntu-24.04
     timeout-minutes: 300
     strategy:
@@ -80,11 +96,17 @@ jobs:
         run: |
           sudo apt-get update -qq && sudo apt-get install -y -qq bubblewrap
           sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+      - uses: actions/download-artifact@v4
+        with:
+          name: emi-bin
+          path: ${{ runner.temp }}/tools/bin
       - name: EMI, uv, and the toy projects' test environment
         run: |
-          python3 -m venv "$RUNNER_TEMP/tools"
-          "$RUNNER_TEMP/tools/bin/pip" install -q "emicode==$EMI_VERSION" uv
-          echo "$RUNNER_TEMP/tools/bin" >>"$GITHUB_PATH"   # uv builds each real task's environment
+          chmod +x "$RUNNER_TEMP/tools/bin/emi"
+          python3 -m venv "$RUNNER_TEMP/uv-venv"
+          "$RUNNER_TEMP/uv-venv/bin/pip" install -q uv
+          echo "$RUNNER_TEMP/tools/bin" >>"$GITHUB_PATH"
+          echo "$RUNNER_TEMP/uv-venv/bin" >>"$GITHUB_PATH"   # uv builds each real task's environment
           python3 -m venv "$RUNNER_TEMP/project-venv"
           "$RUNNER_TEMP/project-venv/bin/pip" install -q 'pytest>=8,<9' 'coverage>=7.9,<8' 'hypothesis>=6,<7'
       - name: Runs
