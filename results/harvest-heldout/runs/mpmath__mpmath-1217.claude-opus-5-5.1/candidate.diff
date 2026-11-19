@@ -1,0 +1,45 @@
+diff --git a/mpmath/libmp/gammazeta.py b/mpmath/libmp/gammazeta.py
+index 6d44228..2b5c103 100644
+--- a/mpmath/libmp/gammazeta.py
++++ b/mpmath/libmp/gammazeta.py
+@@ -1084,6 +1084,12 @@ def mpc_zeta(s, prec, rnd=round_down, alt=0, force=False):
+         pi2 = (mpf_shift(pi, 1), fzero)
+         d = mpc_div_mpf(mpc_pow(pi2, s, wp2), pi, wp2)
+         return mpc_mul(a,mpc_mul(b,mpc_mul(c,d,wp),wp),prec,rnd)
++    # For large re(s), zeta(s) = 1 + O(2^(-re(s))), so the imaginary part
++    # is only about 2^(-re(s)) in size, while the fixed-point sum below has
++    # an absolute error of about 2^(-wp).  Add re(s) bits so the imaginary
++    # part keeps full relative accuracy.
++    if mpf_gt(re, fone):
++        wp += to_int(re)
+     n = int(wp/2.54 + 5)
+     n += int(0.9*abs(to_int(im)))
+     d = borwein_coefficients(n)
+diff --git a/mpmath/tests/test_gammazeta.py b/mpmath/tests/test_gammazeta.py
+index 44a4d9e..46cbf3d 100644
+--- a/mpmath/tests/test_gammazeta.py
++++ b/mpmath/tests/test_gammazeta.py
+@@ -729,3 +729,23 @@ def test_issue_1198():
+     # Wolfram Engine N[Zeta[-105/10, 7656119366529843/4503599627370496], 40]
+     ref = mpf('-0.0164851819507137542274084311077626')
+     assert mp.almosteq(zeta(-10.5, 1.7), ref, rel_eps=1e-28, abs_eps=0)
++
++def test_zeta_complex_large_real_part():
++    # For large re(s) the imaginary part of zeta(s) is about 2**-re(s), and
++    # the fixed-point Borwein sum lost that many bits of it (only 7 digits
++    # were right for s = 50+5j at 15 dps).
++    mp.dps = 15
++    # Imaginary part from Mathematica N[Zeta[50 + 5 I], 24]
++    ref = mpc('0.99999999999999915807440806', '2.82881957300551842714082e-16')
++    v = zeta(mpc(50, 5))
++    assert mp.almosteq(v.imag, ref.imag, rel_eps=1e-14, abs_eps=0)
++    assert mp.almosteq(v.real, ref.real, rel_eps=1e-14, abs_eps=0)
++    for s in [mpc(30, 1), mpc(52, 5), mpc(40, -30), mpc(20, 3)]:
++        for f in [zeta, altzeta]:
++            mp.dps = 15
++            v = f(s)
++            mp.dps = 50
++            ref = f(s)
++            mp.dps = 15
++            assert mp.almosteq(v.imag, ref.imag, rel_eps=1e-14, abs_eps=0)
++            assert mp.almosteq(v.real, ref.real, rel_eps=1e-14, abs_eps=0)
