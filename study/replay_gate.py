@@ -42,7 +42,7 @@ from common import GIT_ENV, copy_tree, git, load_task, run  # noqa: E402
 from gates import emi as emi_gate  # noqa: E402
 from gates import naive as naive_gate  # noqa: E402
 from prepare import prepare  # noqa: E402
-from trees import test_command  # noqa: E402
+from trees import import_roots, test_command  # noqa: E402
 
 ALL_CONDITIONS = (
     "pytest",
@@ -130,11 +130,17 @@ def classify_emi_cause(receipt: dict[str, Any] | None, record: dict[str, Any]) -
                     return "incomplete:not_verified"
         return "incomplete"
     if receipt:
-        laws = receipt.get("laws") or {}
+        laws = receipt.get("laws")
         if isinstance(laws, dict):
             if laws.get("broken"):
                 return "laws_broken"
             if laws.get("unmet") or laws.get("failed"):
+                return "laws_unmet"
+        elif isinstance(laws, list):
+            statuses = {item.get("status") for item in laws if isinstance(item, dict)}
+            if "broken" in statuses or "stopped" in statuses:
+                return "laws_broken"
+            if "unmet" in statuses:
                 return "laws_unmet"
         rule = receipt.get("rule")
         if rule and rule != "none":
@@ -252,15 +258,32 @@ def build_base_tree(
                     raise RuntimeError(f"ceiling hidden patch failed to apply: {out[-500:]}")
             f2p = (task.get("oracle") or {}).get("fail_to_pass") or []
             if f2p:
+                normalized_f2p: list[str] = []
+                for tid in f2p:
+                    # Legacy truncated parametrize IDs (containing '[' without ']')
+                    # cannot be collected directly by pytest; fall back to the test node.
+                    if "[" in tid and not tid.endswith("]"):
+                        tid = tid.split("[", 1)[0]
+                    if tid not in normalized_f2p:
+                        normalized_f2p.append(tid)
+                roots = import_roots(task)
                 laws_dir = dst / plain_check.LAWS
                 laws_dir.mkdir(parents=True, exist_ok=True)
                 law_src = (
                     '"""Ceiling: the task\'s hidden fail_to_pass tests as laws."""\n'
-                    "import subprocess, sys\n\n"
-                    f"TESTS = {f2p!r}\n\n"
+                    "import os, subprocess, sys\n"
+                    "from pathlib import Path\n\n"
+                    f"TESTS = {normalized_f2p!r}\n"
+                    f"IMPORT_ROOTS = {roots!r}\n\n"
                     "def test_hidden_fail_to_pass():\n"
                     '    """New: all hidden fail_to_pass tests must pass."""\n'
-                    '    res = subprocess.run([sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider", *TESTS])\n'
+                    "    work = Path(__file__).resolve().parents[2]\n"
+                    "    env = os.environ.copy()\n"
+                    "    if IMPORT_ROOTS:\n"
+                    '        extra = [str(work / r) for r in IMPORT_ROOTS]\n'
+                    '        prev = env.get("PYTHONPATH")\n'
+                    '        env["PYTHONPATH"] = os.pathsep.join(extra + ([prev] if prev else []))\n'
+                    '    res = subprocess.run([sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider", *TESTS], cwd=work, env=env)\n'
                     "    assert res.returncode == 0\n"
                 )
                 (laws_dir / "test_ceiling_hidden.py").write_text(law_src, encoding="utf-8")
@@ -423,7 +446,7 @@ def replay_task(
 
         def get_before(key: str, base: Path) -> dict[str, str] | None:
             if key not in before_outcomes:
-                before, _ = plain_check.outcomes(task, base, test_command(task))
+                before, _ = plain_check.outcomes(task, base, test_command(task, base))
                 before_outcomes[key] = before
             return before_outcomes[key]
 

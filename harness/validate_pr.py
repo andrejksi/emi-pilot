@@ -70,6 +70,43 @@ def python_for(c, tmpl):
     return tmpl["python"]
 
 
+def _new_defined_symbols(patch_text):
+    """Top-level or method names newly added in a product patch."""
+    return set(re.findall(r"^\+\s*def\s+([A-Za-z_][A-Za-z0-9_]*)\s*\(", patch_text, flags=re.M))
+
+
+def spec_warnings(c):
+    """Static warnings for PRs whose hidden tests may over-constrain valid fixes."""
+    warnings = []
+    prompt = c.get("problem_statement") or ""
+    test_patch = c.get("test_patch") or ""
+    fix_patch = c.get("patch") or ""
+
+    # 1. Hidden test calls a brand-new function/method invented in the PR and not named in the issue.
+    new_syms = _new_defined_symbols(fix_patch)
+    unmentioned = sorted(
+        s for s in new_syms
+        if s not in prompt
+        and re.search(rf"\b{re.escape(s)}\s*\(", test_patch)
+    )
+    if unmentioned:
+        warnings.append(f"hidden_tests_call_unmentioned_new_symbols:{','.join(unmentioned[:5])}")
+
+    # 2. Hidden test references private attributes/methods (._foo) not mentioned in the issue.
+    priv_in_tests = sorted({
+        m for m in re.findall(r"\.(_[A-Za-z][A-Za-z0-9_]*)\b", test_patch)
+        if not m.startswith("__") and m not in prompt
+    })
+    if priv_in_tests:
+        warnings.append(f"hidden_tests_access_private_attrs:{','.join(priv_in_tests[:5])}")
+
+    # 3. Hidden test modifies existing test assertions (deleted assert lines in test_patch).
+    if re.search(r"^-\s*(assert\b|self\.assert)", test_patch, flags=re.M):
+        warnings.append("hidden_tests_modify_existing_assertions")
+
+    return warnings
+
+
 def as_task(c, tmpl):
     return {
         "id": c["instance_id"], "kind": "git", "source": "github-pr", "repo": c["repo"],
@@ -81,9 +118,10 @@ def as_task(c, tmpl):
     }
 
 
-def run_tests(task, work, venv):
+def run_tests(task, work, venv, test_files=None):
     """Each test's outcome, from one run of the task's test files."""
-    present = [p for p in task["test_files"] if (work / p).exists()]
+    files = task["test_files"] if test_files is None else test_files
+    present = [p for p in files if (work / p).exists()]
     if not present:
         return None, "none of the test files exists"
     cmd = [str(venv / "bin" / "python"), "-m", "pytest", "-rA", "--no-header", "--tb=short",
@@ -103,19 +141,34 @@ def apply(work, patch, what):
 
 
 def observe(task, c, venv, tmp):
-    """Outcomes before and after the fix, RUNS times each, or a reason."""
+    """Outcomes before and after the fix, RUNS times each, or a reason.
+
+    Also records which test files already existed at `base_commit` and verifies
+    the baseline test command runs cleanly without `test.patch`.
+    """
     work = Path(tmp) / "work"
     baseline_tree(task, work)
     git(work, "init", "-q", "-b", "main")
     (work / ".venv").symlink_to(venv)
-    sides = {}
+
+    all_test_files = list(task["test_files"])
+    baseline_files = [p for p in all_test_files if (work / p).exists()]
+    if not baseline_files:
+        return None, "none of the PR's test files exists at baseline"
+    base_seen, base_problem = run_tests(task, work, venv, test_files=baseline_files)
+    if base_problem:
+        return None, f"baseline: {base_problem}"
+    if "PASSED" not in base_seen.values():
+        return None, "baseline: no test passes before test.patch"
+
+    sides = {"baseline_test_files": baseline_files}
     for side, patch in (("before", c["test_patch"]), ("after", c["patch"])):
         problem = apply(work, patch, "tests" if side == "before" else "fix")
         if problem:
             return None, problem
         sides[side] = []
         for _ in range(RUNS):
-            seen, problem = run_tests(task, work, venv)
+            seen, problem = run_tests(task, work, venv, test_files=all_test_files)
             if problem:
                 return None, f"{side}: {problem}"
             sides[side].append(seen)
@@ -175,8 +228,9 @@ def validate(c, out):
     if problem:
         return {"kept": False, "why": problem}
     f2p, p2p, unstable, after = classify(sides)
+    warnings = spec_warnings(c)
     verdict = {"fail_to_pass": len(f2p), "pass_to_pass": len(p2p), "unstable": unstable,
-               "after_fix": after}
+               "after_fix": after, "spec_warnings": warnings}
     if "PASSED" not in after:
         return {**verdict, "kept": False, "why": "no test passes with the fix: the environment"
                 " is likelier broken than the fix"}
@@ -184,6 +238,10 @@ def validate(c, out):
         return {**verdict, "kept": False, "why": "FAIL_TO_PASS not 1..10"}
     if len(p2p) < 5:
         return {**verdict, "kept": False, "why": "fewer than 5 PASS_TO_PASS"}
+    # Keep only baseline-existing test files in task["test_files"] so baseline
+    # test runs never exit 4 on newly added hidden test files; oracle.py merges
+    # hidden/test.patch files automatically.
+    task["test_files"] = sides["baseline_test_files"]
     task["oracle"] = {"fail_to_pass": f2p, "pass_to_pass": p2p}
     write_task(task, c, out)
     return {**verdict, "kept": True}
