@@ -1,0 +1,4 @@
+A1 written: Add same-bucket HfFileSystem.cp_file using a server-side copy by Xet hash through the bucket batch API.
+A2 written: A checkpoint written directly to hf://buckets/<user>/<bucket>/ckpt must be able to rename .metadata.tmp to .metadata.
+A3 written: Dataset preparation and caching must be able to move a temporary Parquet shard into place on an hf://buckets/ path so the temporary shard is no longer left behind.
+A4 written: Requirements for other source and destination combinations, refusals, and edge cases do not matter for this issue.

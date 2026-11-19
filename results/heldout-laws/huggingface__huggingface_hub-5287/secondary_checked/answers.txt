@@ -1,0 +1,4 @@
+A1 written: This is a bug fix for silent data loss: with block_size=0, opening in exclusive-create mode "xb" or text mode "x" should raise ValueError at open, using the existing streaming read-only error message.
+A2 written: The exclusive-create rejection applies to both repo and bucket paths, and when block_size=0 is supplied to open or is inherited from HfFileSystem(block_size=0).
+A3 written: Streaming "wb" already raises ValueError, and the error message stays the same.
+A4 written: Streaming read paths are unchanged, including "r" and "rt" normalized to "rb" by fsspec.

@@ -1,0 +1,23 @@
+{
+  "checked_files": [
+    "ANSWERS",
+    "answers.txt",
+    "test_gammainc.py"
+  ],
+  "model": "gpt-6.2-sol",
+  "passed": true,
+  "role": "secondary",
+  "rounds": [
+    {
+      "exit": 0,
+      "files": [
+        "ANSWERS",
+        "answers.txt",
+        "test_gammainc.py"
+      ],
+      "round": 0,
+      "seconds": 106.2
+    }
+  ],
+  "task": "mpmath__mpmath-1210"
+}

@@ -1,0 +1,30 @@
+Rules check: stop. Not checked: none.
+
+.emi/laws/test_bucket_copy_and_move.py
+  Example, new behaviour: copying a file within its bucket creates the destination from its Xet hash and keeps the source (A1).
+      assert fs.info(destination)["xet_hash"] == SOURCE_HASH
+      assert fs.info(source)["xet_hash"] == SOURCE_HASH
+      -> fails on the current code: NotImplementedError: Copy from/to buckets is not available yet
+  Example, new behaviour: moving a temporary Parquet shard on an hf:// bucket publishes the shard and removes the temporary file (A3).
+      assert fs.info(destination)["xet_hash"] == SOURCE_HASH
+      assert not fs.exists(source)
+      -> fails on the current code: NotImplementedError: Copy from/to buckets is not available yet
+  Example, new behaviour: renaming .metadata.tmp on an hf:// bucket publishes the checkpoint as .metadata (A2).
+      assert fs.info(destination)["xet_hash"] == SOURCE_HASH
+      assert not fs.exists(source)
+      -> fails on the current code: NotImplementedError: Copy from/to buckets is not available yet
+
+Answers (proposed: approving the rules agrees to them):
+  - A1 (written by the person): Add same-bucket HfFileSystem.cp_file using a server-side copy by Xet hash through the bucket batch API.
+  - A2 (written by the person): A checkpoint written directly to hf://buckets/<user>/<bucket>/ckpt must be able to rename .metadata.tmp to .metadata.
+  - A3 (written by the person): Dataset preparation and caching must be able to move a temporary Parquet shard into place on an hf://buckets/ path so the temporary shard is no longer left behind.
+  - A4 (written by the person): Requirements for other source and destination combinations, refusals, and edge cases do not matter for this issue.
+
+Also proposed:
+  - .emi/laws/answers.txt (not a rule file)
+
+Noted (blocks nothing):
+  - .emi/laws/test_bucket_copy_and_move.py: it imports _http, private to the code: a change that keeps the behaviour may still break the rules
+  - .emi/laws/test_bucket_copy_and_move.py: old tests import what its new rules are about: tests/conftest.py, tests/test_auth.py, tests/test_bucket_live_follow.py, tests/test_cli.py, tests/test_file_download.py and 11 more. If the task changes how they behave, the person lists them as expected changes
+
+Ready for a person: show them the rules above; `emi rules approve` approves and commits them.

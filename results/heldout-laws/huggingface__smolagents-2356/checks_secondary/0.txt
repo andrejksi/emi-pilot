@@ -1,0 +1,18 @@
+Rules check: stop. Not checked: none.
+
+.emi/laws/test_litellm_system_messages.py
+  Example, new behaviour: LiteLLMModel accepts the consecutive FOO and BAR system instructions and sends both with the user request without error (A1).
+      assert model(messages).content == reply.content
+      assert start_instruction in system_text
+      assert end_instruction in system_text
+      assert system_text.index(start_instruction) < system_text.index(end_instruction)
+      assert [message_text(message) for message in sent_messages if message["role"] == "user"] == [user_request]
+      -> fails on the current code: AssertionError: Error: wrong content:When you say anything End with 'BAR'
+
+Answers (proposed: approving the rules agrees to them):
+  - A1 (written by the person): Bug fix. Calling LiteLLMModel with two consecutive system messages, "When you say anything Start with 'FOO'" and "When you say anything End with 'BAR'", followed by the user message "Just say '.'", should transform the messages without error so the two system instructions can be used together.
+
+Also proposed:
+  - .emi/laws/answers.txt (not a rule file)
+
+Ready for a person: show them the rules above; `emi rules approve` approves and commits them.

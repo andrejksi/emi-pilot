@@ -1,0 +1,102 @@
+Rules check: stop. Not checked: none.
+
+.emi/laws/test_streaming_modes.py
+  Example, guard: Opening in mode 'wb' with block_size=0 still raises the existing read-only ValueError (A3).
+      fs.open(marker_path, "wb", **open_options) is refused with ValueError
+      assert str(exc.value) == "HfFileSystemStreamFile only supports reading but got mode='wb'"
+      -> holds on the current code
+  Example, guard: Opening in mode 'wb' with block_size=0 still raises the existing read-only ValueError (A3).
+      fs.open(marker_path, "wb", **open_options) is refused with ValueError
+      assert str(exc.value) == "HfFileSystemStreamFile only supports reading but got mode='wb'"
+      -> holds on the current code
+  Example, guard: Opening in mode 'wb' with block_size=0 still raises the existing read-only ValueError (A3).
+      fs.open(marker_path, "wb", **open_options) is refused with ValueError
+      assert str(exc.value) == "HfFileSystemStreamFile only supports reading but got mode='wb'"
+      -> holds on the current code
+  Example, guard: Opening in mode 'wb' with block_size=0 still raises the existing read-only ValueError (A3).
+      fs.open(marker_path, "wb", **open_options) is refused with ValueError
+      assert str(exc.value) == "HfFileSystemStreamFile only supports reading but got mode='wb'"
+      -> holds on the current code
+  Example, new behaviour: Streaming exclusive-create on a repo or bucket raises the read-only ValueError (A1, A2).
+      fs.open(marker_path, mode, **open_options) is refused with ValueError
+      assert str(exc.value) == "HfFileSystemStreamFile only supports reading but got mode='xb'"
+      -> fails on the current code: Failed: DID NOT RAISE <class 'ValueError'>
+  Example, new behaviour: Streaming exclusive-create on a repo or bucket raises the read-only ValueError (A1, A2).
+      fs.open(marker_path, mode, **open_options) is refused with ValueError
+      assert str(exc.value) == "HfFileSystemStreamFile only supports reading but got mode='xb'"
+      -> fails on the current code: Failed: DID NOT RAISE <class 'ValueError'>
+  Example, new behaviour: Streaming exclusive-create on a repo or bucket raises the read-only ValueError (A1, A2).
+      fs.open(marker_path, mode, **open_options) is refused with ValueError
+      assert str(exc.value) == "HfFileSystemStreamFile only supports reading but got mode='xb'"
+      -> fails on the current code: Failed: DID NOT RAISE <class 'ValueError'>
+  Example, new behaviour: Streaming exclusive-create on a repo or bucket raises the read-only ValueError (A1, A2).
+      fs.open(marker_path, mode, **open_options) is refused with ValueError
+      assert str(exc.value) == "HfFileSystemStreamFile only supports reading but got mode='xb'"
+      -> fails on the current code: Failed: DID NOT RAISE <class 'ValueError'>
+  Example, new behaviour: Streaming exclusive-create on a repo or bucket raises the read-only ValueError (A1, A2).
+      fs.open(marker_path, mode, **open_options) is refused with ValueError
+      assert str(exc.value) == "HfFileSystemStreamFile only supports reading but got mode='xb'"
+      -> fails on the current code: Failed: DID NOT RAISE <class 'ValueError'>
+  Example, new behaviour: Streaming exclusive-create on a repo or bucket raises the read-only ValueError (A1, A2).
+      fs.open(marker_path, mode, **open_options) is refused with ValueError
+      assert str(exc.value) == "HfFileSystemStreamFile only supports reading but got mode='xb'"
+      -> fails on the current code: Failed: DID NOT RAISE <class 'ValueError'>
+  Example, new behaviour: Streaming exclusive-create on a repo or bucket raises the read-only ValueError (A1, A2).
+      fs.open(marker_path, mode, **open_options) is refused with ValueError
+      assert str(exc.value) == "HfFileSystemStreamFile only supports reading but got mode='xb'"
+      -> fails on the current code: Failed: DID NOT RAISE <class 'ValueError'>
+  Example, new behaviour: Streaming exclusive-create on a repo or bucket raises the read-only ValueError (A1, A2).
+      fs.open(marker_path, mode, **open_options) is refused with ValueError
+      assert str(exc.value) == "HfFileSystemStreamFile only supports reading but got mode='xb'"
+      -> fails on the current code: Failed: DID NOT RAISE <class 'ValueError'>
+  Example, guard: Streaming a file in 'rb', 'r', or 'rt' still returns the data in binary or text form (A4).
+      -> holds on the current code
+  Example, guard: Streaming a file in 'rb', 'r', or 'rt' still returns the data in binary or text form (A4).
+      -> holds on the current code
+  Example, guard: Streaming a file in 'rb', 'r', or 'rt' still returns the data in binary or text form (A4).
+      -> holds on the current code
+  Example, guard: Streaming a file in 'rb', 'r', or 'rt' still returns the data in binary or text form (A4).
+      -> holds on the current code
+  Example, guard: Streaming a file in 'rb', 'r', or 'rt' still returns the data in binary or text form (A4).
+      -> holds on the current code
+  Example, guard: Streaming a file in 'rb', 'r', or 'rt' still returns the data in binary or text form (A4).
+      -> holds on the current code
+  Example, guard: Streaming a file in 'rb', 'r', or 'rt' still returns the data in binary or text form (A4).
+      -> holds on the current code
+  Example, guard: Streaming a file in 'rb', 'r', or 'rt' still returns the data in binary or text form (A4).
+      -> holds on the current code
+  Example, guard: Streaming a file in 'rb', 'r', or 'rt' still returns the data in binary or text form (A4).
+      -> holds on the current code
+  Example, guard: Streaming a file in 'rb', 'r', or 'rt' still returns the data in binary or text form (A4).
+      -> holds on the current code
+  Example, guard: Streaming a file in 'rb', 'r', or 'rt' still returns the data in binary or text form (A4).
+      -> holds on the current code
+  Example, guard: Streaming a file in 'rb', 'r', or 'rt' still returns the data in binary or text form (A4).
+      -> holds on the current code
+
+Answers (proposed: approving the rules agrees to them):
+  - A1 (written by the person): This is a bug fix for silent data loss: with block_size=0, opening in exclusive-create mode "xb" or text mode "x" should raise ValueError at open, using the existing streaming read-only error message.
+  - A2 (written by the person): The exclusive-create rejection applies to both repo and bucket paths, and when block_size=0 is supplied to open or is inherited from HfFileSystem(block_size=0).
+  - A3 (written by the person): Streaming "wb" already raises ValueError, and the error message stays the same.
+  - A4 (written by the person): Streaming read paths are unchanged, including "r" and "rt" normalized to "rb" by fsspec.
+
+Also proposed:
+  - .emi/laws/answers.txt (not a rule file)
+
+Noted (blocks nothing):
+  - .emi/laws/test_streaming_modes.py: 58 function(s) the rules run outside their area were given no stand-ins (`--scope all` tries them; `laws.area` widens the area): src/huggingface_hub/constants.py (1), src/huggingface_hub/file_download.py (1), src/huggingface_hub/hf_api.py (2), src/huggingface_hub/hf_file_system.py (17), src/huggingface_hub/utils/_auth.py (7), src/huggingface_hub/utils/_detect_agent.py (5), src/huggingface_hub/utils/_headers.py (4), src/huggingface_hub/utils/_hf_uris.py (6), src/huggingface_hub/utils/_http.py (5), src/huggingface_hub/utils/_runtime.py (6), src/huggingface_hub/utils/_validators.py (4)
+  - .emi/laws/test_streaming_modes.py: test_streaming_binary_write_still_raises_at_open[filesystem-buckets/example/bucket]: it holds the exact wording of a message: ask the person whether the wording is part of the rule
+  - .emi/laws/test_streaming_modes.py: test_streaming_binary_write_still_raises_at_open[filesystem-datasets/example/repo]: it holds the exact wording of a message: ask the person whether the wording is part of the rule
+  - .emi/laws/test_streaming_modes.py: test_streaming_binary_write_still_raises_at_open[open-buckets/example/bucket]: it holds the exact wording of a message: ask the person whether the wording is part of the rule
+  - .emi/laws/test_streaming_modes.py: test_streaming_binary_write_still_raises_at_open[open-datasets/example/repo]: it holds the exact wording of a message: ask the person whether the wording is part of the rule
+  - .emi/laws/test_streaming_modes.py: test_streaming_exclusive_create_raises_at_open[filesystem-buckets/example/bucket-x]: it holds the exact wording of a message: ask the person whether the wording is part of the rule
+  - .emi/laws/test_streaming_modes.py: test_streaming_exclusive_create_raises_at_open[filesystem-buckets/example/bucket-xb]: it holds the exact wording of a message: ask the person whether the wording is part of the rule
+  - .emi/laws/test_streaming_modes.py: test_streaming_exclusive_create_raises_at_open[filesystem-datasets/example/repo-x]: it holds the exact wording of a message: ask the person whether the wording is part of the rule
+  - .emi/laws/test_streaming_modes.py: test_streaming_exclusive_create_raises_at_open[filesystem-datasets/example/repo-xb]: it holds the exact wording of a message: ask the person whether the wording is part of the rule
+  - .emi/laws/test_streaming_modes.py: test_streaming_exclusive_create_raises_at_open[open-buckets/example/bucket-x]: it holds the exact wording of a message: ask the person whether the wording is part of the rule
+  - .emi/laws/test_streaming_modes.py: test_streaming_exclusive_create_raises_at_open[open-buckets/example/bucket-xb]: it holds the exact wording of a message: ask the person whether the wording is part of the rule
+  - .emi/laws/test_streaming_modes.py: test_streaming_exclusive_create_raises_at_open[open-datasets/example/repo-x]: it holds the exact wording of a message: ask the person whether the wording is part of the rule
+  - .emi/laws/test_streaming_modes.py: test_streaming_exclusive_create_raises_at_open[open-datasets/example/repo-xb]: it holds the exact wording of a message: ask the person whether the wording is part of the rule
+  - .emi/laws/test_streaming_modes.py: old tests import what its new rules are about: tests/test_bucket_live_follow.py, tests/test_hf_file_system.py. If the task changes how they behave, the person lists them as expected changes
+
+Ready for a person: show them the rules above; `emi rules approve` approves and commits them.

@@ -1,0 +1,21 @@
+Rules check: stop. Not checked: none.
+
+.emi/laws/test_stat_v1_names_test.py
+  Example, new behaviour: a version 1.0 STAT table yields corrected names for a Black instance (A1).
+      assert ( instance["name"].getName(4, 3, 1, 0x409).toUnicode() == "Test Variable Font Black" )
+      -> fails on the current code: AttributeError: ElidedFallbackNameID
+  Example, new behaviour: a version 1.0 STAT table uses the font's subfamily when all axis names are elided (A2).
+      assert ( instance["name"].getName(4, 3, 1, 0x409).toUnicode() == "Test Variable Font Bold" )
+      -> fails on the current code: AttributeError: ElidedFallbackNameID
+
+Answers (proposed: approving the rules agrees to them):
+  - A1 (written by the person): With a version 1.0 STAT table lacking ElidedFallbackNameID, updateFontNames should produce instances with corrected font names.
+  - A2 (written by the person): When ElidedFallbackNameID is missing, default to the font's subFamilyName (name ID 2).
+
+Also proposed:
+  - .emi/laws/answers.txt (not a rule file)
+
+Noted (blocks nothing):
+  - .emi/laws/test_stat_v1_names_test.py: old tests import what its new rules are about: Tests/cffLib/cffLib_test.py, Tests/cffLib/specializer_test.py, Tests/cffLib/width_test.py, Tests/colorLib/builder_test.py, Tests/config_test.py and 84 more. If the task changes how they behave, the person lists them as expected changes
+
+Ready for a person: show them the rules above; `emi rules approve` approves and commits them.
