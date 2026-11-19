@@ -1,0 +1,15 @@
+Rules check: stop. Not checked: none.
+
+.emi/laws/test_wl_directed_edge_labels.py
+  Example, new behaviour: with edge_attr="label", the outward star DiGraph([(0, 1), (0, 2)]) and inward star DiGraph([(1, 0), (2, 0)]) get different Weisfeiler-Lehman hashes (A1).
+      assert nx.weisfeiler_lehman_graph_hash(a, edge_attr="label") != nx.weisfeiler_lehman_graph_hash(b, edge_attr="label")
+      -> fails on the current code: UserWarning: The hashes produced for directed graphs changed in version v3.5 due to a bugfix to track in and out edges separately (see documentation).
+
+Answers (proposed: approving the rules agrees to them):
+  - A1 (written by the person): kind is fix: weisfeiler_lehman_graph_hash on a directed graph with edge_attr must keep the successor/predecessor distinction, so the outward star DiGraph([(0, 1), (0, 2)]) and the inward star DiGraph([(1, 0), (2, 0)]), with every edge label "e", must get different hashes.
+  - A2 (written by the person): anything else (exact hash strings, other functions) doesn't matter.
+
+Also proposed:
+  - .emi/laws/answers.txt (not a rule file)
+
+Ready for a person: show them the rules above; `emi rules approve` approves and commits them.
