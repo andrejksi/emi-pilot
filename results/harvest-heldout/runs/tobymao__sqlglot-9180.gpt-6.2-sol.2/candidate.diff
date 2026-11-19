@@ -1,0 +1,40 @@
+diff --git a/sqlglot/generator.py b/sqlglot/generator.py
+index 573d3c1..bebaa75 100644
+--- a/sqlglot/generator.py
++++ b/sqlglot/generator.py
+@@ -4805,6 +4805,14 @@ class Generator:
+                 l.replace(exp.cast(l.copy(), to=exp.DType.DOUBLE))
+ 
+         elif not self.dialect.TYPED_DIVISION and expression.args.get("typed"):
++            def is_integer_literal(operand: exp.Expr) -> bool:
++                operand = operand.unnest()
++                if isinstance(operand, exp.Neg):
++                    operand = operand.this.unnest()
++                return operand.is_int
++
++            if all(is_integer_literal(operand) for operand in (l, r)):
++                return self.sql(exp.IntDiv(this=l, expression=expression.right))
+             if l.is_type(*exp.DataType.INTEGER_TYPES) and r.is_type(*exp.DataType.INTEGER_TYPES):
+                 # Native integer division depends on the target's operand types, which may differ
+                 # from the source's (e.g. FLOOR(int) is DOUBLE in DuckDB), unless the operands are
+diff --git a/tests/dialects/test_sqlite.py b/tests/dialects/test_sqlite.py
+index ec546ac..de326db 100644
+--- a/tests/dialects/test_sqlite.py
++++ b/tests/dialects/test_sqlite.py
+@@ -1462,3 +1462,16 @@ class TestSQLite(Validator):
+                     self.validate_all(sql, write={"sqlite": expected, "duckdb": expected})
+                     expression = self.parse_one(sql).expressions[0]
+                     self.assertIsInstance(expression.this if negate else expression, exp.Is)
++
++
++def test_sqlite_literal_division_to_duckdb():
++    from sqlglot import transpile
++
++    for left, right in ((5, 2), (-5, 2), (5, -2), (5, 0)):
++        sql = f"SELECT {left} / {right}"
++        assert transpile(sql, read="sqlite", write="duckdb") == [
++            f"SELECT {left} // NULLIF({right}, 0)"
++        ]
++    assert transpile("SELECT 5.0 / 2", read="sqlite", write="duckdb") == [
++        "SELECT 5.0 / NULLIF(2, 0)"
++    ]

@@ -1,0 +1,32 @@
+diff --git a/mpmath/functions/bessel.py b/mpmath/functions/bessel.py
+index f6c3da5..3d71efe 100644
+--- a/mpmath/functions/bessel.py
++++ b/mpmath/functions/bessel.py
+@@ -153,6 +153,13 @@ def bessely(ctx, n, z, derivative=0, *, eliminate=True, eliminate_all=False,
+             return ctx.inf + (n+z)
+         else:
+             return ctx.ninf + (n+z)
++    if ctx._fixed_precision and ctx.isint(n):
++        # The integer-order limit needs extra precision. Adjusting prec in a
++        # fixed-precision context has no effect, so use an MP context here.
++        from ..ctx_mp import MPContext
++        mpctx = MPContext()
++        with mpctx.workprec(ctx.prec + 20):
++            return ctx.convert(mpctx.bessely(n, z, derivative, **kwargs))
+     # XXX: use hypercomb
+     ctx.prec += 10
+     m, d = ctx.nint_distance(n)
+diff --git a/mpmath/tests/test_functions2.py b/mpmath/tests/test_functions2.py
+index c88993b..1673a59 100644
+--- a/mpmath/tests/test_functions2.py
++++ b/mpmath/tests/test_functions2.py
+@@ -2556,3 +2556,9 @@ def test_issue_496():
+ def test_issue_1142():
+     assert spherical_jn(8, 5).ae(+spherical_jn(8, -5))
+     assert spherical_jn(9, 5).ae(-spherical_jn(9, -5))
++
++
++def test_fp_besselyzero_integer_order():
++    from mpmath import fp
++
++    assert abs(fp.besselyzero(2, 1) - 3.3842417671495935) < 1e-13

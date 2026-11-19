@@ -1,0 +1,47 @@
+diff --git a/mpmath/functions/expintegrals.py b/mpmath/functions/expintegrals.py
+index d9d236f..cd5c876 100644
+--- a/mpmath/functions/expintegrals.py
++++ b/mpmath/functions/expintegrals.py
+@@ -166,6 +166,11 @@ def gammainc(ctx, z, a=0, b=None, regularized=False):
+         return ctx.gamma(z)
+     if a == b:
+         return ctx.zero
++    # Evaluate zero-origin intervals directly, even to the left of zero.
++    if not lower_modified:
++        return ctx.lower_gamma(z, b, regularized)
++    if b == ctx.zero:
++        return -ctx.lower_gamma(z, a, regularized)
+     # Standardize
+     if ctx.re(a) > ctx.re(b):
+         return -ctx.gammainc(z, b, a, regularized)
+@@ -173,11 +178,7 @@ def gammainc(ctx, z, a=0, b=None, regularized=False):
+     if upper_modified and lower_modified:
+         return +ctx._gamma3(z, a, b, regularized)
+     # Upper gamma
+-    elif lower_modified:
+-        return ctx.upper_gamma(z, a, regularized)
+-    # Lower gamma
+-    elif upper_modified:
+-        return ctx.lower_gamma(z, b, regularized)
++    return ctx.upper_gamma(z, a, regularized)
+ 
+ @defun
+ def lower_gamma(ctx, z, b, regularized=False):
+diff --git a/mpmath/tests/test_gammazeta.py b/mpmath/tests/test_gammazeta.py
+index 44a4d9e..e8a7946 100644
+--- a/mpmath/tests/test_gammazeta.py
++++ b/mpmath/tests/test_gammazeta.py
+@@ -729,3 +729,13 @@ def test_issue_1198():
+     # Wolfram Engine N[Zeta[-105/10, 7656119366529843/4503599627370496], 40]
+     ref = mpf('-0.0164851819507137542274084311077626')
+     assert mp.almosteq(zeta(-10.5, 1.7), ref, rel_eps=1e-28, abs_eps=0)
++
++
++def test_gammainc_zero_origin_with_negative_endpoint():
++    from mpmath import mp
++
++    end = mp.mpf("-0.1")
++    result = mp.gammainc(3, 0, end)
++    expected = mp.quad(lambda x: x**2 * mp.exp(-x), [0, end])
++    assert mp.almosteq(result, expected)
++    assert mp.almosteq(mp.gammainc(3, end, 0), -expected)

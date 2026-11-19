@@ -1,0 +1,77 @@
+diff --git a/sqlglot/expressions/string.py b/sqlglot/expressions/string.py
+index e8c946f..b5e1e20 100644
+--- a/sqlglot/expressions/string.py
++++ b/sqlglot/expressions/string.py
+@@ -70,7 +70,7 @@ class Left(Expression, Func):
+ 
+ 
+ class Length(Expression, Func):
+-    arg_types = {"this": True, "binary": False, "encoding": False}
++    arg_types = {"this": True, "binary": False, "encoding": False, "null_terminated": False}
+     _sql_names = ["LENGTH", "LEN", "CHAR_LENGTH", "CHARACTER_LENGTH"]
+ 
+ 
+diff --git a/sqlglot/generators/duckdb.py b/sqlglot/generators/duckdb.py
+index 76c998b..a7cca7c 100644
+--- a/sqlglot/generators/duckdb.py
++++ b/sqlglot/generators/duckdb.py
+@@ -3404,6 +3404,28 @@ class DuckDBGenerator(generator.Generator):
+     def length_sql(self, expression: exp.Length) -> str:
+         arg = expression.this
+ 
++        if expression.args.get("null_terminated"):
++            if not arg.type:
++                from sqlglot.optimizer.annotate_types import annotate_types
++
++                arg = annotate_types(arg, dialect=self.dialect)
++
++            if arg.is_type(*exp.DataType.BINARY_TYPES):
++                return self.func("OCTET_LENGTH", arg)
++
++            text_length = self.func(
++                "LENGTH",
++                self.func("SPLIT_PART", exp.cast(arg.copy(), exp.DType.VARCHAR), "CHR(0)", "1"),
++            )
++            if arg.is_type(*exp.DataType.TEXT_TYPES) or arg.is_string:
++                return text_length
++
++            return (
++                f"CASE TYPEOF({self.sql(arg)}) WHEN 'BLOB' THEN "
++                f"{self.func('OCTET_LENGTH', exp.cast(arg.copy(), exp.DType.VARBINARY))} "
++                f"ELSE {text_length} END"
++            )
++
+         # Dialects like BQ and Snowflake also accept binary values as args, so
+         # DDB will attempt to infer the type or resort to case/when resolution
+         if not expression.args.get("binary") or arg.is_string:
+diff --git a/sqlglot/parsers/sqlite.py b/sqlglot/parsers/sqlite.py
+index 9265222..63534f1 100644
+--- a/sqlglot/parsers/sqlite.py
++++ b/sqlglot/parsers/sqlite.py
+@@ -107,6 +107,9 @@ class SQLiteParser(parser.Parser):
+         **parser.Parser.FUNCTIONS,
+         "DATE": _build_date,
+         "DATETIME": lambda args: exp.Anonymous(this="DATETIME", expressions=args),
++        "LENGTH": lambda args: exp.Length(
++            this=seq_get(args, 0), binary=True, null_terminated=True
++        ),
+         "EDITDIST3": exp.Levenshtein.from_arg_list,
+         "JSON_EXTRACT": _build_json_extract,
+         "JSON_GROUP_ARRAY": exp.JSONArrayAgg.from_arg_list,
+diff --git a/tests/dialects/test_sqlite.py b/tests/dialects/test_sqlite.py
+index b60ef60..cecffdc 100644
+--- a/tests/dialects/test_sqlite.py
++++ b/tests/dialects/test_sqlite.py
+@@ -1507,3 +1507,12 @@ class TestSQLite(Validator):
+                     self.validate_all(sql, write={"sqlite": expected, "duckdb": expected})
+                     expression = self.parse_one(sql).expressions[0]
+                     self.assertIsInstance(expression.this if negate else expression, exp.Is)
++
++
++def test_sqlite_length_preserves_null_terminator_in_duckdb():
++    from sqlglot import transpile
++
++    target, = transpile("SELECT LENGTH('a' || CHAR(0) || 'b')", read="sqlite", write="duckdb")
++    assert "SPLIT_PART" in target and "CHR(0)" in target
++    blob, = transpile("SELECT LENGTH(X'610062')", read="sqlite", write="duckdb")
++    assert blob == "SELECT OCTET_LENGTH(UNHEX('610062'))"

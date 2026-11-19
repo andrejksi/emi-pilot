@@ -1,0 +1,32 @@
+diff --git a/src/packaging/_parser.py b/src/packaging/_parser.py
+index dc1b3b4..4b76e01 100644
+--- a/src/packaging/_parser.py
++++ b/src/packaging/_parser.py
+@@ -287,8 +287,9 @@ def _try_parse_specifier_set(tokenizer: Tokenizer) -> SpecifierSet | None:
+     ``version_many``; the token loop then parses it or reports the error.
+     """
+     token = tokenizer.peek("SPECIFIER_LIST")
+-    # ``===`` versions can contain commas, which SpecifierSet splits on.
+-    if token is None or not token.text or "===" in token.text:
++    # PEP 508 uses commas to separate its version specifiers, including
++    # those introduced by the arbitrary equality operator.
++    if token is None or not token.text:
+         return None
+ 
+     try:
+diff --git a/tests/test_requirements.py b/tests/test_requirements.py
+index 03d97f9..e97c821 100644
+--- a/tests/test_requirements.py
++++ b/tests/test_requirements.py
+@@ -1326,3 +1326,11 @@ def test_copy_replace() -> None:
+     r2 = copy.replace(r, specifier=SpecifierSet(">=3.0"))  # type: ignore[attr-defined]
+     assert str(r2) == "requests>=3.0"
+     assert str(r) == "requests>=2.0"
++
++
++@pytest.mark.parametrize("text", ["x===0,>= 0", "x (===0,>= 0)", "x===0, >=0"])
++def test_arbitrary_equality_followed_by_spaced_specifier(text):
++    assert {str(specifier) for specifier in Requirement(text).specifier} == {
++        "===0",
++        ">=0",
++    }

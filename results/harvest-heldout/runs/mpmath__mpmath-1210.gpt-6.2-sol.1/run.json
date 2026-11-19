@@ -1,0 +1,7 @@
+{
+  "arm": "control",
+  "final": "accepted",
+  "model": "gpt-6.2-sol",
+  "seed": "1",
+  "task": "mpmath__mpmath-1210"
+}

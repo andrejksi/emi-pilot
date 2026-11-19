@@ -1,0 +1,51 @@
+diff --git a/sqlglot/parsers/sqlite.py b/sqlglot/parsers/sqlite.py
+index 7ce5673..3f27e49 100644
+--- a/sqlglot/parsers/sqlite.py
++++ b/sqlglot/parsers/sqlite.py
+@@ -58,6 +58,23 @@ def _build_json_extract(args: list, dialect: t.Any) -> exp.JSONExtract | exp.JSO
+ 
+ 
+ class SQLiteParser(parser.Parser):
++    def _parse_limit(
++        self,
++        this: exp.Expr | None = None,
++        top: bool = False,
++        skip_limit_token: bool = False,
++    ) -> exp.Expr | None:
++        limit = super()._parse_limit(this, top, skip_limit_token)
++        if isinstance(limit, exp.Limit):
++            count = limit.expression
++            if count is not None:
++                count = count.unnest()
++                if isinstance(count, exp.Neg):
++                    value = count.this.unnest()
++                    if value.is_int and value.to_py() > 0:
++                        limit.set("expression", exp.var("ALL"))
++        return limit
++
+     IS_PREDICATE_PRECEDENCE = IsPredicatePrecedence.EQUALITY
+ 
+     # Unary + removes SQLite column affinity and must survive SQL generation.
+diff --git a/tests/dialects/test_sqlite.py b/tests/dialects/test_sqlite.py
+index 1188250..6e9229d 100644
+--- a/tests/dialects/test_sqlite.py
++++ b/tests/dialects/test_sqlite.py
+@@ -1660,3 +1660,18 @@ class TestSQLite(Validator):
+                     self.validate_all(sql, write={"sqlite": expected, "duckdb": expected})
+                     expression = self.parse_one(sql).expressions[0]
+                     self.assertIsInstance(expression.this if negate else expression, exp.Is)
++
++
++def test_sqlite_negative_limit_is_unbounded():
++    from sqlglot import transpile
++
++    offset_query = "SELECT x FROM t LIMIT -1 OFFSET 5"
++    assert transpile(offset_query, read="sqlite", write="duckdb") == [
++        "SELECT x FROM t LIMIT ALL OFFSET 5"
++    ]
++    assert transpile(offset_query, read="sqlite", write="tsql") == [
++        "SELECT x FROM t ORDER BY (SELECT NULL) OFFSET 5 ROWS"
++    ]
++    assert transpile("SELECT x FROM t LIMIT 5, -2", read="sqlite", write="postgres") == [
++        "SELECT x FROM t LIMIT ALL OFFSET 5"
++    ]

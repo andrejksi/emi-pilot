@@ -1,0 +1,54 @@
+diff --git a/mpmath/libmp/gammazeta.py b/mpmath/libmp/gammazeta.py
+index 6d44228..aa55c59 100644
+--- a/mpmath/libmp/gammazeta.py
++++ b/mpmath/libmp/gammazeta.py
+@@ -1036,6 +1036,32 @@ def mpc_zeta(s, prec, rnd=round_down, alt=0, force=False):
+     if im == fzero:
+         return mpf_zeta(re, prec, rnd, alt), fzero
+ 
++    if re not in (finf, fnan) and im not in (finf, fninf, fnan) and mpf_gt(
++        re, from_int(max(16, prec // 4))
++    ):
++        # Borwein sums at a fixed absolute scale, which can lose the
++        # exponentially small imaginary part. Sum the Dirichlet tail
++        # separately from the leading 1 in this rapidly convergent region.
++        wp = prec + 30
++        neg_s = mpc_neg(s)
++        tail = mpc_zero
++        threshold = mpf_shift(mpf_pow(ftwo, neg_s[0], wp), -wp)
++        sigma_minus_one = mpf_sub(re, fone, wp)
++        k = 2
++        while True:
++            base = from_int(k)
++            term = mpc_pow((base, fzero), neg_s, wp)
++            if alt and k % 2 == 0:
++                term = mpc_neg(term)
++            tail = mpc_add(tail, term, wp)
++            # Integral bound for the absolute tail after this term.
++            bound = mpf_div(
++                mpf_pow(base, mpf_neg(sigma_minus_one), wp), sigma_minus_one, wp
++            )
++            if mpf_lt(bound, threshold):
++                return mpc_pos(mpc_add(tail, mpc_one, wp), prec, rnd)
++            k += 1
++
+     # slow for large s
+     if (not force) and mpf_gt(mpc_abs(s, 10), from_int(prec)):
+         raise NotImplementedError
+diff --git a/mpmath/tests/test_gammazeta.py b/mpmath/tests/test_gammazeta.py
+index 44a4d9e..6b6fb40 100644
+--- a/mpmath/tests/test_gammazeta.py
++++ b/mpmath/tests/test_gammazeta.py
+@@ -729,3 +729,12 @@ def test_issue_1198():
+     # Wolfram Engine N[Zeta[-105/10, 7656119366529843/4503599627370496], 40]
+     ref = mpf('-0.0164851819507137542274084311077626')
+     assert mp.almosteq(zeta(-10.5, 1.7), ref, rel_eps=1e-28, abs_eps=0)
++
++
++def test_zeta_small_imaginary_component_at_large_real_part():
++    from mpmath import mp
++
++    with mp.workdps(15):
++        imag = mp.zeta(50 + 5j).imag
++        reference = mp.mpf("2.82881957300551842714082e-16")
++        assert abs(imag / reference - 1) < mp.mpf("1e-14")
