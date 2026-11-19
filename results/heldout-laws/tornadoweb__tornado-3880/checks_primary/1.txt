@@ -1,0 +1,22 @@
+Rules check: stop. Not checked: none.
+
+.emi/laws/test_circlerefs_stderr.py
+  Example, guard: running tornado.test.circlerefs_test through tornado.test.runtests passes and logs no bytes to stderr (A1, A2).
+      assert proc.returncode == 0, proc.stderr[-2000:]
+      assert "bytes to stderr" not in proc.stderr
+      -> holds on the current code
+  Example, new behaviour: when an unclosed socket from an earlier test is still uncollected garbage, entering assert_no_cycle_garbage writes nothing to stderr (A1, A3).
+      assert err.getvalue() == ""
+      -> fails on the current code: AssertionError: assert '/tmp/emi-pro...c.collect()\n' == ''
++ <tree>/tornado/test/circlerefs_test.py:75: ResourceWarning: unclosed <socket.socket fd=11, family=2, type=1, proto=0, laddr=('0.0.0.0', 0)>
++   gc.collect()
+
+Answers (proposed: approving the rules agrees to them):
+  - A1 (written by the person): kind is fix: since 6.6.1 the Tornado test suite fails on Windows Python < 3.13 because "Exception ignored ... ResourceWarning: unclosed <socket.socket ...>" is written to stderr from gc.collect() at circlerefs_test.py line 75 (the gc.collect() at the start of assert_no_cycle_garbage) during test_curl_httpclient_streaming_callback; runtests then reports "logged 0 infos, 0 warnings, 0 errors, and 454 bytes to stderr". The test suite must not write that to stderr.
+  - A2 (written by the person): 6.6.0 passes, and 6.6.1 passes on Python 3.13+; those must keep passing.
+  - A3 (written by the person): how it is fixed (test-side or library-side) doesn't matter.
+
+Also proposed:
+  - .emi/laws/answers.txt (not a rule file)
+
+Ready for a person: show them the rules above; `emi rules approve` approves and commits them.
