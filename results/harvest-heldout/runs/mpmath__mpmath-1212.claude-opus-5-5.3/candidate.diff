@@ -1,0 +1,20 @@
+diff --git a/mpmath/functions/bessel.py b/mpmath/functions/bessel.py
+index f6c3da5..4e67689 100644
+--- a/mpmath/functions/bessel.py
++++ b/mpmath/functions/bessel.py
+@@ -156,6 +156,15 @@ def bessely(ctx, n, z, derivative=0, *, eliminate=True, eliminate_all=False,
+     # XXX: use hypercomb
+     ctx.prec += 10
+     m, d = ctx.nint_distance(n)
++    if d < -ctx.prec and ctx._fixed_precision:
++        # The working precision cannot be raised, so evaluate at
++        # symmetrically perturbed orders and average (error O(h^2)).
++        h = ctx.ldexp(1, -(ctx.prec//3))
++        def g(n):
++            cos, sin = ctx.cospi_sinpi(n)
++            return (ctx.besselj(n,z,derivative,**kwargs)*cos - \
++                ctx.besselj(-n,z,derivative,**kwargs))/sin
++        return (g(n+h) + g(n-h))*0.5
+     if d < -ctx.prec:
+         h = +ctx.eps
+         ctx.prec *= 2
