@@ -1,0 +1,3 @@
+A1 written: kind is fix: extraction after download leaves incomplete product folders; a HRSEVIRI zip (dedl, archive_depth 2) containing EOPMetadata.xml and a .nat file extracts to a folder holding only one of them, while the extracted folder must contain all of the archive's files (both EOPMetadata.xml and the .nat).
+A2 written: the reproduction uses extract=True and delete_archive=False, and the .zip archives stay next to the extracted folders.
+A3 written: everything else (re-download behaviour of already-recorded incomplete products, tar archives, other layouts) is not stated: doesn't matter.

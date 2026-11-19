@@ -1,0 +1,32 @@
+Rules check: stop. Not checked: none.
+
+.emi/laws/test_date_validity.py
+  Example, new behaviour: a search on S2_MSI_L1C from "2020-01-01" to "2023-11-31" is refused before any query is sent to the provider (A1, A2).
+      assert (result is None or len(result) == 0, do_search.call_count) == (True, 0)
+      -> fails on the current code: assert (True, 1) == (True, 0)
+At index 1 diff: 1 != 0
+Use -v to get more diff
+  Example, new behaviour: a search with the impossible start date "2023-11-31" is refused before any query is sent to the provider (A1, A2).
+      assert (result is None or len(result) == 0, do_search.call_count) == (True, 0)
+      -> fails on the current code: assert (True, 1) == (True, 0)
+At index 1 diff: 1 != 0
+Use -v to get more diff
+  Example, guard: a search on S2_MSI_L1C from "2020-01-01" to "2023-11-30" is still sent to the provider (A3).
+      assert (result is not None, do_search.call_count) == (True, 1)
+      -> holds on the current code
+
+Answers (proposed: approving the rules agrees to them):
+  - A1 (written by the person): kind is fix: searching with an invalid date (e.g. S2_MSI_L1C with start "2020-01-01" and end "2023-11-31", a day that does not exist) currently sends the query to the provider and gets a 500 error; dates must be checked for validity before the search, so such a query is not sent to the provider.
+  - A2 (written by the person): the error type/form used to refuse an invalid date is not stated: doesn't matter.
+  - A3 (written by the person): searches with valid dates (e.g. start "2020-01-01", end "2023-11-30") must keep being sent to the provider.
+
+Also proposed:
+  - .emi/laws/answers.txt (not a rule file)
+
+Noted (blocks nothing):
+  - .emi/laws/test_date_validity.py: 113 function(s) the rules run outside their area were given no stand-ins (`--scope all` tries them; `laws.area` widens the area): eodag/api/collection.py (8), eodag/api/core.py (10), eodag/api/product/__init__.py (2), eodag/api/product/metadata_mapping.py (4), eodag/api/provider.py (25), eodag/config.py (20), eodag/plugins/apis/base.py (1), eodag/plugins/authentication/base.py (1), eodag/plugins/base.py (4), eodag/plugins/download/base.py (1), eodag/plugins/manager.py (9), eodag/plugins/search/base.py (3), eodag/plugins/search/qssearch.py (4), eodag/utils/__init__.py (15), eodag/utils/cache.py (2), eodag/utils/yaml.py (4)
+  - .emi/laws/test_date_validity.py: test_an_impossible_end_date_is_not_sent_to_the_provider: its sentence speaks of any input, but an example tries only the cases it names: make it an any-input rule, or name the cases in the sentence
+  - .emi/laws/test_date_validity.py: test_an_impossible_start_date_is_not_sent_to_the_provider: its sentence speaks of any input, but an example tries only the cases it names: make it an any-input rule, or name the cases in the sentence
+  - .emi/laws/test_date_validity.py: old tests import what its new rules are about: tests/context.py, tests/integration/test_core_search.py, tests/test_benchmark.py, tests/test_cli.py, tests/units/test_core.py and 1 more. If the task changes how they behave, the person lists them as expected changes
+
+Ready for a person: show them the rules above; `emi rules approve` approves and commits them.
