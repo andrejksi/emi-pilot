@@ -1,0 +1,32 @@
+Rules check: stop. Not checked: none.
+
+.emi/laws/test_nested_dict_json_decode.py
+  Example, new behaviour: with APP_A__X='["v"]' and APP_B__X='[{"k": "v"}]' both set, Settings() gives a == {"x": ["v"]} and b == {"x": [{"k": "v"}]} (A1, A2).
+      assert (s.a, s.b) == ({"x": ["v"]}, {"x": [{"k": "v"}]})
+      -> fails on the current code: pydantic_core._pydantic_core.ValidationError: 1 validation error for Settings
+b.x
+Input should be a valid list [type=list_type, input_value='[{"k": "v"}]', input_type=str]
+For further information visit https://errors.pydantic.dev/2.14/v/lis …
+  Example, new behaviour: APP_B__X='[{"k": "v"}]' gives b == {"x": [{"k": "v"}]} for b: dict[str, list[dict[str, str]]] (A1).
+      assert Settings().b == {"x": [{"k": "v"}]}
+      -> fails on the current code: pydantic_core._pydantic_core.ValidationError: 1 validation error for Settings
+b.x
+Input should be a valid list [type=list_type, input_value='[{"k": "v"}]', input_type=str]
+For further information visit https://errors.pydantic.dev/2.14/v/lis …
+  Example, guard: APP_A__X='["v"]' still gives a == {"x": ["v"]} for a: dict[str, list[str]] (A2).
+      assert Settings().a == {"x": ["v"]}
+      -> holds on the current code
+
+Answers (proposed: approving the rules agrees to them):
+  - A1 (written by the person): kind is fix: with env_prefix "APP_" and env_nested_delimiter "__", a field b: dict[str, list[dict[str, str]]] given APP_B__X='[{"k": "v"}]' must JSON-decode to b == {"x": [{"k": "v"}]} instead of raising ValidationError.
+  - A2 (written by the person): a field a: dict[str, list[str]] given APP_A__X='["v"]' already gives a == {"x": ["v"]} and must keep doing so.
+  - A3 (written by the person): anything else doesn't matter.
+
+Also proposed:
+  - .emi/laws/answers.txt (not a rule file)
+
+Noted (blocks nothing):
+  - .emi/laws/test_nested_dict_json_decode.py: 52 function(s) the rules run outside their area were given no stand-ins (`--scope all` tries them; `laws.area` widens the area): pydantic_settings/main.py (7), pydantic_settings/sources/base.py (17), pydantic_settings/sources/providers/dotenv.py (4), pydantic_settings/sources/providers/env.py (8), pydantic_settings/sources/providers/secrets.py (2), pydantic_settings/sources/utils.py (12), pydantic_settings/utils.py (2)
+  - .emi/laws/test_nested_dict_json_decode.py: old tests import what its new rules are about: tests/test_precedence_and_merging.py, tests/test_settings.py, tests/test_source_aws_secrets_manager.py, tests/test_source_aws_systems_manager.py, tests/test_source_azure_key_vault.py and 7 more. If the task changes how they behave, the person lists them as expected changes
+
+Ready for a person: show them the rules above; `emi rules approve` approves and commits them.

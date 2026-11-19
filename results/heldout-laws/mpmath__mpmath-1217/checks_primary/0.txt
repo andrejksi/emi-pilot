@@ -1,0 +1,27 @@
+Rules check: stop. Not checked: none.
+
+.emi/laws/test_zeta_far_right_imag.py
+  Example, new behaviour: zeta(50+5j) has imaginary part 2.82881957300551842714082e-16 to about 14 significant digits (A1).
+      assert abs(zeta(mpc(50, 5)).imag - expected) < expected * mpf(10) ** -13
+      -> fails on the current code: AssertionError: assert mpf('4.9886414670268332e-23') < (mpf('2.8288195730055182e-16') * (mpf('10.0') ** -13))
++  where mpf('4.9886414670268332e-23') = abs((mpf('2.8288190741413715e-16') - mpf('2.8288195730055182e-16')))
++    where mpf('2.82 …
+  Example, new behaviour: zeta(50+5j) agrees with direct summation 1+1/2**x+...+1/5**x in both parts to about 14 digits (A2).
+      assert abs(z.real - direct.real) < mpf(10) ** -14
+      assert abs(z.imag - direct.imag) < abs(direct.imag) * mpf(10) ** -13
+      -> fails on the current code: AssertionError: assert mpf('4.9886414670268332e-23') < (mpf('2.8288195730055182e-16') * (mpf('10.0') ** -13))
++  where mpf('4.9886414670268332e-23') = abs((mpf('2.8288190741413715e-16') - mpf('2.8288195730055182e-16')))
++    where mpf('2.82 …
+
+Answers (proposed: approving the rules agrees to them):
+  - A1 (written by the person): kind is fix: zeta(50+5j) returns imaginary part 2.8288190741413715e-16 but the correct value (Mathematica) is 2.82881957300551842714082e-16; zeta must be accurate in the imaginary part in the far right half-plane.
+  - A2 (written by the person): direct summation 1+1/2**x+1/3**x+1/4**x+1/5**x at x=50+5j gives (0.9999999999999991+2.8288195730055187e-16j), which zeta(x) should agree with.
+  - A3 (written by the person): anything else (other points, precisions, speed) doesn't matter.
+
+Also proposed:
+  - .emi/laws/answers.txt (not a rule file)
+
+Noted (blocks nothing):
+  - .emi/laws/test_zeta_far_right_imag.py: old tests import what its new rules are about: mpmath/tests/test_basic_ops.py, mpmath/tests/test_bitwise.py, mpmath/tests/test_calculus.py, mpmath/tests/test_compatibility.py, mpmath/tests/test_convert.py and 29 more. If the task changes how they behave, the person lists them as expected changes
+
+Ready for a person: show them the rules above; `emi rules approve` approves and commits them.

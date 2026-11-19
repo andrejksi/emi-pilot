@@ -1,0 +1,23 @@
+Rules check: stop. Not checked: none.
+
+.emi/laws/test_gammainc_negative_upper.py
+  Any input, new behaviour: for any upper limit b between -0.21518225944126573 and 0, gammainc(3, 0, b) returns the integral of t^2 e^-t from 0 to b (A2).
+      tried on: b=-0.21518225944126573
+      tried on: b=-0.125
+      -> fails on the current code; the smallest failing input: Failing test case: tried( b=-0.125, ) — RecursionError: maximum recursion depth exceeded in comparison
+  Example, new behaviour: gammainc(3, 0, -0.1) returns the integral of t^2 e^-t from 0 to -0.1 instead of raising RecursionError (A1).
+      assert abs(gammainc(3, 0, -0.1) - _closed_form(-0.1)) < mpf(10) ** -14
+      -> fails on the current code: RecursionError: maximum recursion depth exceeded in comparison
+
+Answers (proposed: approving the rules agrees to them):
+  - A1 (written by the person): kind is fix: gammainc(3, 0, -0.1) raises RecursionError and must instead return the incomplete gamma integral from 0 to -0.1.
+  - A2 (written by the person): the region of failure is upper limits b from about -0.21518225944126573 to 0 (with z=3, a=0); these must all work.
+  - A3 (written by the person): anything else (other z, other lower limits, precision) doesn't matter.
+
+Also proposed:
+  - .emi/laws/answers.txt (not a rule file)
+
+Noted (blocks nothing):
+  - .emi/laws/test_gammainc_negative_upper.py: old tests import what its new rules are about: mpmath/tests/test_basic_ops.py, mpmath/tests/test_bitwise.py, mpmath/tests/test_calculus.py, mpmath/tests/test_compatibility.py, mpmath/tests/test_convert.py and 31 more. If the task changes how they behave, the person lists them as expected changes
+
+Ready for a person: show them the rules above; `emi rules approve` approves and commits them.

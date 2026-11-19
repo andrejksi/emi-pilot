@@ -1,0 +1,6 @@
+A1 written: kind is fix: SQLite performs integer division when both operands are integers; transpiling "SELECT 5 / 2" from sqlite to duckdb must give DuckDB SQL that evaluates to 2 (as SQLite does), not 2.5.
+A2 written: negative integer quotients have the same issue and must also match SQLite (e.g. SELECT -5 / 2 gives -2 in SQLite).
+A3 written: decimal operands must retain floating-point division (e.g. SELECT 5.0 / 2 gives 2.5).
+A4 written: SQLite division by zero must still return NULL (e.g. SELECT 5 / 0).
+A5 written: the type-annotated path (#8946) already works and must keep working: SELECT CAST(5 AS INTEGER) / CAST(2 AS INTEGER) evaluates to 2.
+A6 written: the exact SQL text produced doesn't matter, only what DuckDB computes.

@@ -1,0 +1,2 @@
+A1 written: kind is fix: section headers and footers must abide by the comment_prefix setting; with comment_prefix = "", import_heading_stdlib = "#region Standard Library" and import_footer_stdlib = "#endregion Standard Library", sorting "import sys" must give the heading line "#region Standard Library" and footer line "#endregion Standard Library" (not "# #region ..." / "# #endregion ...").
+A2 written: anything else (blank lines around headings, other settings) doesn't matter.

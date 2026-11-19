@@ -1,0 +1,33 @@
+{
+  "checked_files": [
+    "ANSWERS",
+    "answers.txt",
+    "test_wl_directed_edge_labels.py"
+  ],
+  "model": "claude-opus-5-5",
+  "passed": true,
+  "role": "primary",
+  "rounds": [
+    {
+      "exit": 0,
+      "files": [
+        "ANSWERS",
+        "answers.txt",
+        "test_wl_directed_edge_labels.py"
+      ],
+      "round": 0,
+      "seconds": 9.1
+    },
+    {
+      "exit": 0,
+      "files": [
+        "ANSWERS",
+        "answers.txt",
+        "test_wl_directed_edge_labels.py"
+      ],
+      "round": 1,
+      "seconds": 10.3
+    }
+  ],
+  "task": "networkx__networkx-8946"
+}

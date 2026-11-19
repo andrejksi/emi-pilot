@@ -1,0 +1,44 @@
+Rules check: stop. Not checked: none.
+
+.emi/laws/tests/test_cnpj_guards.py
+  Example, guard: alphanumeric pt_BR company_id stays twelve [0-9A-Z] chars plus two valid check digits (A4).
+      assert re.fullmatch(r"[0-9A-Z]{12}\d{2}", cid)
+      assert cid[12:] == "".join(str(d) for d in company_id_checksum(values))
+      -> holds on the current code
+  Example, guard: numeric pt_BR cnpj stays formatted as NN.NNN.NNN/0001-NN (A3).
+      assert re.fullmatch(r"\d{2}\.\d{3}\.\d{3}/0001-\d{2}", fake.cnpj())
+      -> holds on the current code
+  Example, guard: numeric pt_BR company_id stays eight digits + 0001 + two valid check digits (A3).
+      assert re.fullmatch(r"\d{8}0001\d{2}", cid)
+      assert cid[12:] == "".join(str(d) for d in company_id_checksum(values))
+      -> holds on the current code
+
+.emi/laws/tests/test_numeric_root_repeats.py
+  Example, new behaviour: formatted numeric pt_BR cnpj values also show roots with repeated digits (A1, A2).
+      assert any(len(set(root)) < 8 for root in roots)
+      -> fails on the current code: assert False
++  where False = any(<generator object test_cnpj_root_can_repeat_digits.<locals>.<genexpr> at 0x…>)
+  Example, new behaviour: with each root digit sampled independently, most numeric pt_BR roots (about 98%) contain a repeated digit (A2).
+      assert sum(len(set(root)) < 8 for root in roots) > 1_800
+      -> fails on the current code: assert 0 > 1800
++  where 0 = sum(<generator object test_most_numeric_roots_repeat_a_digit_like_independent_sampling.<locals>.<genexpr> at 0x…>)
+  Example, new behaviour: among 10,000 numeric pt_BR company_id roots, some contain a repeated digit, so not all have eight distinct digits (A1, A2).
+      assert sum(len(set(root)) < 8 for root in roots) > 0
+      assert not all(len(set(root)) == 8 for root in roots)
+      -> fails on the current code: assert 0 > 0
++  where 0 = sum(<generator object test_numeric_roots_can_contain_repeated_digits.<locals>.<genexpr> at 0x…>)
+
+Answers (proposed: approving the rules agrees to them):
+  - A1 (written by the person): kind is fix: pt_BR numeric CNPJ roots (first eight digits of company_id/cnpj without use_alphanumeric) currently never contain repeated digits because they are sampled without replacement; this is wrong.
+  - A2 (written by the person): each position of the numeric root should be sampled independently (with replacement), so roots with repeated digits such as 18781203 must be possible; over 10,000 samples the count of roots with fewer than 8 distinct digits must not be 0 and not all roots may have 8 distinct digits.
+  - A3 (written by the person): the generated checksum is valid today and must stay valid; the numeric company_id still has the form eight digits + 0001 + two check digits.
+  - A4 (written by the person): the alphanumeric branch already samples with replacement and is the model to match; it must keep working.
+
+Also proposed:
+  - .emi/laws/answers.txt (not a rule file)
+
+Noted (blocks nothing):
+  - .emi/laws/tests/test_cnpj_guards.py: 21 function(s) the rules run outside their area were given no stand-ins (`--scope all` tries them; `laws.area` widens the area): faker/contrib/pytest/plugin.py (1), faker/factory.py (2), faker/generator.py (5), faker/providers/__init__.py (4), faker/proxy.py (6), faker/utils/distribution.py (1), faker/utils/loading.py (2)
+  - .emi/laws/tests/test_numeric_root_repeats.py: old tests import what its new rules are about: tests/providers/conftest.py, tests/providers/test_address.py, tests/providers/test_date_time.py, tests/providers/test_doi.py, tests/providers/test_dynamic.py and 16 more. If the task changes how they behave, the person lists them as expected changes
+
+Ready for a person: show them the rules above; `emi rules approve` approves and commits them.
