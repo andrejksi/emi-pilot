@@ -1,3 +1,5 @@
+celery__celery-10938
+celery__kombu-2843
 conan-io__conan-19649
 cs-si__eodag-2395
 cs-si__eodag-2435
@@ -5,6 +7,8 @@ cs-si__eodag-2441
 huggingface__huggingface_hub-5080
 huggingface__huggingface_hub-5287
 matthewwithanm__python-markdownify-287
+networkx__networkx-8936
+networkx__networkx-8946
 pycqa__isort-2747
 pycqa__isort-2789
 pydantic__pydantic-settings-1109
