@@ -1,0 +1,7 @@
+{
+  "arm": "control",
+  "final": "accepted",
+  "model": "gpt-6.2-sol",
+  "seed": "3",
+  "task": "fonttools__fonttools-4382"
+}

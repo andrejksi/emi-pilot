@@ -1,0 +1,13 @@
+diff --git a/celery/apps/multi.py b/celery/apps/multi.py
+index b9c552f..4afc30b 100644
+--- a/celery/apps/multi.py
++++ b/celery/apps/multi.py
+@@ -356,7 +356,7 @@ class MultiParser:
+                            suffix, cmd, append, options):
+         namespace, nodename, _ = build_nodename(name, prefix, suffix)
+         namespace = nodename if nodename in p.namespaces else namespace
+-        return Node(nodename, cmd, append,
++        return self.Node(nodename, cmd, append,
+                     p.optmerge(namespace, options), p.passthrough)
+ 
+     def _get_ranges(self, names):

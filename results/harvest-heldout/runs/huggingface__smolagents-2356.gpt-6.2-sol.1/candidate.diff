@@ -1,0 +1,33 @@
+diff --git a/src/smolagents/models.py b/src/smolagents/models.py
+index d21ea6b..6ffc074 100644
+--- a/src/smolagents/models.py
++++ b/src/smolagents/models.py
+@@ -356,6 +356,9 @@ def get_clean_message_list(
+ 
+         if role in role_conversions:
+             message.role = role_conversions[role]  # type: ignore
++        if isinstance(message.content, str):
++            message.content = [{"type": "text", "text": message.content}]
++
+         # encode images if needed
+         if isinstance(message.content, list):
+             for element in message.content:
+diff --git a/tests/test_models.py b/tests/test_models.py
+index 4264fad..d70bea4 100644
+--- a/tests/test_models.py
++++ b/tests/test_models.py
+@@ -1186,3 +1186,14 @@ def test_tool_calls_json_serialization(model_class, model_id):
+     assert len(data["tool_calls"]) > 0
+     assert data["tool_calls"][0]["function"]["name"] == "final_answer"
+     assert data["tool_calls"][0]["function"]["arguments"] == "test_result"
++
++
++def test_get_clean_message_list_merges_plain_system_messages():
++    messages = [
++        {"role": "system", "content": "First"},
++        {"role": "system", "content": "Second"},
++        {"role": "user", "content": "Prompt"},
++    ]
++    result = get_clean_message_list(messages)
++    assert [message["role"] for message in result] == ["system", "user"]
++    assert result[0]["content"] == [{"type": "text", "text": "First\nSecond"}]

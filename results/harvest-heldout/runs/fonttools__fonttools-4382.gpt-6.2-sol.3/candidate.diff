@@ -1,0 +1,24 @@
+diff --git a/Lib/fontTools/varLib/iup.py b/Lib/fontTools/varLib/iup.py
+index a53de40..0c8a11d 100644
+--- a/Lib/fontTools/varLib/iup.py
++++ b/Lib/fontTools/varLib/iup.py
+@@ -12,6 +12,8 @@ from typing import (
+ )
+ from numbers import Integral, Real
+ 
++from fontTools.misc.roundTools import otRound
++
+ _Point = Tuple[Real, Real]
+ _Delta = Tuple[Real, Real]
+ _PointSegment = Sequence[_Point]
+@@ -369,6 +371,10 @@ def iup_contour_optimize(
+     the input delta.
+     """
+ 
++    # The renderer interpolates from the integer values stored in the font.
++    deltas = [(otRound(x), otRound(y)) for x, y in deltas]
++    coords = [(otRound(x), otRound(y)) for x, y in coords]
++
+     n = len(deltas)
+ 
+     # Get the easy cases out of the way:

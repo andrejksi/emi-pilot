@@ -1,0 +1,14 @@
+diff --git a/Lib/fontTools/cffLib/__init__.py b/Lib/fontTools/cffLib/__init__.py
+index a1e1ece..ab12e9a 100644
+--- a/Lib/fontTools/cffLib/__init__.py
++++ b/Lib/fontTools/cffLib/__init__.py
+@@ -288,6 +288,9 @@ class CFFFontSet(object):
+                 name, attrs, content = element
+                 topDict.fromXML(name, attrs, content)
+ 
++            if hasattr(topDict, "VarStore") and hasattr(topDict, "CharStrings"):
++                topDict.CharStrings.varStore = topDict.VarStore
++
+             if hasattr(topDict, "VarStore") and topDict.FDArray[0].vstore is None:
+                 fdArray = topDict.FDArray
+                 for fontDict in fdArray:
