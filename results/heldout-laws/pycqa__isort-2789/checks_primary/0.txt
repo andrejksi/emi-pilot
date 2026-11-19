@@ -1,0 +1,29 @@
+Rules check: stop. Not checked: none.
+
+.emi/laws/test_heading_comment_prefix.py
+  Example, new behaviour: with comment_prefix "" the output is exactly the heading "#region Standard Library", then "import sys", then the footer "#endregion Standard Library", ignoring blank lines (A1).
+      assert _sorted_lines() == ["#region Standard Library", "import sys", "#endregion Standard Library"]
+      -> fails on the current code: AssertionError: assert ['# #region S...dard Library'] == ['#region Sta...dard Library']
+At index 0 diff: '# #region Standard Library' != '#region Standard Library'
+Use -v to get more diff
+  Example, new behaviour: with comment_prefix "" and import_footer_stdlib "#endregion Standard Library", the last output line is "#endregion Standard Library" (A1).
+      assert _sorted_lines()[-1] == "#endregion Standard Library"
+      -> fails on the current code: AssertionError: assert '# #endregion...ndard Library' == '#endregion Standard Library'
+- #endregion Standard Library
++ # #endregion Standard Library
+? ++
+  Example, new behaviour: with comment_prefix "" and import_heading_stdlib "#region Standard Library", the first output line is "#region Standard Library" (A1).
+      assert _sorted_lines()[0] == "#region Standard Library"
+      -> fails on the current code: AssertionError: assert '# #region Standard Library' == '#region Standard Library'
+- #region Standard Library
++ # #region Standard Library
+? ++
+
+Answers (proposed: approving the rules agrees to them):
+  - A1 (written by the person): kind is fix: section headers and footers must abide by the comment_prefix setting; with comment_prefix = "", import_heading_stdlib = "#region Standard Library" and import_footer_stdlib = "#endregion Standard Library", sorting "import sys" must give the heading line "#region Standard Library" and footer line "#endregion Standard Library" (not "# #region ..." / "# #endregion ...").
+  - A2 (written by the person): anything else (blank lines around headings, other settings) doesn't matter.
+
+Also proposed:
+  - .emi/laws/answers.txt (not a rule file)
+
+Ready for a person: show them the rules above; `emi rules approve` approves and commits them.
