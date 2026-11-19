@@ -1,0 +1,67 @@
+diff --git a/networkx/algorithms/graph_hashing.py b/networkx/algorithms/graph_hashing.py
+index d8f3086..e064db4 100644
+--- a/networkx/algorithms/graph_hashing.py
++++ b/networkx/algorithms/graph_hashing.py
+@@ -54,12 +54,14 @@ def _neighborhood_aggregate_directed(G, node, node_labels, edge_attr=None):
+     """
+     successor_labels = []
+     for nbr in G.successors(node):
+-        prefix = "s_" + "" if edge_attr is None else str(G[node][nbr][edge_attr])
++        edge_label = "" if edge_attr is None else str(G[node][nbr][edge_attr])
++        prefix = "s_" + edge_label
+         successor_labels.append(prefix + node_labels[nbr])
+ 
+     predecessor_labels = []
+     for nbr in G.predecessors(node):
+-        prefix = "p_" + "" if edge_attr is None else str(G[nbr][node][edge_attr])
++        edge_label = "" if edge_attr is None else str(G[nbr][node][edge_attr])
++        prefix = "p_" + edge_label
+         predecessor_labels.append(prefix + node_labels[nbr])
+     return (
+         node_labels[node]
+diff --git a/networkx/algorithms/tests/test_graph_hashing.py b/networkx/algorithms/tests/test_graph_hashing.py
+index 6c90c8f..243c621 100644
+--- a/networkx/algorithms/tests/test_graph_hashing.py
++++ b/networkx/algorithms/tests/test_graph_hashing.py
+@@ -316,6 +316,41 @@ def test_directed_bugs():
+     assert Tree1_hash != Tree2_hash
+ 
+ 
++def test_directed_edge_attr_keeps_direction():
++    """
++    With `edge_attr` set, the direction of edges in a directed graph must still
++    be taken into account: an outward star and an inward star are not
++    isomorphic and should hash differently.
++    """
++    out_star = nx.DiGraph([(0, 1), (0, 2)])
++    in_star = nx.DiGraph([(1, 0), (2, 0)])
++    for G in (out_star, in_star):
++        nx.set_edge_attributes(G, "e", "label")
++
++    h_out = nx.weisfeiler_lehman_graph_hash(out_star, edge_attr="label")
++    h_in = nx.weisfeiler_lehman_graph_hash(in_star, edge_attr="label")
++    assert h_out != h_in
++
++    sub_out = nx.weisfeiler_lehman_subgraph_hashes(out_star, edge_attr="label")
++    sub_in = nx.weisfeiler_lehman_subgraph_hashes(in_star, edge_attr="label")
++    assert sub_out[0] != sub_in[0]
++
++
++def test_directed_edge_attr_reversed():
++    """
++    Reversing a directed tree with edge attributes should change its hash:
++    the tree points towards its root, its reverse points away from it.
++    """
++    for i in range(5):
++        G = nx.gn_graph(10 + i, seed=100 + i)
++        nx.set_edge_attributes(G, "x", "label")
++        G_reversed = G.reverse()
++
++        h = nx.weisfeiler_lehman_graph_hash(G, edge_attr="label")
++        h_reversed = nx.weisfeiler_lehman_graph_hash(G_reversed, edge_attr="label")
++        assert h != h_reversed
++
++
+ def test_trivial_labels_isomorphism():
+     """
+     Trivial labelling of the graph should not change isomorphism verdicts.
