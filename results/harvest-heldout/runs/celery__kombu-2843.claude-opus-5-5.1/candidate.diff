@@ -1,0 +1,82 @@
+diff --git a/kombu/asynchronous/timer.py b/kombu/asynchronous/timer.py
+index a58b4ce..fe47351 100644
+--- a/kombu/asynchronous/timer.py
++++ b/kombu/asynchronous/timer.py
+@@ -5,7 +5,7 @@ from __future__ import annotations
+ import heapq
+ import sys
+ from collections import namedtuple
+-from datetime import datetime
++from datetime import datetime, timezone
+ from functools import total_ordering
+ from time import monotonic
+ from time import time as _time
+@@ -16,11 +16,6 @@ from vine.utils import wraps
+ 
+ from kombu.log import get_logger
+ 
+-if sys.version_info >= (3, 9):
+-    from zoneinfo import ZoneInfo
+-else:
+-    from backports.zoneinfo import ZoneInfo
+-
+ if TYPE_CHECKING:
+     from types import TracebackType
+ 
+@@ -29,13 +24,15 @@ __all__ = ('Entry', 'Timer', 'to_timestamp')
+ logger = get_logger(__name__)
+ 
+ DEFAULT_MAX_INTERVAL = 2
+-EPOCH = datetime.fromtimestamp(0, ZoneInfo("UTC"))
++# A fixed-offset UTC needs no time zone database, so importing this
++# module works on hosts without OS tz data and without tzdata installed.
++EPOCH = datetime.fromtimestamp(0, timezone.utc)
+ IS_PYPY = hasattr(sys, 'pypy_version_info')
+ 
+ scheduled = namedtuple('scheduled', ('eta', 'priority', 'entry'))
+ 
+ 
+-def to_timestamp(d, default_timezone=ZoneInfo("UTC"), time=monotonic):
++def to_timestamp(d, default_timezone=timezone.utc, time=monotonic):
+     """Convert datetime to timestamp.
+ 
+     If d' is already a timestamp, then that will be used.
+diff --git a/t/unit/asynchronous/test_timer.py b/t/unit/asynchronous/test_timer.py
+index 75362a6..a73ae6e 100644
+--- a/t/unit/asynchronous/test_timer.py
++++ b/t/unit/asynchronous/test_timer.py
+@@ -1,6 +1,9 @@
+ from __future__ import annotations
+ 
+-from datetime import datetime, timezone
++import os
++import subprocess
++import sys
++from datetime import datetime, timedelta, timezone
+ from unittest.mock import Mock, patch
+ 
+ import pytest
+@@ -16,6 +19,23 @@ class test_to_timestamp:
+     def test_datetime(self):
+         assert to_timestamp(datetime.now(timezone.utc))
+ 
++    def test_naive_datetime_is_utc(self):
++        future = datetime.now(timezone.utc) + timedelta(hours=1)
++        aware = to_timestamp(future, time=lambda: 0.0)
++        naive = to_timestamp(future.replace(tzinfo=None), time=lambda: 0.0)
++        assert naive == pytest.approx(aware, abs=1.0)
++
++    def test_import_without_tz_database(self, tmp_path):
++        # Simulate a host with no OS tz data and no tzdata package: the
++        # timer module must still import, since UTC needs no database.
++        code = (
++            "import sys; sys.modules['tzdata'] = None\n"
++            "import kombu.asynchronous.timer as t\n"
++            "assert t.to_timestamp(t.datetime(2030, 1, 1)) > 0\n"
++        )
++        env = dict(os.environ, PYTHONTZPATH=str(tmp_path))
++        subprocess.run([sys.executable, "-c", code], env=env, check=True)
++
+ 
+ class test_Entry:
+ 
