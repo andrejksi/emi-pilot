@@ -1,0 +1,2 @@
+A1 written: The "1st positive zero of the 2nd degree Bessel function of the second kind" is 3.3842417671495935, and fp.besselyzero(2, 1) should return it without raising ZeroDivisionError.
+A2 written: mp.besselyzero(2, 1) already "returns the proper result", mpf('3.3842417671495935').

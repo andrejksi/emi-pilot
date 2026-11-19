@@ -1,0 +1,14 @@
+Rules check: incomplete. Not checked: 2 (listed below).
+
+.emi/laws/test_numeric_cnpj.py
+
+Answers (proposed: approving the rules agrees to them):
+  - A1 (written by the person): Expected behavior: Each position in a numeric CNPJ root should be sampled independently, allowing repeated digits. The issue gives the valid repeated-digit root 18781203 and identifies all 10^8 eight-digit numeric roots as the expected space.
+  - A2 (written by the person): The issue states that the current restriction does not make the generated checksum invalid.
+
+Also proposed:
+  - .emi/laws/answers.txt (not a rule file)
+
+Not checked:
+  - .emi/laws/test_numeric_cnpj.py: listing the tests at the drafted rules exited 5
+  - .emi/laws/test_numeric_cnpj.py: the law files could not be listed together: listing the tests at the law files together exited 5

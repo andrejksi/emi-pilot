@@ -1,0 +1,15 @@
+Rules check: incomplete. Not checked: 2 (listed below).
+
+.emi/laws/test_iup_render_equality.py
+
+Answers (proposed: approving the rules agrees to them):
+  - A1 (written by the person): IUP optimization must determine point equality on rounded points, under the same conditions as at render time.
+  - A2 (written by the person): IUP optimization must determine delta equality on rounded deltas, under the same conditions as at render time.
+  - A3 (written by the person): Rounding may happen at the call sites with integer-only optimizer inputs, or within the optimizer for equality tests while keeping fractional parts for existing tolerance calculations.
+
+Also proposed:
+  - .emi/laws/answers.txt (not a rule file)
+
+Not checked:
+  - .emi/laws/test_iup_render_equality.py: listing the tests at the drafted rules exited 5
+  - .emi/laws/test_iup_render_equality.py: the law files could not be listed together: listing the tests at the law files together exited 5

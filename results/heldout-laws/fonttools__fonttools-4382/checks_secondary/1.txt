@@ -1,0 +1,31 @@
+Rules check: repair. Not checked: none.
+
+.emi/laws/test_iup_render_equality_test.py
+  Example, new behaviour: distinct point positions that round equal are treated as equal when determining which deltas can be omitted (A1, A3).
+      assert _render_optimized(deltas, coords, [2]) == deltas
+      -> fails on the current code: assert [(2, 0), (0, ..., (0, 0), ...] == [(2, 0), (4, ..., (0, 0), ...]
+At index 1 diff: (0, 0) != (4, 0)
+Use -v to get more diff
+  Example, new behaviour: distinct deltas that round equal are treated as equal when interpolating between equal point positions (A2, A3).
+      assert _render_optimized(deltas, coords, [2]) == [ (2, 0), (0, 0), (2, 0), (0, 0), (0, 0), (0, 0), (0, 0) ]
+      -> fails on the current code: assert [(2, 0), (2, ..., (0, 0), ...] == [(2, 0), (0, ..., (0, 0), ...]
+At index 1 diff: (2, 0) != (0, 0)
+Use -v to get more diff
+  Example, guard: IUP optimization can omit an exactly interpolated delta when points and deltas are already integers (A1, A2).
+      assert optimized[1] is None
+      assert iup_delta(optimized, coords, [2]) == deltas
+      -> holds on the current code
+
+Answers (proposed: approving the rules agrees to them):
+  - A1 (written by the person): IUP optimization must determine point equality on rounded points, under the same conditions as at render time.
+  - A2 (written by the person): IUP optimization must determine delta equality on rounded deltas, under the same conditions as at render time.
+  - A3 (written by the person): Rounding may happen at the call sites with integer-only optimizer inputs, or within the optimizer for equality tests while keeping fractional parts for existing tolerance calculations.
+
+Also proposed:
+  - .emi/laws/answers.txt (not a rule file)
+
+Send back (fix these, then run `emi rules check` again):
+  - .emi/laws/test_iup_render_equality_test.py still passes when Lib/fontTools/varLib/iup.py::iup_segment returns its first argument (`coords`) unchanged; Lib/fontTools/varLib/iup.py::_iup_contour_bound_forced_set returns `set()`: trivial code satisfies every rule in it, or every guard in it, so it pins nothing down. Add a case that such code fails.
+
+Noted (blocks nothing):
+  - .emi/laws/test_iup_render_equality_test.py: old tests import what its new rules are about: Tests/pens/roundingPen_test.py, Tests/ttLib/ttGlyphSet_test.py, Tests/varLib/instancer/instancer_test.py, Tests/varLib/instancer/jstf_test.py, Tests/varLib/instancer/math_test.py and 1 more. If the task changes how they behave, the person lists them as expected changes

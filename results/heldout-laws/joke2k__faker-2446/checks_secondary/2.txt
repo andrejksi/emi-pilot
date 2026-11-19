@@ -1,0 +1,23 @@
+Rules check: stop. Not checked: none.
+
+.emi/laws/tests/test_numeric_cnpj.py
+  Example, guard: Numeric CNPJs carry valid check digits (A2).
+      assert digits[check_position] == (11 - remainder if remainder >= 2 else 0)
+      -> holds on the current code
+  Example, new behaviour: Each of the eight numeric CNPJ root positions independently samples a decimal digit and can repeat digits (A1).
+      assert 40 <= pair_counts[digit_pair] <= 170, (first, second, digit_pair)
+      -> fails on the current code: AssertionError: (0, 1, ('0', '0'))
+assert 40 <= 0
+
+Answers (proposed: approving the rules agrees to them):
+  - A1 (written by the person): Expected behavior: Each position in a numeric CNPJ root should be sampled independently, allowing repeated digits. The issue gives the valid repeated-digit root 18781203 and identifies all 10^8 eight-digit numeric roots as the expected space.
+  - A2 (written by the person): The issue states that the current restriction does not make the generated checksum invalid.
+
+Also proposed:
+  - .emi/laws/answers.txt (not a rule file)
+
+Noted (blocks nothing):
+  - .emi/laws/tests/test_numeric_cnpj.py: 22 function(s) the rules run outside their area were given no stand-ins (`--scope all` tries them; `laws.area` widens the area): faker/contrib/pytest/plugin.py (1), faker/factory.py (2), faker/generator.py (5), faker/providers/__init__.py (3), faker/providers/company/pt_BR/__init__.py (3), faker/proxy.py (6), faker/utils/loading.py (2)
+  - .emi/laws/tests/test_numeric_cnpj.py: old tests import what its new rules are about: tests/providers/conftest.py, tests/providers/test_address.py, tests/providers/test_date_time.py, tests/providers/test_doi.py, tests/providers/test_dynamic.py and 16 more. If the task changes how they behave, the person lists them as expected changes
+
+Ready for a person: show them the rules above; `emi rules approve` approves and commits them.

@@ -1,0 +1,28 @@
+Rules check: stop. Not checked: none.
+
+.emi/laws/test_capacity_scaling.py
+  Example, new behaviour: capacity_scaling raises NetworkXUnfeasible when the zero-capacity edge cannot meet the demands (A1).
+      nx.capacity_scaling(graph) is refused with nx.NetworkXUnfeasible
+      -> fails on the current code: Failed: DID NOT RAISE <class 'networkx.exception.NetworkXUnfeasible'>
+  Example, new behaviour: capacity_scaling raises NetworkXUnfeasible when the graph has demands of 1 and -1 and no edges (A2).
+      nx.capacity_scaling(graph) is refused with nx.NetworkXUnfeasible
+      -> fails on the current code: Failed: DID NOT RAISE <class 'networkx.exception.NetworkXUnfeasible'>
+  Example, guard: min_cost_flow raises NetworkXUnfeasible when the zero-capacity edge cannot meet the demands (A3).
+      nx.min_cost_flow(graph) is refused with nx.NetworkXUnfeasible
+      -> holds on the current code
+  Example, guard: network_simplex raises NetworkXUnfeasible when the zero-capacity edge cannot meet the demands (A3).
+      nx.network_simplex(graph) is refused with nx.NetworkXUnfeasible
+      -> holds on the current code
+
+Answers (proposed: approving the rules agrees to them):
+  - A1 (written by the person): This is a fix. The issue gives a directed graph with node demands 1 and -1 and a 1-to-0 edge of capacity 0 and weight 1. capacity_scaling must raise NetworkXUnfeasible when no flow satisfies the demands.
+  - A2 (written by the person): The issue says a graph with the same demands and no edges at all has the same bug, so capacity_scaling must raise NetworkXUnfeasible for that case as well.
+  - A3 (written by the person): The issue identifies network_simplex and min_cost_flow raising NetworkXUnfeasible for the zero-capacity edge reproducer as correct.
+
+Also proposed:
+  - .emi/laws/answers.txt (not a rule file)
+
+Noted (blocks nothing):
+  - .emi/laws/test_capacity_scaling.py: 44 function(s) the rules run outside their area were given no stand-ins (`--scope all` tries them; `laws.area` widens the area): networkx/algorithms/flow/mincost.py (1), networkx/algorithms/flow/networksimplex.py (4), networkx/classes/coreviews.py (1), networkx/classes/digraph.py (10), networkx/classes/function.py (1), networkx/classes/graph.py (4), networkx/classes/reportviews.py (7), networkx/utils/backends.py (2), networkx/utils/decorators.py (13), networkx/utils/misc.py (1)
+
+Ready for a person: show them the rules above; `emi rules approve` approves and commits them.

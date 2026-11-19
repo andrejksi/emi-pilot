@@ -1,0 +1,3 @@
+A1 written: IUP optimization must determine point equality on rounded points, under the same conditions as at render time.
+A2 written: IUP optimization must determine delta equality on rounded deltas, under the same conditions as at render time.
+A3 written: Rounding may happen at the call sites with integer-only optimizer inputs, or within the optimizer for equality tests while keeping fractional parts for existing tolerance calculations.

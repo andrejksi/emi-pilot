@@ -1,0 +1,23 @@
+{
+  "checked_files": [
+    "ANSWERS",
+    "answers.txt",
+    "test_capacity_scaling.py"
+  ],
+  "model": "gpt-6.2-sol",
+  "passed": true,
+  "role": "secondary",
+  "rounds": [
+    {
+      "exit": 0,
+      "files": [
+        "ANSWERS",
+        "answers.txt",
+        "test_capacity_scaling.py"
+      ],
+      "round": 0,
+      "seconds": 100.5
+    }
+  ],
+  "task": "networkx__networkx-8936"
+}
