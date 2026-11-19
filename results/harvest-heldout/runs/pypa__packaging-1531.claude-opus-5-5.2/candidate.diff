@@ -1,0 +1,92 @@
+diff --git a/src/packaging/_tokenizer.py b/src/packaging/_tokenizer.py
+index 7fbc14a..db49e82 100644
+--- a/src/packaging/_tokenizer.py
++++ b/src/packaging/_tokenizer.py
+@@ -39,6 +39,14 @@ class ParserSyntaxError(Exception):
+         return f"{self.message}\n    {self.source}\n    {marker}"
+ 
+ 
++_ARBITRARY_VERSION = r"[^\s;)]+"
++if Specifier._specifier_regex_str.count(_ARBITRARY_VERSION) != 1:  # pragma: no cover
++    raise RuntimeError("cannot locate the arbitrary version in the specifier regex")
++_REQUIREMENT_SPECIFIER_REGEX_STR = Specifier._specifier_regex_str.replace(
++    _ARBITRARY_VERSION, r"[^\s;),]+"
++)
++
++
+ DEFAULT_RULES: dict[str, re.Pattern[str]] = {
+     "LEFT_PARENTHESIS": re.compile(r"\("),
+     "RIGHT_PARENTHESIS": re.compile(r"\)"),
+@@ -77,8 +85,11 @@ DEFAULT_RULES: dict[str, re.Pattern[str]] = {
+         """,
+         re.VERBOSE,
+     ),
++    # In a requirement string the comma always separates specifiers (PEP 508's
++    # version production cannot contain one), so the arbitrary-equality version
++    # must stop at a comma here, even though ``Specifier("===a,b")`` accepts it.
+     "SPECIFIER": re.compile(
+-        Specifier._specifier_regex_str,
++        _REQUIREMENT_SPECIFIER_REGEX_STR,
+         re.VERBOSE | re.IGNORECASE,
+     ),
+     "AT": re.compile(r"\@"),
+diff --git a/tests/test_requirements.py b/tests/test_requirements.py
+index 03d97f9..1048024 100644
+--- a/tests/test_requirements.py
++++ b/tests/test_requirements.py
+@@ -349,20 +349,53 @@ class TestRequirementParsing:
+         req = Requirement(f"foo{specifier}")
+         assert req.specifier == specifier
+ 
++    @pytest.mark.parametrize(
++        ("requirement_string", "expected"),
++        [
++            ("x===0,>= 0", {"===0", ">=0"}),
++            ("x===0, >=0", {"===0", ">=0"}),
++            ("x===0 , >=0", {"===0", ">=0"}),
++            ("x===0,!= 1.0", {"===0", "!=1.0"}),
++            ("x===0,>=0", {"===0", ">=0"}),
++            ("x (===0,>= 0)", {"===0", ">=0"}),
++            ("x (===0, >=0)", {"===0", ">=0"}),
++            ("x>= 1,===abc", {">=1", "===abc"}),
++            ("x===a,===b, ~= 1.0", {"===a", "===b", "~=1.0"}),
++            ('x===0, >=0 ; python_version >= "3"', {"===0", ">=0"}),
++        ],
++    )
++    def test_arbitrary_version_followed_by_spaced_specifier(
++        self, requirement_string: str, expected: set[str]
++    ) -> None:
++        req = Requirement(requirement_string)
++        assert {str(s) for s in req.specifier} == expected
++        assert req.specifier == SpecifierSet(",".join(sorted(expected)))
++
+     # ----------------------------------------------------------------------------------
+     # Everything below this (in this class) should be parsing failure modes
+     # ----------------------------------------------------------------------------------
+     # Start all method names with `test_error_`
+     # to make it easier to run these tests with `-k error`
+ 
+-    def test_error_when_specifier_set_rejects_parsed_specifier(self) -> None:
++    def test_error_when_comma_follows_arbitrary_version(self) -> None:
+         # GIVEN
++        # In a requirement the comma separates specifiers, so ``y`` is not
++        # part of the ``===`` version and is not a specifier on its own.
+         to_parse = "demo===x,y"
+ 
+         # WHEN
+-        with pytest.raises(InvalidRequirement, match="Invalid specifier: 'y'"):
++        with pytest.raises(InvalidRequirement) as ctx:
+             Requirement(to_parse)
+ 
++        # THEN
++        assert ctx.exconly() == (
++            "packaging.requirements.InvalidRequirement: "
++            "Expected comma (within version specifier), "
++            "semicolon (after version specifier) or end\n"
++            "    demo===x,y\n"
++            "        ~~~~~^"
++        )
++
+     def test_error_when_empty_string(self) -> None:
+         # GIVEN
+         to_parse = ""
