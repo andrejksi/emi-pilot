@@ -1,0 +1,60 @@
+{
+  "base_commit": "5f9d15fb7e40d00f75908760725fb0c7dc1f50d4",
+  "created_at": "2026-11-12T05:30:26Z",
+  "install": [
+    "pip install -q -e .",
+    "pip install -q pytest"
+  ],
+  "install_from": "default",
+  "issue": 8945,
+  "kind": "git",
+  "license": null,
+  "oracle": {
+    "fail_to_pass": [
+      "networkx/algorithms/tests/test_graph_hashing.py::test_labelled_directed_star_direction[16-None]",
+      "networkx/algorithms/tests/test_graph_hashing.py::test_labelled_directed_star_direction[16-label]",
+      "networkx/algorithms/tests/test_graph_hashing.py::test_labelled_directed_star_direction[32-None]",
+      "networkx/algorithms/tests/test_graph_hashing.py::test_labelled_directed_star_direction[32-label]"
+    ],
+    "pass_to_pass": [
+      "networkx/algorithms/tests/test_graph_hashing.py::test_digest_size",
+      "networkx/algorithms/tests/test_graph_hashing.py::test_digest_size_subgraph_hash",
+      "networkx/algorithms/tests/test_graph_hashing.py::test_directed",
+      "networkx/algorithms/tests/test_graph_hashing.py::test_directed_bugs",
+      "networkx/algorithms/tests/test_graph_hashing.py::test_directed_subgraph_hash",
+      "networkx/algorithms/tests/test_graph_hashing.py::test_empty_graph_hash",
+      "networkx/algorithms/tests/test_graph_hashing.py::test_empty_graph_subgraph_hash",
+      "networkx/algorithms/tests/test_graph_hashing.py::test_initial_node_labels_subgraph_hash",
+      "networkx/algorithms/tests/test_graph_hashing.py::test_isomorphic",
+      "networkx/algorithms/tests/test_graph_hashing.py::test_isomorphic_edge_attr",
+      "networkx/algorithms/tests/test_graph_hashing.py::test_isomorphic_edge_attr_and_node_attr",
+      "networkx/algorithms/tests/test_graph_hashing.py::test_isomorphic_edge_attr_and_node_attr_subgraph_hash",
+      "networkx/algorithms/tests/test_graph_hashing.py::test_isomorphic_edge_attr_subgraph_hash",
+      "networkx/algorithms/tests/test_graph_hashing.py::test_isomorphic_node_attr",
+      "networkx/algorithms/tests/test_graph_hashing.py::test_isomorphic_node_attr_subgraph_hash",
+      "networkx/algorithms/tests/test_graph_hashing.py::test_isomorphic_subgraph_hash",
+      "networkx/algorithms/tests/test_graph_hashing.py::test_iteration_depth",
+      "networkx/algorithms/tests/test_graph_hashing.py::test_iteration_depth_edge_attr",
+      "networkx/algorithms/tests/test_graph_hashing.py::test_iteration_depth_node_attr",
+      "networkx/algorithms/tests/test_graph_hashing.py::test_iteration_depth_node_edge_attr",
+      "networkx/algorithms/tests/test_graph_hashing.py::test_missing_edge_attr",
+      "networkx/algorithms/tests/test_graph_hashing.py::test_missing_edge_attr_subgraph_hash",
+      "networkx/algorithms/tests/test_graph_hashing.py::test_missing_node_attr",
+      "networkx/algorithms/tests/test_graph_hashing.py::test_missing_node_attr_subgraph_hash",
+      "networkx/algorithms/tests/test_graph_hashing.py::test_positive_iters",
+      "networkx/algorithms/tests/test_graph_hashing.py::test_reversed",
+      "networkx/algorithms/tests/test_graph_hashing.py::test_reversed_subgraph_hash",
+      "networkx/algorithms/tests/test_graph_hashing.py::test_trivial_labels_hashes",
+      "networkx/algorithms/tests/test_graph_hashing.py::test_trivial_labels_isomorphism",
+      "networkx/algorithms/tests/test_graph_hashing.py::test_trivial_labels_isomorphism_directed"
+    ]
+  },
+  "prompt": "BUG: weisfeiler_lehman_graph_hash drops directed edge-label prefixes causing hash collisions\n\nWhen hashing a directed graph using `weisfeiler_lehman_graph_hash` with an `edge_attr` supplied, the function silently drops the `s_` (successor) and `p_` (predecessor) prefixes on the edge labels\n\nas a result, mathematically distinct directed graphs (such as an inward-pointing star and an outward-pointing star) incorrectly generate the exact same hash.\n\n### Reproducer\n```python\nimport networkx as nx\n\na = nx.DiGraph([(0, 1), (0, 2)]) # Outward star\nb = nx.DiGraph([(1, 0), (2, 0)]) # Inward star\n\nfor graph in [a, b]:\n    nx.set_edge_attributes(graph, \"e\", \"label\")\n\nhash_a = nx.weisfeiler_lehman_graph_hash(a, edge_attr=\"label\")\nhash_b = nx.weisfeiler_lehman_graph_hash(b, edge_attr=\"label\")\n\nprint(\"Hashes equal:\", hash_a == hash_b)",
+  "pull": 8946,
+  "python": "3.12",
+  "repo": "networkx/networkx",
+  "source": "github-pr",
+  "test_files": [
+    "networkx/algorithms/tests/test_graph_hashing.py"
+  ]
+}

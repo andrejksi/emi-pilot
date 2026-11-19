@@ -1,0 +1,48 @@
+{
+  "base_commit": "e59d71890e745effb3724dc4b5620b23f92e0ee3",
+  "created_at": "2026-11-10T19:24:21Z",
+  "install": [
+    "pip install -q -e .",
+    "pip install -q pytest"
+  ],
+  "install_from": "default",
+  "issue": 8934,
+  "kind": "git",
+  "license": null,
+  "oracle": {
+    "fail_to_pass": [
+      "networkx/algorithms/flow/tests/test_mincost.py::TestMinCostFlow::test_no_residual_edges_infeasible[capacity_scaling]"
+    ],
+    "pass_to_pass": [
+      "networkx/algorithms/flow/tests/test_mincost.py::TestMinCostFlow::test_bone_shaped",
+      "networkx/algorithms/flow/tests/test_mincost.py::TestMinCostFlow::test_deadend",
+      "networkx/algorithms/flow/tests/test_mincost.py::TestMinCostFlow::test_digon",
+      "networkx/algorithms/flow/tests/test_mincost.py::TestMinCostFlow::test_digraph1",
+      "networkx/algorithms/flow/tests/test_mincost.py::TestMinCostFlow::test_digraph2",
+      "networkx/algorithms/flow/tests/test_mincost.py::TestMinCostFlow::test_digraph3",
+      "networkx/algorithms/flow/tests/test_mincost.py::TestMinCostFlow::test_exceptions",
+      "networkx/algorithms/flow/tests/test_mincost.py::TestMinCostFlow::test_finite_capacity_neg_digon",
+      "networkx/algorithms/flow/tests/test_mincost.py::TestMinCostFlow::test_infinite_capacity_neg_digon",
+      "networkx/algorithms/flow/tests/test_mincost.py::TestMinCostFlow::test_large",
+      "networkx/algorithms/flow/tests/test_mincost.py::TestMinCostFlow::test_max_flow_min_cost",
+      "networkx/algorithms/flow/tests/test_mincost.py::TestMinCostFlow::test_multidigraph",
+      "networkx/algorithms/flow/tests/test_mincost.py::TestMinCostFlow::test_negative_selfloops",
+      "networkx/algorithms/flow/tests/test_mincost.py::TestMinCostFlow::test_negcycle_infcap",
+      "networkx/algorithms/flow/tests/test_mincost.py::TestMinCostFlow::test_no_flow_satisfying_demands",
+      "networkx/algorithms/flow/tests/test_mincost.py::TestMinCostFlow::test_no_residual_edges_infeasible[min_cost_flow]",
+      "networkx/algorithms/flow/tests/test_mincost.py::TestMinCostFlow::test_no_residual_edges_infeasible[network_simplex]",
+      "networkx/algorithms/flow/tests/test_mincost.py::TestMinCostFlow::test_simple_digraph",
+      "networkx/algorithms/flow/tests/test_mincost.py::TestMinCostFlow::test_sum_demands_not_zero",
+      "networkx/algorithms/flow/tests/test_mincost.py::TestMinCostFlow::test_transshipment",
+      "networkx/algorithms/flow/tests/test_mincost.py::TestMinCostFlow::test_zero_capacity_edges"
+    ]
+  },
+  "prompt": "capacity_scaling returns a zero-cost infeasible flow instead of raising NetworkXUnfeasible\n\nnetworkx 3.7 and main (92f497e).\n\n```python\nimport networkx as nx\nG = nx.DiGraph()\nG.add_node(0, demand=1)\nG.add_node(1, demand=-1)\nG.add_edge(1, 0, capacity=0, weight=1)\n\nnx.network_simplex(G)   # raises NetworkXUnfeasible (correct)\nnx.min_cost_flow(G)     # raises NetworkXUnfeasible (correct)\nnx.capacity_scaling(G)  # returns (0, {0: {}, 1: {0: 0}}), no exception\n```\n\nThe returned flow does not meet the demands (net flow 0 at both nodes vs demands 1 and -1). The graph is weakly connected and the demands sum to zero. The docstring says NetworkXUnfeasible is raised when \"There is no flow satisfying all demand\" (capacityscaling.py:228). A graph with the same two demands and no edges at all behaves the same way.\n\nCause: the \"Residual network has no edges\" early return (capacityscaling.py:297-300) fires before the excess check at capacityscaling.py:396-397, so the infeasibility is never detected.\n\n(Found with the help of an AI code-auditing agent; I reran the reproducer above on 3.7.)",
+  "pull": 8936,
+  "python": "3.12",
+  "repo": "networkx/networkx",
+  "source": "github-pr",
+  "test_files": [
+    "networkx/algorithms/flow/tests/test_mincost.py"
+  ]
+}
