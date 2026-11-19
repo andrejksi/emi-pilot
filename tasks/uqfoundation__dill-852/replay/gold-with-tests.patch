@@ -1,0 +1,71 @@
+diff --git a/dill/temp.py b/dill/temp.py
+index f7fd696..b344c7b 100644
+--- a/dill/temp.py
++++ b/dill/temp.py
+@@ -164,8 +164,12 @@ NOTE: Keep the return value for as long as you want your file to exist !
+     import tempfile
+     kwds.setdefault('delete', True)
+     file = tempfile.NamedTemporaryFile(**kwds)
+-    pickle.dump(object, file)
+-    file.flush()
++    try:
++        pickle.dump(object, file)
++        file.flush()
++    except BaseException:
++        file.close()
++        raise
+     return file
+ 
+ def loadIO(buffer, **kwds):
+diff --git a/dill/tests/test_temp.py b/dill/tests/test_temp.py
+index c9d7abf..a7b6fad 100644
+--- a/dill/tests/test_temp.py
++++ b/dill/tests/test_temp.py
+@@ -101,6 +101,39 @@ def test_load_closes_internal_file():
+             file.close()
+         os.remove(name)
+ 
++def test_failed_dump_closes_tempfile():
++    import os
++    import tempfile
++    from unittest.mock import patch
++
++    original_tempfile = tempfile.NamedTemporaryFile
++    opened = []
++    errors = []
++
++    def tracked_tempfile(*args, **kwds):
++        file = original_tempfile(*args, **kwds)
++        opened.append(file)
++        return file
++
++    class Unpicklable:
++        def __reduce__(self):
++            raise RuntimeError('cannot serialize')
++
++    try:
++        with patch('tempfile.NamedTemporaryFile', tracked_tempfile):
++            try:
++                dump(Unpicklable())
++            except RuntimeError as error:
++                errors.append(error)
++        assert len(errors) == 1
++        assert len(opened) == 1
++        assert opened[0].closed
++        assert not os.path.exists(opened[0].name)
++    finally:
++        for file in opened:
++            file.close()
++
++
+ def test_buffer_pickle_protocol():
+     value = {'a': [1, 2, 3]}
+     for protocol in range(dill.HIGHEST_PROTOCOL + 1):
+@@ -183,6 +216,7 @@ if __name__ == '__main__':
+     test_pickle_to_tempfile()
+     test_pickle_to_stream()
+     test_load_closes_internal_file()
++    test_failed_dump_closes_tempfile()
+     test_buffer_pickle_protocol()
+     test_buffer_unpickle_encoding()
+     test_buffer_unpickle_errors()
