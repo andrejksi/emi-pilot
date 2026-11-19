@@ -1,0 +1,52 @@
+diff --git a/src/huggingface_hub/hf_file_system.py b/src/huggingface_hub/hf_file_system.py
+index 0443cc1..a3b2ff4 100644
+--- a/src/huggingface_hub/hf_file_system.py
++++ b/src/huggingface_hub/hf_file_system.py
+@@ -1130,13 +1130,33 @@ class HfFileSystem(fsspec.AbstractFileSystem, metaclass=_Cached):  # ty: ignore[
+         """
+         resolved_path1 = self.resolve_path(path1, revision=revision)
+         resolved_path2 = self.resolve_path(path2, revision=revision)
+-        if isinstance(resolved_path1, HfFileSystemResolvedBucketPath) or isinstance(
+-            resolved_path2, HfFileSystemResolvedBucketPath
+-        ):
+-            raise NotImplementedError("Copy from/to buckets is not available yet")
++        if isinstance(resolved_path2, HfFileSystemResolvedBucketPath):
++            # Copy to a bucket: server-side copy by xet hash when possible, otherwise download and re-upload.
++            source_info = self.info(path1, revision=revision)
++            if source_info["type"] != "file":
++                raise IsADirectoryError(f"Cannot copy '{path1}': not a file")
++            xet_hash = source_info.get("xet_hash")
++            if xet_hash is not None:
++                if isinstance(resolved_path1, HfFileSystemResolvedBucketPath):
++                    source_repo_type, source_repo_id = "bucket", resolved_path1.bucket_id
++                else:
++                    source_repo_type, source_repo_id = resolved_path1.repo_type, resolved_path1.repo_id
++                self._api.batch_bucket_files(
++                    resolved_path2.bucket_id,
++                    copy=[(source_repo_type, source_repo_id, xet_hash, resolved_path2.path)],
++                )
++            else:
++                with self.open(path1, "rb", revision=revision) as f:
++                    content = f.read()
++                self._api.batch_bucket_files(resolved_path2.bucket_id, add=[(content, resolved_path2.path)])
++            self.invalidate_cache(path=resolved_path1.unresolve())
++            self.invalidate_cache(path=resolved_path2.unresolve())
++            return
+ 
+         same_repo = (
+-            resolved_path1.repo_type == resolved_path2.repo_type and resolved_path1.repo_id == resolved_path2.repo_id
++            isinstance(resolved_path1, HfFileSystemResolvedRepositoryPath)
++            and resolved_path1.repo_type == resolved_path2.repo_type
++            and resolved_path1.repo_id == resolved_path2.repo_id
+         )
+ 
+         if same_repo:
+@@ -1156,7 +1176,7 @@ class HfFileSystem(fsspec.AbstractFileSystem, metaclass=_Cached):  # ty: ignore[
+                 ],
+             )
+         else:
+-            with self.open(path1, "rb", revision=resolved_path1.revision) as f:
++            with self.open(path1, "rb", revision=revision) as f:
+                 content = f.read()
+             commit_message = f"Copy {path1} to {path2}"
+             self._api.upload_file(
