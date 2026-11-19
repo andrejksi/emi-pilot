@@ -1,0 +1,23 @@
+{
+  "checked_files": [
+    "ANSWERS",
+    "answers.txt",
+    "test_streaming_connection_cleanup.py"
+  ],
+  "model": "gpt-6.2-sol",
+  "passed": true,
+  "role": "secondary",
+  "rounds": [
+    {
+      "exit": 0,
+      "files": [
+        "ANSWERS",
+        "answers.txt",
+        "test_streaming_connection_cleanup.py"
+      ],
+      "round": 0,
+      "seconds": 10.3
+    }
+  ],
+  "task": "tornadoweb__tornado-3880"
+}

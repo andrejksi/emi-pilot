@@ -1,0 +1,1 @@
+A1 written: The curl HTTP client's streaming-callback test must release its sockets without an unclosed-socket ResourceWarning on stderr on Windows with Python earlier than 3.13.

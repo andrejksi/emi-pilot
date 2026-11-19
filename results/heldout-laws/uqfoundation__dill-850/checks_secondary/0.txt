@@ -1,0 +1,24 @@
+Rules check: stop. Not checked: none.
+
+.emi/laws/test_temp_load_file_ownership.py
+  Example, guard: Passing a file directly to dill.load leaves the caller's file open (A3).
+      -> holds on the current code
+  Example, new behaviour: A successful temp.load returns the deserialized value and closes the file it opened (A2).
+      -> fails on the current code: assert False
++  where False = <_io.BytesIO object at 0x…>.closed
+  Example, new behaviour: A failed temp.load closes the file it opened while preserving the original exception (A1).
+      -> fails on the current code: assert False
++  where False = <_io.BytesIO object at 0x…>.closed
+
+Answers (proposed: approving the rules agrees to them):
+  - A1 (written by the person): If dill.temp.load fails to deserialize, it closes the input it opened even while the caller retains the exception, and raises the original loading exception.
+  - A2 (written by the person): If dill.temp.load succeeds, it closes the input it opened and returns the deserialized value.
+  - A3 (written by the person): When the caller supplies a file directly to dill.load, it remains caller-owned and open.
+
+Also proposed:
+  - .emi/laws/answers.txt (not a rule file)
+
+Noted (blocks nothing):
+  - .emi/laws/test_temp_load_file_ownership.py: 3 function(s) the rules run outside their area were given no stand-ins (`--scope all` tries them; `laws.area` widens the area): dill/_dill.py (3)
+
+Ready for a person: show them the rules above; `emi rules approve` approves and commits them.
