@@ -1,0 +1,73 @@
+diff --git a/isort/output.py b/isort/output.py
+index 0b0729b..aed8427 100644
+--- a/isort/output.py
++++ b/isort/output.py
+@@ -92,7 +92,7 @@ def sorted_imports(
+             if section_title and section_title not in seen_headings:
+                 if config.dedup_headings:
+                     seen_headings.add(section_title)
+-                section_comment = f"# {section_title}"
++                section_comment = config.section_comment(section_title)
+                 if section_comment not in parsed.lines_without_imports[0:1]:  # pragma: no branch
+                     section_output.insert(0, section_comment)
+ 
+@@ -100,7 +100,7 @@ def sorted_imports(
+             if section_footer and section_footer not in seen_headings:
+                 if config.dedup_headings:
+                     seen_headings.add(section_footer)
+-                section_comment_end = f"# {section_footer}"
++                section_comment_end = config.section_comment(section_footer)
+                 if (
+                     section_comment_end not in parsed.lines_without_imports[-1:]
+                 ):  # pragma: no branch
+diff --git a/isort/settings.py b/isort/settings.py
+index b5cdb8b..16b2d7b 100644
+--- a/isort/settings.py
++++ b/isort/settings.py
+@@ -642,12 +642,16 @@ class Config(_Config):
+ 
+         return self._known_patterns
+ 
++    def section_comment(self, text: str) -> str:
++        prefix = self.comment_prefix.strip()
++        return f"{prefix} {text}" if prefix else text
++
+     @property
+     def section_comments(self) -> tuple[str, ...]:
+         if self._section_comments is not None:
+             return self._section_comments
+ 
+-        self._section_comments = tuple(f"# {heading}" for heading in self.import_headings.values())
++        self._section_comments = tuple(self.section_comment(heading) for heading in self.import_headings.values())
+         return self._section_comments
+ 
+     @property
+@@ -655,7 +659,7 @@ class Config(_Config):
+         if self._section_comments_end is not None:
+             return self._section_comments_end
+ 
+-        self._section_comments_end = tuple(f"# {footer}" for footer in self.import_footers.values())
++        self._section_comments_end = tuple(self.section_comment(footer) for footer in self.import_footers.values())
+         return self._section_comments_end
+ 
+     @property
+diff --git a/tests/unit/test_isort.py b/tests/unit/test_isort.py
+index ae9f056..07682f9 100644
+--- a/tests/unit/test_isort.py
++++ b/tests/unit/test_isort.py
+@@ -5994,3 +5994,15 @@ def test_builtin_modules() -> None:
+         "from python_none_objects import NoneIterable\n"
+     )
+     assert isort.code(test_input) == test_output
++
++
++def test_section_comments_use_empty_prefix():
++    options = dict(
++        comment_prefix="",
++        import_heading_stdlib="#region Standard Library",
++        import_footer_stdlib="#endregion Standard Library",
++    )
++    result = isort.code("import sys\n", **options)
++    assert result.startswith("#region Standard Library\n")
++    assert result.endswith("#endregion Standard Library\n")
++    assert isort.code(result, **options) == result

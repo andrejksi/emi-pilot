@@ -1,0 +1,39 @@
+diff --git a/dill/temp.py b/dill/temp.py
+index 90b0754..c35ac80 100644
+--- a/dill/temp.py
++++ b/dill/temp.py
+@@ -133,7 +133,8 @@ def load(file, **kwds):
+     import dill as pickle
+     mode = kwds.pop('mode', 'rb')
+     name = getattr(file, 'name', file) # name=file.name or name=file (if str)
+-    return pickle.load(open(name, mode=mode, **kwds))
++    with open(name, mode=mode, **kwds) as stream:
++        return pickle.load(stream)
+ 
+ def dump(object, **kwds):
+     """dill.dump of object to a NamedTemporaryFile.
+diff --git a/dill/tests/test_temp.py b/dill/tests/test_temp.py
+index c773efb..af46d25 100644
+--- a/dill/tests/test_temp.py
++++ b/dill/tests/test_temp.py
+@@ -158,3 +158,20 @@ if __name__ == '__main__':
+     test_two_arg_functions()
+     test_one_arg_functions()
+     test_the_rest()
++
++
++def test_temp_load_closes_owned_file_if_deserializer_raises(monkeypatch, tmp_path):
++    import pytest
++
++    path = tmp_path / "data"
++    path.write_bytes(b"")
++    opened = []
++
++    def fail(stream):
++        opened.append(stream)
++        raise ValueError("load failed")
++
++    monkeypatch.setattr(dill, "load", fail)
++    with pytest.raises(ValueError, match="load failed"):
++        load(str(path))
++    assert opened[0].closed

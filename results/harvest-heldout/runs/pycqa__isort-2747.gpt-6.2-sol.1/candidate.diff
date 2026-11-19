@@ -1,0 +1,33 @@
+diff --git a/isort/wrap_modes.py b/isort/wrap_modes.py
+index 995ecae..ca99d28 100644
+--- a/isort/wrap_modes.py
++++ b/isort/wrap_modes.py
+@@ -67,7 +67,8 @@ def grid(
+             removed=remove_comments,
+             comment_prefix=comment_prefix,
+         )
+-        if len(next_statement.split(line_separator)[-1]) + 1 > line_length:
++        closing_width = 2 if include_trailing_comma and not imports else 1
++        if len(next_statement.split(line_separator)[-1]) + closing_width > line_length:
+             lines = [f"{white_space}{next_import.split(' ')[0]}"]
+             for part in next_import.split(" ")[1:]:
+                 new_line = f"{lines[-1]} {part}"
+diff --git a/tests/unit/test_wrap_modes.py b/tests/unit/test_wrap_modes.py
+index e854c9a..70ff3a2 100644
+--- a/tests/unit/test_wrap_modes.py
++++ b/tests/unit/test_wrap_modes.py
+@@ -873,3 +873,14 @@ def test_enum_matches_order_of_definitions() -> None:
+     assert old_enum_logic == new_enum_logic, (
+         "WrapModes enum order has changed, this is a breaking change."
+     )
++
++
++def test_grid_with_trailing_comma_preserves_module_path():
++    import isort
++
++    source = "from mymodule.sub import y2, long_name\n"
++    options = dict(force_grid_wrap=2, include_trailing_comma=True,
++                   use_parentheses=True, line_length=40)
++    formatted = isort.code(source, **options)
++    compile(formatted, "<sorted>", "exec")
++    assert formatted == isort.code(formatted, **options)

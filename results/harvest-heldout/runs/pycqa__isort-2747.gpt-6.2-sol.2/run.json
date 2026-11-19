@@ -1,0 +1,7 @@
+{
+  "arm": "control",
+  "final": "accepted",
+  "model": "gpt-6.2-sol",
+  "seed": "2",
+  "task": "pycqa__isort-2747"
+}
