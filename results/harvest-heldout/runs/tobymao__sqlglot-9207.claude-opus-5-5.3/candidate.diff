@@ -1,0 +1,29 @@
+diff --git a/sqlglot/parsers/sqlite.py b/sqlglot/parsers/sqlite.py
+index 7ce5673..7ec5886 100644
+--- a/sqlglot/parsers/sqlite.py
++++ b/sqlglot/parsers/sqlite.py
+@@ -154,6 +154,24 @@ class SQLiteParser(parser.Parser):
+         TokenType.MATCH: binary_range_parser(exp.Match),
+     }
+ 
++    def _parse_limit(
++        self,
++        this: exp.Expr | None = None,
++        top: bool = False,
++        skip_limit_token: bool = False,
++    ) -> exp.Expr | None:
++        limit = super()._parse_limit(this=this, top=top, skip_limit_token=skip_limit_token)
++
++        # A negative LIMIT means "no limit" in SQLite
++        # https://www.sqlite.org/lang_select.html#limitoffset
++        if isinstance(limit, exp.Limit):
++            expression = limit.args.get("expression")
++            value = expression.to_py() if expression and expression.is_number else None
++            if isinstance(value, (int, float)) and value < 0:
++                limit.set("expression", exp.var("ALL"))
++
++        return limit
++
+     def _parse_is(self, this: exp.Expr | None) -> exp.Expr | None:
+         """SQLite's IS / IS NOT is a null-safe equality against any expression.
+ 
