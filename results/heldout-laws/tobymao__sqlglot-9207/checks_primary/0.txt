@@ -1,0 +1,52 @@
+Rules check: stop. Not checked: none.
+
+.emi/laws/test_sqlite_negative_limit.py
+  Example, guard: postgres "SELECT x FROM t OFFSET 5" is still written for sqlite as "SELECT x FROM t LIMIT -1 OFFSET 5" (A2).
+      assert sqlglot.transpile("SELECT x FROM t OFFSET 5", read="postgres", write="sqlite") == ["SELECT x FROM t LIMIT -1 OFFSET 5"]
+      -> holds on the current code
+  Example, new behaviour: postgres "SELECT x FROM t OFFSET 5" sent through sqlite and then to duckdb gives "SELECT x FROM t LIMIT ALL OFFSET 5" (A2).
+      assert sqlglot.transpile(via_sqlite, read="sqlite", write="duckdb") == ["SELECT x FROM t LIMIT ALL OFFSET 5"]
+      -> fails on the current code: AssertionError: assert ['SELECT x FR... -1 OFFSET 5'] == ['SELECT x FR...ALL OFFSET 5']
+At index 0 diff: 'SELECT x FROM t LIMIT -1 OFFSET 5' != 'SELECT x FROM t LIMIT ALL OFFSET 5'
+Use -v to get more diff
+  Example, new behaviour: "SELECT x FROM t LIMIT -1 OFFSET 5" read from sqlite gives the same output as "LIMIT ALL OFFSET 5" read from postgres, for duckdb, postgres, tsql and mysql (A1).
+      assert sqlglot.transpile(SQLITE, read="sqlite", write=write) == sqlglot.transpile(POSTGRES_ALL, read="postgres", write=write)
+      -> fails on the current code: AssertionError: assert ['SELECT x FR... -1 OFFSET 5'] == ['SELECT x FR...ALL OFFSET 5']
+At index 0 diff: 'SELECT x FROM t LIMIT -1 OFFSET 5' != 'SELECT x FROM t LIMIT ALL OFFSET 5'
+Use -v to get more diff
+  Example, new behaviour: "SELECT x FROM t LIMIT -1 OFFSET 5" read from sqlite gives the same output as "LIMIT ALL OFFSET 5" read from postgres, for duckdb, postgres, tsql and mysql (A1).
+      assert sqlglot.transpile(SQLITE, read="sqlite", write=write) == sqlglot.transpile(POSTGRES_ALL, read="postgres", write=write)
+      -> fails on the current code: AssertionError: assert ['SELECT x FR... -1 OFFSET 5'] == ['SELECT x FROM t OFFSET 5']
+At index 0 diff: 'SELECT x FROM t LIMIT -1 OFFSET 5' != 'SELECT x FROM t OFFSET 5'
+Use -v to get more diff
+  Example, new behaviour: "SELECT x FROM t LIMIT -1 OFFSET 5" read from sqlite gives the same output as "LIMIT ALL OFFSET 5" read from postgres, for duckdb, postgres, tsql and mysql (A1).
+      assert sqlglot.transpile(SQLITE, read="sqlite", write=write) == sqlglot.transpile(POSTGRES_ALL, read="postgres", write=write)
+      -> fails on the current code: AssertionError: assert ['SELECT x FR... -1 OFFSET 5'] == ['SELECT x FR...ALL OFFSET 5']
+At index 0 diff: 'SELECT x FROM t LIMIT -1 OFFSET 5' != 'SELECT x FROM t LIMIT ALL OFFSET 5'
+Use -v to get more diff
+  Example, new behaviour: "SELECT x FROM t LIMIT -1 OFFSET 5" read from sqlite gives the same output as "LIMIT ALL OFFSET 5" read from postgres, for duckdb, postgres, tsql and mysql (A1).
+      assert sqlglot.transpile(SQLITE, read="sqlite", write=write) == sqlglot.transpile(POSTGRES_ALL, read="postgres", write=write)
+      -> fails on the current code: AssertionError: assert ['SELECT x FR...-1 ROWS ONLY'] == ['SELECT x FR...FFSET 5 ROWS']
+At index 0 diff: 'SELECT x FROM t ORDER BY (SELECT NULL) OFFSET 5 ROWS FETCH FIRST -1 ROWS ONLY' != 'SELECT x FROM t ORDER BY (SELECT NULL) OFFSET 5 ROW …
+  Example, new behaviour: "SELECT x FROM t LIMIT -1 OFFSET 5" from sqlite is written for duckdb as "SELECT x FROM t LIMIT ALL OFFSET 5" (A1).
+      assert sqlglot.transpile(SQLITE, read="sqlite", write="duckdb") == ["SELECT x FROM t LIMIT ALL OFFSET 5"]
+      -> fails on the current code: AssertionError: assert ['SELECT x FR... -1 OFFSET 5'] == ['SELECT x FR...ALL OFFSET 5']
+At index 0 diff: 'SELECT x FROM t LIMIT -1 OFFSET 5' != 'SELECT x FROM t LIMIT ALL OFFSET 5'
+Use -v to get more diff
+  Example, new behaviour: "SELECT x FROM t LIMIT -1 OFFSET 5" from sqlite is written for tsql with "OFFSET 5 ROWS" and no FETCH (A1).
+      assert sqlglot.transpile(SQLITE, read="sqlite", write="tsql") == ["SELECT x FROM t ORDER BY (SELECT NULL) OFFSET 5 ROWS"]
+      -> fails on the current code: AssertionError: assert ['SELECT x FR...-1 ROWS ONLY'] == ['SELECT x FR...FFSET 5 ROWS']
+At index 0 diff: 'SELECT x FROM t ORDER BY (SELECT NULL) OFFSET 5 ROWS FETCH FIRST -1 ROWS ONLY' != 'SELECT x FROM t ORDER BY (SELECT NULL) OFFSET 5 ROW …
+
+Answers (proposed: approving the rules agrees to them):
+  - A1 (written by the person): kind is fix: in SQLite a negative LIMIT means "no limit"; reading "SELECT x FROM t LIMIT -1 OFFSET 5" from sqlite must give the same output as reading "SELECT x FROM t LIMIT ALL OFFSET 5" from Postgres, e.g. "SELECT x FROM t LIMIT ALL OFFSET 5" for DuckDB and "... OFFSET 5 ROWS" (no FETCH) for T-SQL.
+  - A2 (written by the person): Postgres "SELECT x FROM t OFFSET 5" is already written as "LIMIT -1 OFFSET 5" for SQLite; the postgres -> sqlite -> duckdb round trip must work (give a valid no-limit query).
+  - A3 (written by the person): anything else (positive limits, non-literal limits) doesn't matter.
+
+Also proposed:
+  - .emi/laws/answers.txt (not a rule file)
+
+Noted (blocks nothing):
+  - .emi/laws/test_sqlite_negative_limit.py: 190 function(s) the rules run outside their area were given no stand-ins (`--scope all` tries them; `laws.area` widens the area): sqlglot/__init__.py (2), sqlglot/dialects/dialect.py (21), sqlglot/expressions/core.py (16), sqlglot/expressions/query.py (2), sqlglot/generator.py (29), sqlglot/generators/postgres.py (2), sqlglot/generators/sqlite.py (1), sqlglot/helper.py (3), sqlglot/parser.py (90), sqlglot/tokenizer_core.py (11), sqlglot/tokens.py (6), sqlglot/transforms.py (6), sqlglot/trie.py (1)
+
+Ready for a person: show them the rules above; `emi rules approve` approves and commits them.
