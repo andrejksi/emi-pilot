@@ -1,0 +1,211 @@
+diff --git a/src/huggingface_hub/hf_file_system.py b/src/huggingface_hub/hf_file_system.py
+index 0443cc1..adbb06d 100644
+--- a/src/huggingface_hub/hf_file_system.py
++++ b/src/huggingface_hub/hf_file_system.py
+@@ -1114,10 +1114,13 @@ class HfFileSystem(fsspec.AbstractFileSystem, metaclass=_Cached):  # ty: ignore[
+ 
+     def cp_file(self, path1: str, path2: str, revision: str | None = None, **kwargs) -> None:
+         """
+-        Copy a file within or between repositories.
++        Copy a file within or between repositories and buckets.
++
++        Copies to a bucket are done server-side (by xet hash) when the source file is stored on Xet. Copies from a
++        bucket to a repository download the file and upload it again. This also enables `mv`/`rename` on buckets.
+ 
+         > [!WARNING]
+-        > Note: When possible, use `HfApi.upload_file()` for better performance.
++        > Note: When possible, use `HfApi.upload_file()` or `HfApi.copy_files()` for better performance.
+ 
+         Args:
+             path1 (`str`):
+@@ -1133,7 +1136,10 @@ class HfFileSystem(fsspec.AbstractFileSystem, metaclass=_Cached):  # ty: ignore[
+         if isinstance(resolved_path1, HfFileSystemResolvedBucketPath) or isinstance(
+             resolved_path2, HfFileSystemResolvedBucketPath
+         ):
+-            raise NotImplementedError("Copy from/to buckets is not available yet")
++            self._cp_file_with_bucket(resolved_path1, resolved_path2, **kwargs)
++            self.invalidate_cache(path=resolved_path1.unresolve())
++            self.invalidate_cache(path=resolved_path2.unresolve())
++            return
+ 
+         same_repo = (
+             resolved_path1.repo_type == resolved_path2.repo_type and resolved_path1.repo_id == resolved_path2.repo_id
+@@ -1172,6 +1178,57 @@ class HfFileSystem(fsspec.AbstractFileSystem, metaclass=_Cached):  # ty: ignore[
+         self.invalidate_cache(path=resolved_path1.unresolve())
+         self.invalidate_cache(path=resolved_path2.unresolve())
+ 
++    def _cp_file_with_bucket(
++        self,
++        resolved_path1: HfFileSystemResolvedRepositoryPath | HfFileSystemResolvedBucketPath,
++        resolved_path2: HfFileSystemResolvedRepositoryPath | HfFileSystemResolvedBucketPath,
++        **kwargs,
++    ) -> None:
++        """Copy a single file when the source and/or the destination is a bucket.
++
++        When the destination is a bucket and the source file is stored on Xet, the copy is done server-side by xet
++        hash (no data is downloaded nor re-uploaded). Otherwise, the file content is read and uploaded.
++        """
++        source = resolved_path1.unresolve()
++        # Bucket contents can change at any time: always get fresh info to avoid copying a stale xet hash.
++        is_bucket_source = isinstance(resolved_path1, HfFileSystemResolvedBucketPath)
++        source_info = self.info(source, refresh=is_bucket_source)
++        if source_info["type"] == "directory":
++            # Folders are implicit in buckets and repositories: nothing to copy.
++            return
++
++        if isinstance(resolved_path2, HfFileSystemResolvedBucketPath):
++            if not resolved_path2.path:
++                raise ValueError(f"Cannot copy '{source}' to the root of a bucket without a file name.")
++            xet_hash = source_info.get("xet_hash")
++            if xet_hash is not None:
++                if isinstance(resolved_path1, HfFileSystemResolvedBucketPath):
++                    source_type, source_id = "bucket", resolved_path1.bucket_id
++                else:
++                    source_type, source_id = resolved_path1.repo_type, resolved_path1.repo_id
++                self._api.batch_bucket_files(
++                    resolved_path2.bucket_id, copy=[(source_type, source_id, xet_hash, resolved_path2.path)]
++                )
++            else:
++                with self.open(source, "rb") as f:
++                    content = f.read()
++                self._api.batch_bucket_files(resolved_path2.bucket_id, add=[(content, resolved_path2.path)])
++        else:
++            # Bucket to repository: no server-side copy available => download and upload.
++            with self.open(source, "rb") as f:
++                content = f.read()
++            commit_message = f"Copy {source} to {resolved_path2.unresolve()}"
++            self._api.upload_file(
++                path_or_fileobj=content,
++                path_in_repo=resolved_path2.path_in_repo,
++                repo_id=resolved_path2.repo_id,
++                token=self.token,
++                repo_type=resolved_path2.repo_type,
++                revision=resolved_path2.revision,
++                commit_message=kwargs.get("commit_message", commit_message),
++                commit_description=kwargs.get("commit_description"),
++            )
++
+     def modified(self, path: str, **kwargs) -> datetime:
+         """
+         Get the last modified time of a file.
+diff --git a/tests/test_buckets_hf_file_system.py b/tests/test_buckets_hf_file_system.py
+index 0aae7b7..37497ed 100644
+--- a/tests/test_buckets_hf_file_system.py
++++ b/tests/test_buckets_hf_file_system.py
+@@ -104,9 +104,20 @@ class TestHfFileSystemBucketRW(_HfFileSystemBucketChecks, _HfFileSystemBaseRWTes
+         yield
+         self.api.delete_bucket(self.bucket_id)
+ 
+-    @pytest.mark.skip("Not implemented yet")
+-    def test_copy_file(self):
+-        pass
++    def test_move_file(self):
++        self.hffs.mv(self.text_file, self.hf_path + "/data/text_data_moved.txt")
++        assert not self.hffs.exists(self.text_file)
++        with self.hffs.open(self.hf_path + "/data/text_data_moved.txt", "r") as f:
++            assert f.read() == "dummy text data"
++
++    def test_copy_file_to_other_bucket(self):
++        other_bucket_id = self.api.create_bucket(repo_name()).bucket_id
++        try:
++            self.hffs.cp_file(self.text_file, f"buckets/{other_bucket_id}/copied.txt")
++            with self.hffs.open(f"buckets/{other_bucket_id}/copied.txt", "r") as f:
++                assert f.read() == "dummy text data"
++        finally:
++            self.api.delete_bucket(other_bucket_id)
+ 
+ 
+ class TestHfFileSystemBucketLiveFollow:
+diff --git a/tests/test_hf_file_system.py b/tests/test_hf_file_system.py
+index cbae67f..7bd9e3a 100644
+--- a/tests/test_hf_file_system.py
++++ b/tests/test_hf_file_system.py
+@@ -1187,3 +1187,88 @@ def test_find_propagates_errors():
+     fs, api = _fake_fs(files, max_workers=4, error_paths=["dir_03"])
+     with pytest.raises(RuntimeError):
+         fs.find(_FAKE_REPO)
++
++
++def _bucket_copy_fs():
++    fs = HfFileSystem(skip_instance_cache=True)
++    fs._api = Mock()
++    fs._api.bucket_info.return_value = None
++    return fs
++
++
++def _bucket_file_info(name: str, xet_hash: str | None = "abc123") -> dict:
++    return {"name": name, "size": 3, "type": "file", "xet_hash": xet_hash}
++
++
++def test_cp_file_bucket_to_bucket_is_server_side():
++    fs = _bucket_copy_fs()
++    with patch.object(fs, "info", return_value=_bucket_file_info("buckets/user/b1/a.txt")) as info:
++        fs.cp_file("hf://buckets/user/b1/a.txt", "hf://buckets/user/b2/dir/b.txt")
++    info.assert_called_once_with("buckets/user/b1/a.txt", refresh=True)
++    fs._api.batch_bucket_files.assert_called_once_with("user/b2", copy=[("bucket", "user/b1", "abc123", "dir/b.txt")])
++
++
++def test_cp_file_repo_to_bucket_uses_xet_hash():
++    fs = _bucket_copy_fs()
++    fs._repo_and_revision_exists = Mock(return_value=(True, None))
++    with patch.object(fs, "info", return_value=_bucket_file_info("datasets/user/repo/a.txt")):
++        fs.cp_file("hf://datasets/user/repo/a.txt", "hf://buckets/user/b1/a.txt")
++    fs._api.batch_bucket_files.assert_called_once_with("user/b1", copy=[("dataset", "user/repo", "abc123", "a.txt")])
++
++
++def test_cp_file_repo_to_bucket_without_xet_hash_uploads_content():
++    fs = _bucket_copy_fs()
++    fs._repo_and_revision_exists = Mock(return_value=(True, None))
++    file = Mock()
++    file.__enter__ = Mock(return_value=file)
++    file.__exit__ = Mock(return_value=False)
++    file.read.return_value = b"abc"
++    with (
++        patch.object(fs, "info", return_value=_bucket_file_info("datasets/user/repo/a.txt", xet_hash=None)),
++        patch.object(fs, "open", return_value=file),
++    ):
++        fs.cp_file("hf://datasets/user/repo/a.txt", "hf://buckets/user/b1/a.txt")
++    fs._api.batch_bucket_files.assert_called_once_with("user/b1", add=[(b"abc", "a.txt")])
++
++
++def test_cp_file_bucket_to_repo_uploads_content():
++    fs = _bucket_copy_fs()
++    fs._repo_and_revision_exists = Mock(return_value=(True, None))
++    file = Mock()
++    file.__enter__ = Mock(return_value=file)
++    file.__exit__ = Mock(return_value=False)
++    file.read.return_value = b"abc"
++    with (
++        patch.object(fs, "info", return_value=_bucket_file_info("buckets/user/b1/a.txt")),
++        patch.object(fs, "open", return_value=file),
++    ):
++        fs.cp_file("hf://buckets/user/b1/a.txt", "hf://datasets/user/repo/a.txt")
++    fs._api.batch_bucket_files.assert_not_called()
++    fs._api.upload_file.assert_called_once()
++    kwargs = fs._api.upload_file.call_args.kwargs
++    assert kwargs["path_or_fileobj"] == b"abc"
++    assert kwargs["repo_id"] == "user/repo"
++    assert kwargs["repo_type"] == "dataset"
++    assert kwargs["path_in_repo"] == "a.txt"
++
++
++def test_cp_file_bucket_directory_is_noop():
++    fs = _bucket_copy_fs()
++    with patch.object(fs, "info", return_value={"name": "buckets/user/b1/dir", "size": 0, "type": "directory"}):
++        fs.cp_file("hf://buckets/user/b1/dir", "hf://buckets/user/b1/dir2")
++    fs._api.batch_bucket_files.assert_not_called()
++
++
++def test_mv_bucket_file_copies_then_deletes():
++    fs = _bucket_copy_fs()
++    with (
++        patch.object(fs, "info", return_value=_bucket_file_info("buckets/user/b1/.metadata.tmp")),
++        patch.object(fs, "expand_path", side_effect=lambda p, **kw: [fs._strip_protocol(p)]),
++        patch.object(fs, "isdir", return_value=False),
++        patch.object(fs, "exists", return_value=False),
++    ):
++        fs.mv("hf://buckets/user/b1/.metadata.tmp", "hf://buckets/user/b1/.metadata")
++    calls = fs._api.batch_bucket_files.call_args_list
++    assert calls[0].args == ("user/b1",)
++    assert calls[0].kwargs == {"copy": [("bucket", "user/b1", "abc123", ".metadata")]}
++    assert calls[-1].kwargs == {"delete": [".metadata.tmp"]}
