@@ -113,6 +113,25 @@ records. It is committed, and run once on the tuning set, before the
 held-out replay. A session on a different model, or a person, re-runs it
 from the records and must get the same numbers.
 
+## Pre-replay amendment (2026-11-19, before held-out replay)
+
+- **Producers & drafters:** Because candidates and laws were generated in
+  interactive blind sessions rather than via API keys, the two cross-maker
+  models are `claude-opus-5-5` (primary drafter; 84 control candidates across
+  28 tasks) and `gpt-6.2-sol` (secondary drafter; 81 control candidates across
+  27 tasks), both running blind via `study/save_candidate.py` and
+  `study/save_laws.py`.
+- **Held-out set:** 30 verified sound tasks merged on or after 2026-10-24 were
+  mined; 3 tasks whose fixes were exposed (`matthewwithanm__python-markdownify-287`,
+  replaced by `uqfoundation__dill-852`, then `pycqa__isort-2747` and
+  `celery__celery-10938`) were retired to `batches/seen.txt` per protocol,
+  leaving 28 clean held-out tasks in `batches/heldout.txt` (165 control
+  candidates total, all replayed without subsampling).
+- **Approvals:** Primary human approval (`andrejksi`) reviewed all 28 passing
+  primary drafts before replay (26 approved, 2 rejected: `tobymao__sqlglot-9180`
+  and `tornadoweb__tornado-3880`; average 2.3 min/task, recorded in
+  `results/heldout-laws/approvals.jsonl`).
+
 ## Sign-off
 
 Signed: andrejksi  Date: 2026-11-19

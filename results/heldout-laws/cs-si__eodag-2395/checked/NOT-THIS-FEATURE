@@ -1,0 +1,2 @@
+eodag/config.py::from_mapping: plugin config construction is only test setup; the issue is about archive extraction, not config loading
+eodag/config.py::validate: plugin config validation is only test setup; the issue is about archive extraction, not config validation

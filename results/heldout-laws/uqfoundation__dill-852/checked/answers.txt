@@ -1,0 +1,4 @@
+A1 written: kind is fix: when dill.temp.dump() fails to serialize (e.g. an object whose __reduce__ raises RuntimeError('cannot serialize')), the NamedTemporaryFile it created must be closed, so the normal delete-on-close behaviour removes the partial file, even while the exception is retained.
+A2 written: the original RuntimeError('cannot serialize') still propagates (the example catches RuntimeError).
+A3 written: successful calls must still return an open file.
+A4 written: loading untrusted data and anything else doesn't matter.

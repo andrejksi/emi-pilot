@@ -18,6 +18,12 @@ on:
       laws_root:
         description: "directory containing <task>/{first,checked,secondary}"
         default: "results/tuning-laws"
+      approvals:
+        description: "optional approvals.jsonl path passed to study/score.py"
+        default: ""
+      primary_drafter:
+        description: "optional primary drafter model id passed to study/score.py"
+        default: ""
       runs:
         description: "number of sandboxed replays per (candidate, condition)"
         default: "2"
@@ -71,7 +77,7 @@ jobs:
     timeout-minutes: 360
     strategy:
       fail-fast: false
-      max-parallel: 10
+      max-parallel: 15
       matrix:
         task: ${{ fromJSON(needs.plan.outputs.tasks) }}
     steps:
@@ -93,6 +99,33 @@ jobs:
           "$RUNNER_TEMP/uv-venv/bin/pip" install -q uv
           echo "$RUNNER_TEMP/tools/bin" >>"$GITHUB_PATH"
           echo "$RUNNER_TEMP/uv-venv/bin" >>"$GITHUB_PATH"
+      - name: Grade ungraded candidates with hidden tests
+        env:
+          TASK: ${{ matrix.task }}
+          ATTEMPTS: ${{ inputs.attempts }}
+        run: |
+          mkdir -p out/oracles
+          shopt -s nullglob
+          to_grade=()
+          # shellcheck disable=SC2086 # ATTEMPTS is space-separated dirs
+          for root in $ATTEMPTS; do
+            for run_dir in "$root"/"${TASK}".*; do
+              [ -d "$run_dir" ] || continue
+              [ -f "$run_dir/run.json" ] || continue
+              if [ ! -f "$run_dir/oracle.json" ]; then
+                to_grade+=("$run_dir")
+              fi
+            done
+          done
+          if [ "${#to_grade[@]}" -gt 0 ]; then
+            echo "Grading ${#to_grade[@]} ungraded candidates for $TASK..."
+            python3 harness/oracle.py --run "${to_grade[@]}"
+            for run_dir in "${to_grade[@]}"; do
+              if [ -f "$run_dir/oracle.json" ]; then
+                cp "$run_dir/oracle.json" "out/oracles/$(basename "$run_dir").oracle.json"
+              fi
+            done
+          fi
       - name: Double-replay all conditions
         env:
           EMI: ${{ runner.temp }}/tools/bin/emi
@@ -139,19 +172,36 @@ jobs:
           merge-multiple: true
       - name: Merge raw replay records
         run: |
-          mkdir -p out
+          mkdir -p out/oracles
           LC_ALL=C cat raw/*.replays.jsonl | sort > out/replays.jsonl
           wc -l out/replays.jsonl
+          if [ -d raw/oracles ]; then
+            cp -r raw/oracles/. out/oracles/ || true
+          fi
       - name: Score gate (primary pass)
+        env:
+          APPROVALS: ${{ inputs.approvals }}
+          PRIMARY_DRAFTER: ${{ inputs.primary_drafter }}
         run: |
+          extra=()
+          [ -n "$APPROVALS" ] && extra+=(--approvals "$APPROVALS")
+          [ -n "$PRIMARY_DRAFTER" ] && extra+=(--primary-drafter "$PRIMARY_DRAFTER")
           python3 study/score.py \
             --replays out/replays.jsonl \
+            "${extra[@]}" \
             --json out/score-1.json \
             --md out/score-1.md
       - name: Score gate (independent verification pass)
+        env:
+          APPROVALS: ${{ inputs.approvals }}
+          PRIMARY_DRAFTER: ${{ inputs.primary_drafter }}
         run: |
+          extra=()
+          [ -n "$APPROVALS" ] && extra+=(--approvals "$APPROVALS")
+          [ -n "$PRIMARY_DRAFTER" ] && extra+=(--primary-drafter "$PRIMARY_DRAFTER")
           python3 study/score.py \
             --replays out/replays.jsonl \
+            "${extra[@]}" \
             --json out/score-2.json \
             --md out/score-2.md
           diff -u out/score-1.json out/score-2.json
@@ -166,3 +216,4 @@ jobs:
             out/replays.jsonl
             out/score.json
             out/score.md
+            out/oracles/
