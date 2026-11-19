@@ -93,8 +93,14 @@ def resolve_law_dirs(
     elif unapproved_secondary is not None and not has_law_files(unapproved_secondary):
         unapproved_secondary = None
 
+    checked_draft = None
+    if task_root:
+        cand = task_root / "checked_draft"
+        checked_draft = cand if has_law_files(cand) else None
+
     return {
         "approved": approved_laws,
+        "checked_draft": checked_draft,
         "unapproved_primary": unapproved_primary,
         "unapproved_secondary": unapproved_secondary,
     }
@@ -142,6 +148,7 @@ def infer_slipped_stage(
     *,
     has_approved: bool,
     has_unapproved_primary: bool,
+    has_checked_draft: bool = False,
     override: str | None = None,
 ) -> str:
     """Classify why a wrong candidate slipped past the primary condition."""
@@ -149,6 +156,8 @@ def infer_slipped_stage(
         return override
     if has_approved:
         return "law_in_force_still_stop"
+    if has_checked_draft:
+        return "dropped_at_approval"
     if has_unapproved_primary:
         return "dropped_by_rules_check"
     return "no_law_drafted"
@@ -387,6 +396,7 @@ def replay_task(
         selected.remove("emi_unapproved_secondary")
 
     has_approved = law_dirs["approved"] is not None
+    has_checked_draft = law_dirs["checked_draft"] is not None
     has_unapproved_primary = law_dirs["unapproved_primary"] is not None
 
     rows: list[dict[str, Any]] = []
@@ -466,6 +476,7 @@ def replay_task(
                         row["stage"] = infer_slipped_stage(
                             has_approved=has_approved,
                             has_unapproved_primary=has_unapproved_primary,
+                            has_checked_draft=has_checked_draft,
                             override=stage_override,
                         )
                     rows.append(row)
