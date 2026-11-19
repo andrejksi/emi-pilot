@@ -13,6 +13,17 @@
       ],
       "round": 0,
       "seconds": 12.2
+    },
+    {
+      "exit": 3,
+      "files": [
+        "ANSWERS",
+        "answers.txt",
+        "test_iup_int_equality_test.py",
+        "test_iup_int_guard_test.py"
+      ],
+      "round": 1,
+      "seconds": 75.5
     }
   ],
   "task": "fonttools__fonttools-4382"

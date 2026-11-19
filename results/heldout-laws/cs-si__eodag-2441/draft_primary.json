@@ -12,6 +12,17 @@
       ],
       "round": 0,
       "seconds": 62.8
+    },
+    {
+      "exit": 5,
+      "files": [
+        "ANSWERS",
+        "NOT-THIS-FEATURE",
+        "answers.txt",
+        "test_mpc_filter_date.py"
+      ],
+      "round": 1,
+      "seconds": 83.1
     }
   ],
   "task": "cs-si__eodag-2441"

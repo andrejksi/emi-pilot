@@ -12,6 +12,16 @@
       ],
       "round": 0,
       "seconds": 10.0
+    },
+    {
+      "exit": 3,
+      "files": [
+        "ANSWERS",
+        "answers.txt",
+        "test_cff2_ttx_glyphset_test.py"
+      ],
+      "round": 1,
+      "seconds": 84.4
     }
   ],
   "task": "fonttools__fonttools-4388"
