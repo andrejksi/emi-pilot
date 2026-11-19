@@ -1,0 +1,29 @@
+Rules check: stop. Not checked: none.
+
+.emi/laws/test_extract_complete.py
+  Example, new behaviour: a zip holding EOPMetadata.xml and a .nat file, downloaded with archive_depth 2 and extract, ends up as a folder containing both files (A1).
+      -> fails on the current code: AssertionError: assert {'EOPMetadata.xml'} == {'EOPMetadata...11001242.nat'}
+Extra items in the right set:
+'MSG4-SEVI-MSG15-0100-NA-20260711001242.nat'
+Use -v to get more diff
+  Example, guard: with extract and delete_archive=False the downloaded zip stays next to the extracted folder (A2).
+      -> holds on the current code
+
+Answers (proposed: approving the rules agrees to them):
+  - A1 (written by the person): kind is fix: extraction after download leaves incomplete product folders; a HRSEVIRI zip (dedl, archive_depth 2) containing EOPMetadata.xml and a .nat file extracts to a folder holding only one of them, while the extracted folder must contain all of the archive's files (both EOPMetadata.xml and the .nat).
+  - A2 (written by the person): the reproduction uses extract=True and delete_archive=False, and the .zip archives stay next to the extracted folders.
+  - A3 (written by the person): everything else (re-download behaviour of already-recorded incomplete products, tar archives, other layouts) is not stated: doesn't matter.
+
+Also proposed:
+  - .emi/laws/answers.txt (not a rule file)
+
+Not this feature's concern (proposed: approving the rules agrees to it):
+  - eodag/config.py::from_mapping: plugin config construction is only test setup; the issue is about archive extraction, not config loading
+  - eodag/config.py::validate: plugin config validation is only test setup; the issue is about archive extraction, not config validation
+
+Noted (blocks nothing):
+  - .emi/laws/test_extract_complete.py still passes when 4 stand-in(s) replace 2 function(s): eodag/config.py::from_mapping (2), eodag/config.py::validate (2) (`--format json` lists each), which the proposed NOT-THIS-FEATURE says is not this feature's concern (it counts once the person approves it with the rules): not sent back.
+  - .emi/laws/test_extract_complete.py: 9 function(s) the rules run outside their area were given no stand-ins (`--scope all` tries them; `laws.area` widens the area): eodag/plugins/base.py (1), eodag/plugins/download/base.py (3), eodag/utils/__init__.py (4), eodag/utils/logging.py (1)
+  - .emi/laws/test_extract_complete.py: old tests import what its new rules are about: tests/__init__.py, tests/context.py, tests/test_config.py, tests/test_requirements.py, tests/units/test_metadata_mapping.py. If the task changes how they behave, the person lists them as expected changes
+
+Ready for a person: show them the rules above; `emi rules approve` approves and commits them.

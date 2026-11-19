@@ -1,0 +1,19 @@
+Rules check: incomplete. Not checked: 4 (listed below).
+
+.emi/laws/test_stat_guards.py
+
+.emi/laws/test_stat_v10_names.py
+
+Answers (proposed: approving the rules agrees to them):
+  - A1 (written by the person): kind is fix; varLib.instancer's updateFontNames/updateNameTable fails to update font names when the STAT table is version 1.0, because it has no ElidedFallbackNameID field.
+  - A2 (written by the person): when ElidedFallbackNameID is missing, the instancer should default to the font's subFamilyName (nameID 2) in its place, so the instances export and get corrected font names.
+  - A3 (written by the person): STAT tables that do have an ElidedFallbackNameID (version 1.1+) are the normal case and must keep working as before.
+
+Also proposed:
+  - .emi/laws/answers.txt (not a rule file)
+
+Not checked:
+  - .emi/laws/test_stat_guards.py: listing the tests at the drafted rules exited 5
+  - .emi/laws/test_stat_guards.py: the law files could not be listed together: listing the tests at the law files together exited 5
+  - .emi/laws/test_stat_v10_names.py: listing the tests at the drafted rules exited 5
+  - .emi/laws/test_stat_v10_names.py: the law files could not be listed together: listing the tests at the law files together exited 5

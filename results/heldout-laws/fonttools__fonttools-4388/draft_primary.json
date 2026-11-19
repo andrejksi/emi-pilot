@@ -1,0 +1,28 @@
+{
+  "model": "claude-opus-5-5",
+  "passed": false,
+  "role": "primary",
+  "rounds": [
+    {
+      "exit": 5,
+      "files": [
+        "ANSWERS",
+        "answers.txt",
+        "test_cff2_ttx_glyphset.py"
+      ],
+      "round": 0,
+      "seconds": 10.0
+    },
+    {
+      "exit": 3,
+      "files": [
+        "ANSWERS",
+        "answers.txt",
+        "test_cff2_ttx_glyphset_test.py"
+      ],
+      "round": 1,
+      "seconds": 84.4
+    }
+  ],
+  "task": "fonttools__fonttools-4388"
+}

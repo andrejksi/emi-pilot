@@ -1,0 +1,39 @@
+Rules check: repair. Not checked: none.
+
+.emi/laws/test_no_tzdata_import.py
+  Example, guard: EPOCH is the Unix epoch in UTC (A2).
+      assert EPOCH == datetime(1970, 1, 1, tzinfo=timezone.utc)
+      -> holds on the current code
+  Example, new behaviour: `import kombu.asynchronous` succeeds when PYTHONTZPATH points at an empty dir and no tzdata package is installed (A1).
+      assert (proc.returncode, proc.stdout.strip()) == (0, 'ok'), proc.stderr
+      -> fails on the current code: AssertionError: Traceback (most recent call last):
+File "/usr/lib/python3.11/zoneinfo/_common.py", line 12, in load_tzdata
+return resources.files(package_name).joinpath(resource_name).open("rb")
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+File "/usr/lib/ …
+  Example, guard: to_timestamp treats a naive datetime as UTC by default (A2).
+      assert to_timestamp(d, time=t) == to_timestamp(d.replace(tzinfo=timezone.utc), time=t)
+      -> holds on the current code
+  Example, new behaviour: without any time zone data, to_timestamp of a naive datetime still treats it as UTC (A1, A2).
+      assert (proc.returncode, proc.stdout.strip()) == (0, 'True'), proc.stderr
+      -> fails on the current code: AssertionError: Traceback (most recent call last):
+File "/usr/lib/python3.11/zoneinfo/_common.py", line 12, in load_tzdata
+return resources.files(package_name).joinpath(resource_name).open("rb")
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+File "/usr/lib/ …
+
+Answers (proposed: approving the rules agrees to them):
+  - A1 (written by the person): kind is fix: `import kombu.asynchronous` must succeed on a host with no OS time zone data and no tzdata package (simulated with PYTHONTZPATH pointing at an empty dir), as it did in kombu 5.6.2; today it raises ZoneInfoNotFoundError 'No time zone found with key UTC'.
+  - A2 (written by the person): proposed fix: remove the need for a timezone database in kombu/asynchronous/timer.py by using datetime.timezone.utc, i.e. EPOCH = datetime.fromtimestamp(0, timezone.utc) and to_timestamp(d, default_timezone=timezone.utc, time=monotonic); naive datetimes keep being treated as UTC by default.
+  - A3 (written by the person): anything else (refusals, other edges) is not stated: doesn't matter.
+
+Also proposed:
+  - .emi/laws/answers.txt (not a rule file)
+
+Send back (fix these, then run `emi rules check` again):
+  - .emi/laws/test_no_tzdata_import.py still passes when kombu/asynchronous/timer.py::to_timestamp returns None: trivial code satisfies every rule in it, or every guard in it, so it pins nothing down. Add a case that such code fails.
+
+Noted (blocks nothing):
+  - .emi/laws/test_no_tzdata_import.py: 1 function(s) the rules run outside their area were given no stand-ins (`--scope all` tries them; `laws.area` widens the area): conftest.py (1)
+  - .emi/laws/test_no_tzdata_import.py: test_to_timestamp_works_without_tz_data: its sentence speaks of any input, but an example tries only the cases it names: make it an any-input rule, or name the cases in the sentence
+  - .emi/laws/test_no_tzdata_import.py: old tests import what its new rules are about: t/unit/asynchronous/test_timer.py. If the task changes how they behave, the person lists them as expected changes

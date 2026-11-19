@@ -1,0 +1,3 @@
+A1 written: kind is fix: searching with an invalid date (e.g. S2_MSI_L1C with start "2020-01-01" and end "2023-11-31", a day that does not exist) currently sends the query to the provider and gets a 500 error; dates must be checked for validity before the search, so such a query is not sent to the provider.
+A2 written: the error type/form used to refuse an invalid date is not stated: doesn't matter.
+A3 written: searches with valid dates (e.g. start "2020-01-01", end "2023-11-30") must keep being sent to the provider.

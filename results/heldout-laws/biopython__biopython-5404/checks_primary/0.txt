@@ -1,0 +1,27 @@
+Rules check: stop. Not checked: none.
+
+.emi/laws/test_incompressible.py
+  Any input, new behaviour: random data of any size from 65,491 to 65,536 bytes is written without error and reads back unchanged (A3).
+      tried on: seed=0, size=65491
+      -> fails on the current code; the smallest failing input: Failing test case: tried( size=65491, seed=0, ) — struct.error: ushort format requires 0 <= number <= 65535
+  Example, new behaviour: writing random.Random(42).randbytes(65500) to a BgzfWriter and closing it raises no error (A2).
+      -> fails on the current code: struct.error: ushort format requires 0 <= number <= 65535
+  Example, new behaviour: random.Random(42).randbytes(65536) written with BgzfWriter reads back unchanged (A1).
+      assert _write_and_read(data) == data
+      -> fails on the current code: RuntimeError: TODO - Didn't compress enough, try less data in this block
+  Example, new behaviour: writing random.Random(42).randbytes(65536) to a BgzfWriter and closing it raises no error (A1).
+      -> fails on the current code: RuntimeError: TODO - Didn't compress enough, try less data in this block
+
+Answers (proposed: approving the rules agrees to them):
+  - A1 (written by the person): kind is fix: BgzfWriter must not raise struct.error or RuntimeError on incompressible data (e.g. random bytes); writing random.Random(42).randbytes(65536) then close() must succeed.
+  - A2 (written by the person): writing randbytes(65500) of random data then close() must succeed instead of raising struct.error.
+  - A3 (written by the person): block sizes of about 65,491 to 65,536 bytes of random data currently fail and must be written without error.
+  - A4 (written by the person): whether the fix uses a smaller fixed block size or a retry approach doesn't matter.
+
+Also proposed:
+  - .emi/laws/answers.txt (not a rule file)
+
+Noted (blocks nothing):
+  - .emi/laws/test_incompressible.py: old tests import what its new rules are about: Tests/test_File.py, Tests/test_bgzf.py. If the task changes how they behave, the person lists them as expected changes
+
+Ready for a person: show them the rules above; `emi rules approve` approves and commits them.

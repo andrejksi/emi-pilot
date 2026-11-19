@@ -1,0 +1,25 @@
+Rules check: stop. Not checked: none.
+
+.emi/laws/test_both_launchers.py
+  Example, new behaviour: when both launchers are generated, conanbuild.bat and conanbuild.ps1 each set the buildenv variable MYVAR to myvalue (A1, A2, A3).
+      assert c is not None
+      assert "MYVAR" in bat_env and "myvalue" in bat_env
+      assert "MYVAR" in ps1_env and "myvalue" in ps1_env
+      -> fails on the current code: assert None is not None
+  Example, new behaviour: some value of tools.env.virtualenv:powershell makes a Windows install generate both conanbuild.bat and conanbuild.ps1 (A1, A3).
+      assert _both_generated() is not None
+      -> fails on the current code: assert None is not None
++  where None = _both_generated()
+
+Answers (proposed: approving the rules agrees to them):
+  - A1 (written by the person): kind is feature: there should be a way, through the conf tools.env.virtualenv:powershell, to generate both the .ps1 and the .bat launcher (e.g. both conanbuild.bat and conanbuild.ps1) for the same environment.
+  - A2 (written by the person): the .ps1 file is for activating the environment in an interactive PowerShell; the .bat file is for CMD build scripting that activates the environment before running CMake or other commands, so both must set the environment (e.g. a variable defined in the buildenv).
+  - A3 (written by the person): the exact conf value spelling that requests both, refusals, edges and other unchanged behaviour are not stated: doesn't matter.
+
+Also proposed:
+  - .emi/laws/answers.txt (not a rule file)
+
+Noted (blocks nothing):
+  - .emi/laws/test_both_launchers.py: old tests import what its new rules are about: test/functional/command/export_test.py, test/functional/command/profile_test.py, test/functional/command/report_test.py, test/functional/command/runner_test.py, test/functional/command/test_build.py and 453 more. If the task changes how they behave, the person lists them as expected changes
+
+Ready for a person: show them the rules above; `emi rules approve` approves and commits them.

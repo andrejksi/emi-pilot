@@ -1,0 +1,5 @@
+A1 written: kind is fix - with block_size=0 (streaming), opening a file in exclusive-create mode "xb" accepts writes and closes without error but nothing is uploaded (silent data loss); this must be rejected.
+A2 written: the same applies to text mode "x", and when block_size=0 is set on the instance (HfFileSystem(block_size=0)) and the open call does not override it.
+A3 written: it affects both repo paths (e.g. hf://datasets/<user>/<repo>/marker.txt) and bucket paths.
+A4 written: "wb" with block_size=0 already raises a ValueError; the rejection should be a ValueError and the error message stays the same ("HfFileSystemStreamFile only supports reading but got mode='...'"), i.e. any mode other than "rb" is rejected.
+A5 written: read paths are unchanged - reading with block_size=0 ("rb", and "r"/"rt" which fsspec normalises to "rb") must keep working with HfFileSystemStreamFile.
