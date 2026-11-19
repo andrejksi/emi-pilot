@@ -1,0 +1,39 @@
+{
+  "base_commit": "48a5971d36538ff1820270f36f2a7c76f5d3eeb8",
+  "created_at": "2026-11-15T21:26:30Z",
+  "install": [
+    "pip install -q -e .",
+    "pip install -q pytest"
+  ],
+  "install_from": "default",
+  "issue": 851,
+  "kind": "git",
+  "license": null,
+  "oracle": {
+    "fail_to_pass": [
+      "dill/tests/test_temp.py::test_failed_dump_closes_tempfile"
+    ],
+    "pass_to_pass": [
+      "dill/tests/test_temp.py::test_buffer_pickle_protocol",
+      "dill/tests/test_temp.py::test_buffer_unpickle_encoding",
+      "dill/tests/test_temp.py::test_buffer_unpickle_errors",
+      "dill/tests/test_temp.py::test_code_to_stream",
+      "dill/tests/test_temp.py::test_code_to_tempfile",
+      "dill/tests/test_temp.py::test_invalid_source_marker",
+      "dill/tests/test_temp.py::test_load_closes_internal_file",
+      "dill/tests/test_temp.py::test_one_arg_functions",
+      "dill/tests/test_temp.py::test_pickle_to_stream",
+      "dill/tests/test_temp.py::test_pickle_to_tempfile",
+      "dill/tests/test_temp.py::test_two_arg_functions",
+      "dill/tests/test_temp.py::test_unicode_source_aliases"
+    ]
+  },
+  "prompt": "Failed temporary pickle writes retain open temporary files\n\n`dill.temp.dump()` creates a NamedTemporaryFile before serializing, but never closes it when serialization fails. Retaining the exception keeps the traceback and the open file alive. Repeated failed writes can accumulate descriptors and partial files.\n\n```python\nimport dill.temp\nclass CannotSerialize:\n    def __reduce__(self):\n        raise RuntimeError('cannot serialize')\n\nerrors = []\ntry:\n    dill.temp.dump(CannotSerialize())\nexcept RuntimeError as error:\n    errors.append(error)\n```\n\nA test tracking real NamedTemporaryFile objects confirms that the internal file remains open after the exception. It should be closed on failure, so the normal delete-on-close behavior can remove the partial file. Successful calls must still return an open file.\n\nReproduced on current master with CPython 3.14.6 on Linux. This is the write-side failure path, separate from the `temp.load()` fix in #850. This concerns trusted serialization failures and makes no claim about safely loading untrusted pickle data.",
+  "pull": 852,
+  "python": "3.11",
+  "repo": "uqfoundation/dill",
+  "source": "github-pr",
+  "test_files": [
+    "dill/tests/test_temp.py"
+  ]
+}
