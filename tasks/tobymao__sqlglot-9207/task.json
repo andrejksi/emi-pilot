@@ -1,0 +1,70 @@
+{
+  "base_commit": "7398909ffaf3e84ca46e2d22fa6080daae1f1bdd",
+  "created_at": "2026-11-18T23:07:31Z",
+  "install": [
+    "pip install -q -e .",
+    "pip install -q pytest"
+  ],
+  "install_from": "default",
+  "issue": 9206,
+  "kind": "git",
+  "license": null,
+  "oracle": {
+    "fail_to_pass": [
+      "tests/dialects/test_sqlite.py::TestSQLite::test_negative_limit"
+    ],
+    "pass_to_pass": [
+      "tests/dialects/test_sqlite.py::TestSQLite::test_analyze",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_cast",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_create_trigger",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_date_add_sub_day_units_retain_time",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_datediff",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_ddl",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_digit_separators",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_floating_point_types",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_generated_columns",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_group_concat_distinct_separator",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_group_concat_null_separator",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_hexadecimal_literal",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_identity_columns",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_iif_anonymous_marker",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_is_operator_null_safe_comparison",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_is_precedence",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_json_arrow_precedence",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_json_cast",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_length_null_terminated_text",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_longvarchar_dtype",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_pragma_quoted_names",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_pragma_quoted_schemas",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_quoted_variadic_iif",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_random",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_reindex",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_round",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_safe_div",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_sqlite",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_strftime",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_strftime_fractional_seconds",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_subquery_modifier_conflicts",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_subquery_modifiers",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_table_options",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_trunc",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_unary_plus",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_unary_plus_preserves_affinity",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_unicode",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_unsupported_auto_increment",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_variadic_iif",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_variadic_iif_execution",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_warnings",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_week_date_arithmetic",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_window_null_treatment"
+    ]
+  },
+  "prompt": "SQLite: LIMIT -1 (no limit) is transpiled verbatim, other dialects reject it\n\nIn SQLite a negative `LIMIT` means \"no limit\", and it's the usual way to write an `OFFSET` without a limit. sqlglot parses it as a plain `-1`, so every other target gets an invalid query:\n\n```python\nimport sqlglot\n\nsql = \"SELECT x FROM t LIMIT -1 OFFSET 5\"\nsqlglot.transpile(sql, read=\"sqlite\", write=\"duckdb\")\n# ['SELECT x FROM t LIMIT -1 OFFSET 5']  -> DuckDB: \"LIMIT/OFFSET cannot be negative\"\nsqlglot.transpile(sql, read=\"sqlite\", write=\"postgres\")\n# ['SELECT x FROM t LIMIT -1 OFFSET 5']  -> ERROR: LIMIT must not be negative\nsqlglot.transpile(sql, read=\"sqlite\", write=\"tsql\")\n# ['SELECT x FROM t ORDER BY (SELECT NULL) OFFSET 5 ROWS FETCH FIRST -1 ROWS ONLY']\n```\n\nExpected: the same output as reading `LIMIT ALL OFFSET 5` from Postgres, e.g. `LIMIT ALL OFFSET 5` for DuckDB and `OFFSET 5 ROWS` for T-SQL.\n\nThe SQLite generator already goes the other way: `SELECT x FROM t OFFSET 5` from Postgres is written as `LIMIT -1 OFFSET 5` for SQLite, so a postgres -> sqlite -> duckdb round trip currently breaks.\n\nPossible fix: in the SQLite parser, treat a negative numeric `LIMIT` literal as `LIMIT ALL`.\n\nTested on main (`b4babf3a`).\n\n**Official Documentation**\nhttps://www.sqlite.org/lang_select.html#limitoffset (\"If the LIMIT expression evaluates to a negative value, then there is no upper bound on the number of rows returned.\")",
+  "pull": 9207,
+  "python": "3.11",
+  "repo": "tobymao/sqlglot",
+  "source": "github-pr",
+  "test_files": [
+    "tests/dialects/test_sqlite.py"
+  ]
+}

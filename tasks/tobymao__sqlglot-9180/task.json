@@ -1,0 +1,67 @@
+{
+  "base_commit": "be837bd9295f404aebd0aafcbebb25827f39516f",
+  "created_at": "2026-11-17T14:28:03Z",
+  "install": [
+    "pip install -q -e .",
+    "pip install -q pytest"
+  ],
+  "install_from": "default",
+  "issue": 9179,
+  "kind": "git",
+  "license": null,
+  "oracle": {
+    "fail_to_pass": [
+      "tests/dialects/test_sqlite.py::TestSQLite::test_unannotated_integer_division_does_not_mutate_expression",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_unannotated_integer_division_targets",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_unannotated_integer_literal_division"
+    ],
+    "pass_to_pass": [
+      "tests/dialects/test_sqlite.py::TestSQLite::test_analyze",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_cast",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_create_trigger",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_date_add_sub_day_units_retain_time",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_datediff",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_ddl",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_digit_separators",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_floating_point_types",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_generated_columns",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_group_concat_distinct_separator",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_group_concat_null_separator",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_hexadecimal_literal",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_identity_columns",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_is_operator_null_safe_comparison",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_is_precedence",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_json_arrow_precedence",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_json_cast",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_longvarchar_dtype",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_pragma_quoted_names",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_pragma_quoted_schemas",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_random",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_reindex",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_round",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_safe_div",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_sqlite",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_strftime",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_subquery_modifier_conflicts",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_subquery_modifiers",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_table_options",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_trunc",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_unannotated_large_integer_division",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_unary_plus",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_unary_plus_preserves_affinity",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_unicode",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_unsupported_auto_increment",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_warnings",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_week_date_arithmetic",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_window_null_treatment"
+    ]
+  },
+  "prompt": "SQLite integer literal division changes results when transpiled to DuckDB\n\n\ufeffSQLite performs integer division when both operands are integers. A direct SQLite-to-DuckDB transpilation currently produces floating-point division for integer literals unless types are explicitly annotated:\n\n```python\nimport duckdb\nimport sqlite3\nimport sqlglot\n\nsource = \"SELECT 5 / 2\"\ntranslated = sqlglot.transpile(source, read=\"sqlite\", write=\"duckdb\")[0]\nprint(sqlite3.connect(\":memory:\").execute(source).fetchone())  # (2,)\nprint(translated)  # SELECT 5 / NULLIF(2, 0)\nprint(duckdb.connect().execute(translated).fetchone())  # (2.5,)\n```\n\nNegative integer quotients have the same issue. Decimal operands should retain floating-point division, and SQLite division by zero should still return NULL. The type-annotated path covered by #8946 works; this is the unannotated literal path.\n\nReproduced on main at `be837bd` with SQLite and DuckDB. OpenAI Codex assisted with the investigation and reproduction.",
+  "pull": 9180,
+  "python": "3.11",
+  "repo": "tobymao/sqlglot",
+  "source": "github-pr",
+  "test_files": [
+    "tests/dialects/test_sqlite.py"
+  ]
+}
