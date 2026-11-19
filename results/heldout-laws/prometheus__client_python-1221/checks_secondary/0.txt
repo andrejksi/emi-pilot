@@ -1,0 +1,26 @@
+Rules check: stop. Not checked: none.
+
+.emi/laws/test_metric_family_label_export.py
+  Example, new behaviour: Integer labels passed to CounterMetricFamily.add_metric() export as strings (A2).
+      assert b'jobs_started_total{rack="42",shard="3"} 7.0' in generate_latest(collector).splitlines()
+      -> fails on the current code: AttributeError: ("'int' object has no attribute 'replace'", Metric(jobs_started, Started jobs, counter, , [Sample(name='jobs_started_total', labels={'rack': 42, 'shard': 3}, value=7, timestamp=None, exemplar=None, native_histogram=None)]))
+  Example, new behaviour: Integer labels passed to GaugeMetricFamily.add_metric() export as strings (A1).
+      assert b'jobs_active{rack="42",shard="3"} 7.0' in generate_latest(collector).splitlines()
+      -> fails on the current code: AttributeError: ("'int' object has no attribute 'replace'", Metric(jobs_active, Active jobs, gauge, , [Sample(name='jobs_active', labels={'rack': 42, 'shard': 3}, value=7, timestamp=None, exemplar=None, native_histogram=None)]))
+  Example, guard: Explicitly converting label values to strings continues to allow export (A3).
+      assert b'jobs_active{rack="42",shard="3"} 7.0' in generate_latest(collector).splitlines()
+      -> holds on the current code
+
+Answers (proposed: approving the rules agrees to them):
+  - A1 (written by the person): Integer label values passed to GaugeMetricFamily.add_metric() should be coerced to their string equivalents and export successfully.
+  - A2 (written by the person): Integer label values passed to CounterMetricFamily.add_metric() should be coerced to their string equivalents and export successfully.
+  - A3 (written by the person): Wrapping the label values in str() already allows the metric to export successfully.
+
+Also proposed:
+  - .emi/laws/answers.txt (not a rule file)
+
+Noted (blocks nothing):
+  - .emi/laws/test_metric_family_label_export.py: 12 function(s) the rules run outside their area were given no stand-ins (`--scope all` tries them; `laws.area` widens the area): prometheus_client/exposition.py (2), prometheus_client/metrics_core.py (3), prometheus_client/openmetrics/exposition.py (3), prometheus_client/utils.py (1), prometheus_client/validation.py (3)
+  - .emi/laws/test_metric_family_label_export.py: old tests import what its new rules are about: tests/openmetrics/test_exposition.py, tests/openmetrics/test_parser.py, tests/test_core.py, tests/test_django.py, tests/test_exposition.py and 2 more. If the task changes how they behave, the person lists them as expected changes
+
+Ready for a person: show them the rules above; `emi rules approve` approves and commits them.

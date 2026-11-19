@@ -1,0 +1,3 @@
+A1 written: Fix the CFF2 TTX import so that getGlyphSet(location={"wght": 1000}) draws period with bounds (30.0, 0, 220.0, 300.0).
+A2 written: From the binary OTF, period has bounds (60, 0, 110, 120) at the default location and (30.0, 0, 220.0, 300.0) at wght 1000.
+A3 written: From TTX, period already has bounds (60, 0, 110, 120) at the default location.

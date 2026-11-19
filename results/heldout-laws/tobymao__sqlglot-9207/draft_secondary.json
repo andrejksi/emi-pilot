@@ -1,0 +1,35 @@
+{
+  "checked_files": [
+    "ANSWERS",
+    "NOT-THIS-FEATURE",
+    "answers.txt",
+    "test_sqlite_negative_limit.py"
+  ],
+  "model": "gpt-6.2-sol",
+  "passed": true,
+  "role": "secondary",
+  "rounds": [
+    {
+      "exit": 3,
+      "files": [
+        "ANSWERS",
+        "answers.txt",
+        "test_sqlite_negative_limit.py"
+      ],
+      "round": 0,
+      "seconds": 73.2
+    },
+    {
+      "exit": 0,
+      "files": [
+        "ANSWERS",
+        "NOT-THIS-FEATURE",
+        "answers.txt",
+        "test_sqlite_negative_limit.py"
+      ],
+      "round": 1,
+      "seconds": 67.4
+    }
+  ],
+  "task": "tobymao__sqlglot-9207"
+}

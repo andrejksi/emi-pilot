@@ -1,0 +1,34 @@
+Rules check: stop. Not checked: none.
+
+.emi/laws/test_iup_render_equality_test.py
+  Example, new behaviour: distinct point positions that round equal are treated as equal when determining which deltas can be omitted (A1, A3).
+      assert _render_optimized(deltas, coords, [2]) == deltas
+      -> fails on the current code: assert [(2, 0), (0, ..., (0, 0), ...] == [(2, 0), (4, ..., (0, 0), ...]
+At index 1 diff: (0, 0) != (4, 0)
+Use -v to get more diff
+  Example, new behaviour: when deciding which deltas to omit at equal point positions, the optimizer treats deltas that round equal as equal (A2, A3).
+      assert _render_optimized(deltas, coords, [2]) == [ (2, 0), (0, 0), (2, 0), (0, 0), (0, 0), (0, 0), (0, 0) ]
+      -> fails on the current code: assert [(2, 0), (2, ..., (0, 0), ...] == [(2, 0), (0, ..., (0, 0), ...]
+At index 1 diff: (2, 0) != (0, 0)
+Use -v to get more diff
+  Example, guard: IUP optimization can omit an exactly interpolated delta when points and deltas are already integers (A1, A2).
+      assert optimized[1] is None
+      assert iup_delta(optimized, coords, [2]) == deltas
+      -> holds on the current code
+  Example, guard: a nonzero delta must stay explicit between two points with equal integer positions and unequal integer deltas (A1, A2).
+      assert 1 in _iup_contour_bound_forced_set(deltas, coords, tolerance=0)
+      -> holds on the current code
+
+Answers (proposed: approving the rules agrees to them):
+  - A1 (written by the person): IUP optimization must determine point equality on rounded points, under the same conditions as at render time.
+  - A2 (written by the person): IUP optimization must determine delta equality on rounded deltas, under the same conditions as at render time.
+  - A3 (written by the person): Rounding may happen at the call sites with integer-only optimizer inputs, or within the optimizer for equality tests while keeping fractional parts for existing tolerance calculations.
+
+Also proposed:
+  - .emi/laws/answers.txt (not a rule file)
+
+Noted (blocks nothing):
+  - .emi/laws/test_iup_render_equality_test.py: it imports _iup_contour_bound_forced_set, private to the code: a change that keeps the behaviour may still break the rules
+  - .emi/laws/test_iup_render_equality_test.py: old tests import what its new rules are about: Tests/pens/roundingPen_test.py, Tests/ttLib/ttGlyphSet_test.py, Tests/varLib/instancer/instancer_test.py, Tests/varLib/instancer/jstf_test.py, Tests/varLib/instancer/math_test.py and 1 more. If the task changes how they behave, the person lists them as expected changes
+
+Ready for a person: show them the rules above; `emi rules approve` approves and commits them.

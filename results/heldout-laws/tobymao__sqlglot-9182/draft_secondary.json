@@ -1,0 +1,35 @@
+{
+  "checked_files": [
+    "ANSWERS",
+    "NOT-THIS-FEATURE",
+    "answers.txt",
+    "test_sqlite_length_nul_to_duckdb.py"
+  ],
+  "model": "gpt-6.2-sol",
+  "passed": true,
+  "role": "secondary",
+  "rounds": [
+    {
+      "exit": 3,
+      "files": [
+        "ANSWERS",
+        "answers.txt",
+        "test_sqlite_length_nul_to_duckdb.py"
+      ],
+      "round": 0,
+      "seconds": 65.9
+    },
+    {
+      "exit": 0,
+      "files": [
+        "ANSWERS",
+        "NOT-THIS-FEATURE",
+        "answers.txt",
+        "test_sqlite_length_nul_to_duckdb.py"
+      ],
+      "round": 1,
+      "seconds": 72.5
+    }
+  ],
+  "task": "tobymao__sqlglot-9182"
+}

@@ -1,0 +1,53 @@
+Rules check: repair. Not checked: none.
+
+.emi/laws/test_sqlite_negative_limit.py
+  Example, new behaviour: SQLite LIMIT -2 also means no upper bound (A4).
+      assert transpile("SELECT x FROM t LIMIT -2 OFFSET 5", read="sqlite", write="duckdb") == [ "SELECT x FROM t LIMIT ALL OFFSET 5" ]
+      -> fails on the current code: AssertionError: assert ['SELECT x FR... -2 OFFSET 5'] == ['SELECT x FR...ALL OFFSET 5']
+At index 0 diff: 'SELECT x FROM t LIMIT -2 OFFSET 5' != 'SELECT x FROM t LIMIT ALL OFFSET 5'
+Use -v to get more diff
+  Example, guard: PostgreSQL OFFSET 5 still uses LIMIT -1 OFFSET 5 in SQLite (A5).
+      assert transpile("SELECT x FROM t OFFSET 5", read="postgres", write="sqlite") == [ SQLITE_UNBOUNDED_OFFSET ]
+      -> holds on the current code
+  Example, new behaviour: The PostgreSQL-to-SQLite-to-DuckDB round trip keeps offset 5 and no upper bound (A6).
+      assert transpile(sqlite_sql, read="sqlite", write="duckdb") == [ "SELECT x FROM t LIMIT ALL OFFSET 5" ]
+      -> fails on the current code: AssertionError: assert ['SELECT x FR... -1 OFFSET 5'] == ['SELECT x FR...ALL OFFSET 5']
+At index 0 diff: 'SELECT x FROM t LIMIT -1 OFFSET 5' != 'SELECT x FROM t LIMIT ALL OFFSET 5'
+Use -v to get more diff
+  Example, new behaviour: DuckDB receives LIMIT ALL OFFSET 5 for SQLite LIMIT -1 OFFSET 5 (A1).
+      assert transpile(SQLITE_UNBOUNDED_OFFSET, read="sqlite", write="duckdb") == [ "SELECT x FROM t LIMIT ALL OFFSET 5" ]
+      -> fails on the current code: AssertionError: assert ['SELECT x FR... -1 OFFSET 5'] == ['SELECT x FR...ALL OFFSET 5']
+At index 0 diff: 'SELECT x FROM t LIMIT -1 OFFSET 5' != 'SELECT x FROM t LIMIT ALL OFFSET 5'
+Use -v to get more diff
+  Example, new behaviour: PostgreSQL receives LIMIT ALL OFFSET 5 for SQLite LIMIT -1 OFFSET 5 (A2).
+      assert transpile(SQLITE_UNBOUNDED_OFFSET, read="sqlite", write="postgres") == [ "SELECT x FROM t LIMIT ALL OFFSET 5" ]
+      -> fails on the current code: AssertionError: assert ['SELECT x FR... -1 OFFSET 5'] == ['SELECT x FR...ALL OFFSET 5']
+At index 0 diff: 'SELECT x FROM t LIMIT -1 OFFSET 5' != 'SELECT x FROM t LIMIT ALL OFFSET 5'
+Use -v to get more diff
+  Example, new behaviour: T-SQL receives OFFSET 5 ROWS without a FETCH clause for SQLite LIMIT -1 OFFSET 5 (A3).
+      assert transpile(SQLITE_UNBOUNDED_OFFSET, read="sqlite", write="tsql") == [ "SELECT x FROM t ORDER BY (SELECT NULL) OFFSET 5 ROWS" ]
+      -> fails on the current code: AssertionError: assert ['SELECT x FR...-1 ROWS ONLY'] == ['SELECT x FR...FFSET 5 ROWS']
+At index 0 diff: 'SELECT x FROM t ORDER BY (SELECT NULL) OFFSET 5 ROWS FETCH FIRST -1 ROWS ONLY' != 'SELECT x FROM t ORDER BY (SELECT NULL) OFFSET 5 ROW …
+  Example, guard: SQLite LIMIT 0 still sets the limit to zero in DuckDB (A7).
+      assert transpile("SELECT x FROM t LIMIT 0 OFFSET 5", read="sqlite", write="duckdb") == [ "SELECT x FROM t LIMIT 0 OFFSET 5" ]
+      -> holds on the current code
+
+Answers (proposed: approving the rules agrees to them):
+  - A1 (written by the person): SQLite LIMIT -1 OFFSET 5 means an unbounded result with offset 5 and must produce the same DuckDB output as PostgreSQL LIMIT ALL OFFSET 5.
+  - A2 (written by the person): SQLite LIMIT -1 OFFSET 5 must produce the same PostgreSQL output as PostgreSQL LIMIT ALL OFFSET 5.
+  - A3 (written by the person): For T-SQL, SQLite LIMIT -1 OFFSET 5 must produce OFFSET 5 ROWS without a negative FETCH clause, like PostgreSQL LIMIT ALL OFFSET 5.
+  - A4 (written by the person): A negative numeric SQLite LIMIT literal means no upper bound, including negative values other than -1.
+  - A5 (written by the person): PostgreSQL OFFSET 5 without a limit already transpiles to LIMIT -1 OFFSET 5 in SQLite.
+  - A6 (written by the person): The PostgreSQL-to-SQLite-to-DuckDB round trip must keep the offset and no upper bound.
+  - A7 (written by the person): The no-upper-bound rule applies to negative limits, so a zero limit must remain a zero limit.
+
+Also proposed:
+  - .emi/laws/answers.txt (not a rule file)
+
+Send back (fix these, then run `emi rules check` again):
+  - .emi/laws/test_sqlite_negative_limit.py still passes when sqlglot/__init__.py::parse_one returns its first argument (`sql`) unchanged; sqlglot/__init__.py::parse_one returns None: trivial code satisfies every rule in it, or every guard in it, so it pins nothing down. Add a case that such code fails.
+
+Noted (blocks nothing):
+  - .emi/laws/test_sqlite_negative_limit.py: under sqlglot/__init__.py::parse returns None the run was stopped at its time limit; counted as caught
+  - .emi/laws/test_sqlite_negative_limit.py: 300 function(s) the rules run outside their area were given no stand-ins (`--scope all` tries them; `laws.area` widens the area): sqlglot/dialects/__init__.py (1), sqlglot/dialects/dialect.py (28), sqlglot/errors.py (3), sqlglot/expressions/builders.py (1), sqlglot/expressions/core.py (32), sqlglot/expressions/datatypes.py (1), sqlglot/expressions/query.py (2), sqlglot/generator.py (29), sqlglot/generators/duckdb.py (4), sqlglot/generators/postgres.py (2), sqlglot/generators/sqlite.py (1), sqlglot/helper.py (4), sqlglot/jsonpath.py (7), sqlglot/optimizer/scope.py (3), sqlglot/parser.py (150), sqlglot/parsers/duckdb.py (3), sqlglot/parsers/sqlite.py (2), sqlglot/tokenizer_core.py (14), sqlglot/tokens.py (6), sqlglot/transforms.py (6), sqlglot/trie.py (1)
+  - .emi/laws/test_sqlite_negative_limit.py: old tests import what its new rules are about: tests/dialects/test_bigquery.py, tests/dialects/test_databricks.py, tests/dialects/test_dremio.py, tests/dialects/test_exasol.py, tests/dialects/test_postgres.py and 3 more. If the task changes how they behave, the person lists them as expected changes

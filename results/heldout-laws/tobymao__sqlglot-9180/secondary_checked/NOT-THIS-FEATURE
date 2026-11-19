@@ -1,0 +1,4 @@
+sqlglot/optimizer/annotate_types.py::annotate_scope: The issue says the type-annotated path already works and scopes the fix to direct unannotated literal transpilation.
+sqlglot/optimizer/annotate_types.py::_restore_dot_parts: The issue scopes the fix to unannotated division of literal operands.
+sqlglot/optimizer/annotate_types.py::_fixup_order_by_aliases: The issue concerns division of literals and has no ORDER BY aliases.
+sqlglot/optimizer/annotate_types.py::_annotate_div: The issue says the type-annotated division path already works and scopes the fix to the unannotated path.

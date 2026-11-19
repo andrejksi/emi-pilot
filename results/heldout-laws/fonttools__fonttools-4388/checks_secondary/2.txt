@@ -1,0 +1,36 @@
+Rules check: repair. Not checked: 1 (listed below).
+
+.emi/laws/cff2_ttx_glyph_variations_test.py
+  Example, guard: getGlyphSet draws the CFF2 period with the reported bounds at both locations when loaded from binary OTF (A2).
+      assert period_bounds(otf, location) == expected
+      -> holds on the current code
+  Example, guard: getGlyphSet draws the CFF2 period with the reported bounds at both locations when loaded from binary OTF (A2).
+      assert period_bounds(otf, location) == expected
+      -> holds on the current code
+  Example, guard: getGlyphSet draws the CFF2 period with bounds (60, 0, 110, 120) at the default location after TTX import (A3).
+      assert period_bounds(ttx, {}) == (60, 0, 110, 120)
+      -> holds on the current code
+  Example, new behaviour: getGlyphSet draws the CFF2 period with bounds (30.0, 0, 220.0, 300.0) at weight 1000 after TTX import (A1).
+      assert period_bounds(ttx, {"wght": 1000}) == (30.0, 0, 220.0, 300.0)
+      -> fails on the current code: assert (60, 0, 110, 120) == (30.0, 0, 220.0, 300.0)
+At index 0 diff: 60 != 30.0
+Use -v to get more diff
+
+Answers (proposed: approving the rules agrees to them):
+  - A1 (written by the person): Fix the CFF2 TTX import so that getGlyphSet(location={"wght": 1000}) draws period with bounds (30.0, 0, 220.0, 300.0).
+  - A2 (written by the person): From the binary OTF, period has bounds (60, 0, 110, 120) at the default location and (30.0, 0, 220.0, 300.0) at wght 1000.
+  - A3 (written by the person): From TTX, period already has bounds (60, 0, 110, 120) at the default location.
+
+Also proposed:
+  - .emi/laws/answers.txt (not a rule file)
+
+Send back (fix these, then run `emi rules check` again):
+  - .emi/laws/cff2_ttx_glyph_variations_test.py still passes when Lib/fontTools/fontBuilder.py::_tableTag returns its first argument (`lower`) unchanged; Lib/fontTools/fontBuilder.py::setupOS2 returns None: trivial code satisfies every rule in it, or every guard in it, so it pins nothing down. Add a case that such code fails.
+
+Not checked:
+  - .emi/laws/cff2_ttx_glyph_variations_test.py: 157 stand-in(s) were not tried: the stand-in budget ran out
+
+Noted (blocks nothing):
+  - .emi/laws/cff2_ttx_glyph_variations_test.py: under 7 stand-in(s) replace 4 function(s): Lib/fontTools/fontBuilder.py::_initTableWithValues (3), Lib/fontTools/fontBuilder.py::_metricsTableTag (1), Lib/fontTools/fontBuilder.py::setupFvar (2), Lib/fontTools/fontBuilder.py::setupMetrics (1) (`--format json` lists each) the run was stopped at its time limit; counted as caught
+  - .emi/laws/cff2_ttx_glyph_variations_test.py: 464 function(s) the rules run outside their area were given no stand-ins (`--scope all` tries them; `laws.area` widens the area): Lib/fontTools/agl.py (1), Lib/fontTools/cffLib/__init__.py (122), Lib/fontTools/designspaceLib/__init__.py (1), Lib/fontTools/misc/arrayTools.py (2), Lib/fontTools/misc/configTools.py (2), Lib/fontTools/misc/cython.py (1), Lib/fontTools/misc/encodingTools.py (1), Lib/fontTools/misc/fixedTools.py (6), Lib/fontTools/misc/loggingTools.py (2), Lib/fontTools/misc/roundTools.py (2), Lib/fontTools/misc/sstruct.py (5), Lib/fontTools/misc/textTools.py (12), Lib/fontTools/misc/timeTools.py (4), Lib/fontTools/misc/visitor.py (5), Lib/fontTools/misc/xmlReader.py (6), Lib/fontTools/misc/xmlWriter.py (14), Lib/fontTools/pens/basePen.py (6), Lib/fontTools/ttLib/beyond64k.py (1), Lib/fontTools/ttLib/sfnt.py (22), Lib/fontTools/ttLib/tables/C_F_F_.py (3), Lib/fontTools/ttLib/tables/C_F_F__2.py (2), Lib/fontTools/ttLib/tables/DefaultTable.py (1), Lib/fontTools/ttLib/tables/O_S_2f_2.py (14), Lib/fontTools/ttLib/tables/_c_m_a_p.py (19), Lib/fontTools/ttLib/tables/_f_v_a_r.py (11), Lib/fontTools/ttLib/tables/_h_e_a_d.py (4), Lib/fontTools/ttLib/tables/_h_h_e_a.py (5), Lib/fontTools/ttLib/tables/_h_m_t_x.py (5), Lib/fontTools/ttLib/tables/_m_a_x_p.py (4), Lib/fontTools/ttLib/tables/_n_a_m_e.py (19), Lib/fontTools/ttLib/tables/_p_o_s_t.py (6), Lib/fontTools/ttLib/tables/otBase.py (48), Lib/fontTools/ttLib/tables/otConverters.py (33), Lib/fontTools/ttLib/tables/otTables.py (2), Lib/fontTools/ttLib/ttFont.py (45), Lib/fontTools/ttLib/ttGlyphSet.py (7), Lib/fontTools/unicode.py (1), Lib/fontTools/varLib/builder.py (6), Lib/fontTools/varLib/merger.py (2), Lib/fontTools/varLib/models.py (3), Lib/fontTools/varLib/varStore.py (9)
+  - .emi/laws/cff2_ttx_glyph_variations_test.py: old tests import what its new rules are about: Tests/cffLib/cffLib_test.py, Tests/cffLib/specializer_test.py, Tests/cffLib/width_test.py, Tests/config_test.py, Tests/feaLib/builder_test.py and 73 more. If the task changes how they behave, the person lists them as expected changes

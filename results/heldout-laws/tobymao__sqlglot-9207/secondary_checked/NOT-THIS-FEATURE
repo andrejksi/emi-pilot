@@ -1,0 +1,1 @@
+sqlglot/__init__.py::parse_one: The issue requires correct transpiled LIMIT and OFFSET clauses across dialects, with no separate requirement for the parse_one entry point.

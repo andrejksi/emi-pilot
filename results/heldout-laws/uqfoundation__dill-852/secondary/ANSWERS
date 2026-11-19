@@ -1,0 +1,2 @@
+A1 written: When dill.temp.dump fails to serialize an object, any temporary file it created is closed even while the exception is retained, and the default delete-on-close behavior removes the partial file.
+A2 written: A successful dill.temp.dump call still returns an open temporary file to the caller.

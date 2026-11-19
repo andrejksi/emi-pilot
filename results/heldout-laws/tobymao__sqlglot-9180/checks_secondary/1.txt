@@ -1,0 +1,53 @@
+Rules check: stop. Not checked: none.
+
+.emi/laws/test_sqlite_literal_division_to_duckdb.py
+  Example, guard: A decimal literal on either side of SQLite division keeps DuckDB floating-point division (A3).
+      assert transpile(source, read="sqlite", write="duckdb") == [expected]
+      -> holds on the current code
+  Example, guard: A decimal literal on either side of SQLite division keeps DuckDB floating-point division (A3).
+      assert transpile(source, read="sqlite", write="duckdb") == [expected]
+      -> holds on the current code
+  Example, guard: Directly transpiling SQLite division by zero to DuckDB preserves the NULL result (A4).
+      assert transpile("SELECT 5 / 0", read="sqlite", write="duckdb") in ( ["SELECT 5 / NULLIF(0, 0)"], ["SELECT 5 // NULLIF(0, 0)"], ["SELECT NULL"], )
+      -> holds on the current code
+  Example, guard: Type-annotated SQLite integer division still uses DuckDB integer division (A5).
+      assert annotate_types(expression, dialect="sqlite").sql("duckdb") == ( "SELECT 5 // NULLIF(2, 0)" )
+      -> holds on the current code
+  Example, new behaviour: Directly transpiling SQLite SELECT 5 / 2 to DuckDB preserves the integer quotient 2 (A1).
+      assert transpile("SELECT 5 / 2", read="sqlite", write="duckdb") == [ "SELECT 5 // NULLIF(2, 0)" ]
+      -> fails on the current code: AssertionError: assert ['SELECT 5 / NULLIF(2, 0)'] == ['SELECT 5 // NULLIF(2, 0)']
+At index 0 diff: 'SELECT 5 / NULLIF(2, 0)' != 'SELECT 5 // NULLIF(2, 0)'
+Use -v to get more diff
+  Example, new behaviour: A negative quotient of SQLite integer literals remains integer division in DuckDB (A2).
+      assert transpile(source, read="sqlite", write="duckdb") == [expected]
+      -> fails on the current code: AssertionError: assert ['SELECT -5 / NULLIF(2, 0)'] == ['SELECT -5 // NULLIF(2, 0)']
+At index 0 diff: 'SELECT -5 / NULLIF(2, 0)' != 'SELECT -5 // NULLIF(2, 0)'
+Use -v to get more diff
+  Example, new behaviour: A negative quotient of SQLite integer literals remains integer division in DuckDB (A2).
+      assert transpile(source, read="sqlite", write="duckdb") == [expected]
+      -> fails on the current code: AssertionError: assert ['SELECT 5 / NULLIF(-2, 0)'] == ['SELECT 5 // NULLIF(-2, 0)']
+At index 0 diff: 'SELECT 5 / NULLIF(-2, 0)' != 'SELECT 5 // NULLIF(-2, 0)'
+Use -v to get more diff
+
+Answers (proposed: approving the rules agrees to them):
+  - A1 (written by the person): Direct SQLite-to-DuckDB transpilation of SELECT 5 / 2 must preserve the SQLite integer result 2.
+  - A2 (written by the person): Direct SQLite-to-DuckDB transpilation must also preserve negative integer quotients, including truncation toward zero.
+  - A3 (written by the person): Division with a decimal operand must retain floating-point division.
+  - A4 (written by the person): SQLite division by zero must still return NULL after transpilation to DuckDB.
+  - A5 (written by the person): The type-annotated path already preserves integer division and must keep working.
+
+Also proposed:
+  - .emi/laws/answers.txt (not a rule file)
+
+Not this feature's concern (proposed: approving the rules agrees to it):
+  - sqlglot/optimizer/annotate_types.py::_annotate_div: The issue says the type-annotated division path already works and scopes the fix to the unannotated path.
+  - sqlglot/optimizer/annotate_types.py::_fixup_order_by_aliases: The issue concerns division of literals and has no ORDER BY aliases.
+  - sqlglot/optimizer/annotate_types.py::_restore_dot_parts: The issue scopes the fix to unannotated division of literal operands.
+  - sqlglot/optimizer/annotate_types.py::annotate_scope: The issue says the type-annotated path already works and scopes the fix to direct unannotated literal transpilation.
+
+Noted (blocks nothing):
+  - .emi/laws/test_sqlite_literal_division_to_duckdb.py still passes when 8 stand-in(s) replace 4 function(s): sqlglot/optimizer/annotate_types.py::annotate_scope (2), sqlglot/optimizer/annotate_types.py::_restore_dot_parts (2), sqlglot/optimizer/annotate_types.py::_fixup_order_by_aliases (2), sqlglot/optimizer/annotate_types.py::_annotate_div (2) (`--format json` lists each), which the proposed NOT-THIS-FEATURE says is not this feature's concern (it counts once the person approves it with the rules): not sent back.
+  - .emi/laws/test_sqlite_literal_division_to_duckdb.py: 322 function(s) the rules run outside their area were given no stand-ins (`--scope all` tries them; `laws.area` widens the area): sqlglot/dialects/__init__.py (1), sqlglot/dialects/dialect.py (25), sqlglot/errors.py (3), sqlglot/expressions/builders.py (1), sqlglot/expressions/core.py (43), sqlglot/expressions/datatypes.py (4), sqlglot/expressions/query.py (1), sqlglot/generator.py (26), sqlglot/generators/duckdb.py (4), sqlglot/helper.py (6), sqlglot/jsonpath.py (7), sqlglot/optimizer/scope.py (16), sqlglot/parser.py (146), sqlglot/parsers/duckdb.py (3), sqlglot/parsers/sqlite.py (2), sqlglot/schema.py (10), sqlglot/tokenizer_core.py (14), sqlglot/tokens.py (6), sqlglot/transforms.py (3), sqlglot/trie.py (1)
+  - .emi/laws/test_sqlite_literal_division_to_duckdb.py: old tests import what its new rules are about: tests/dialects/test_bigquery.py, tests/dialects/test_clickhouse.py, tests/dialects/test_databricks.py, tests/dialects/test_dialect.py, tests/dialects/test_dremio.py and 27 more. If the task changes how they behave, the person lists them as expected changes
+
+Ready for a person: show them the rules above; `emi rules approve` approves and commits them.

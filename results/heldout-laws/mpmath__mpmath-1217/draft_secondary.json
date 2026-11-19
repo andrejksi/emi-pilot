@@ -1,0 +1,33 @@
+{
+  "checked_files": [
+    "ANSWERS",
+    "answers.txt",
+    "test_zeta_far_right.py"
+  ],
+  "model": "gpt-6.2-sol",
+  "passed": true,
+  "role": "secondary",
+  "rounds": [
+    {
+      "exit": 0,
+      "files": [
+        "ANSWERS",
+        "answers.txt",
+        "test_zeta_far_right.py"
+      ],
+      "round": 0,
+      "seconds": 114.5
+    },
+    {
+      "exit": 0,
+      "files": [
+        "ANSWERS",
+        "answers.txt",
+        "test_zeta_far_right.py"
+      ],
+      "round": 1,
+      "seconds": 16.2
+    }
+  ],
+  "task": "mpmath__mpmath-1217"
+}

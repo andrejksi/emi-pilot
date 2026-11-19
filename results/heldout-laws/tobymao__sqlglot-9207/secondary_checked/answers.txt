@@ -1,0 +1,7 @@
+A1 written: SQLite LIMIT -1 OFFSET 5 means an unbounded result with offset 5 and must produce the same DuckDB output as PostgreSQL LIMIT ALL OFFSET 5.
+A2 written: SQLite LIMIT -1 OFFSET 5 must produce the same PostgreSQL output as PostgreSQL LIMIT ALL OFFSET 5.
+A3 written: For T-SQL, SQLite LIMIT -1 OFFSET 5 must produce OFFSET 5 ROWS without a negative FETCH clause, like PostgreSQL LIMIT ALL OFFSET 5.
+A4 written: A negative numeric SQLite LIMIT literal means no upper bound, including negative values other than -1.
+A5 written: PostgreSQL OFFSET 5 without a limit already transpiles to LIMIT -1 OFFSET 5 in SQLite.
+A6 written: The PostgreSQL-to-SQLite-to-DuckDB round trip must keep the offset and no upper bound.
+A7 written: The no-upper-bound rule applies to negative limits, so a zero limit must remain a zero limit.

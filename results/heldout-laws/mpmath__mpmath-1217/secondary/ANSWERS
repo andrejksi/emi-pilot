@@ -1,0 +1,2 @@
+A1 written: At the default precision, the imaginary part of zeta(50 + 5j) agrees with the Mathematica reference 2.82881957300551842714082e-16, which the direct sum also matches at that precision.
+A2 written: The displayed real part of zeta(50 + 5j) already agrees with the direct sum at the default precision, giving 0.9999999999999991.

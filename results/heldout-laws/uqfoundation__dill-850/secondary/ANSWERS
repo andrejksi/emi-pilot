@@ -1,0 +1,3 @@
+A1 written: If dill.temp.load fails to deserialize, it closes the input it opened even while the caller retains the exception, and raises the original loading exception.
+A2 written: If dill.temp.load succeeds, it closes the input it opened and returns the deserialized value.
+A3 written: When the caller supplies a file directly to dill.load, it remains caller-owned and open.

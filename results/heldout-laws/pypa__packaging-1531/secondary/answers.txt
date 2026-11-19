@@ -1,0 +1,7 @@
+A1 written: Requirement("x===0,>= 0") is valid and has the two specifiers ===0 and >=0.
+A2 written: Requirement("x===0, >=0") is valid and has the two specifiers ===0 and >=0.
+A3 written: Requirement("x===0,!= 1.0") is valid and has the two specifiers ===0 and !=1.0.
+A4 written: Requirement("x (===0,>= 0)") is valid and has the two specifiers ===0 and >=0.
+A5 written: Requirement("x===0,>=0") already parses and must continue to parse as two specifiers.
+A6 written: SpecifierSet("===0,>= 0") already parses the two specifiers directly.
+A7 written: The standalone Specifier("===a,b") API intentionally allows the comma within the arbitrary version a,b.

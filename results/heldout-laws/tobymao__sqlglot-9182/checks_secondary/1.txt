@@ -1,0 +1,31 @@
+Rules check: stop. Not checked: none.
+
+.emi/laws/test_sqlite_length_nul_to_duckdb.py
+  Example, guard: The translated BLOB length counts all three bytes of the BLOB 610062 (A3).
+      assert _evaluate_translated_length( transpile("SELECT LENGTH(X'610062')", read="sqlite", write="duckdb")[0] ) == 3
+      -> holds on the current code
+  Example, guard: The translated LENGTH counts both characters of text without a NUL (A2).
+      assert _evaluate_translated_length( transpile("SELECT LENGTH('ab')", read="sqlite", write="duckdb")[0] ) == 2
+      -> holds on the current code
+  Example, new behaviour: SQLite LENGTH for the text a followed by a NUL and b still returns 1 in DuckDB SQL (A1).
+      assert _evaluate_translated_length( transpile("SELECT LENGTH('a' || CHAR(0) || 'b')", read="sqlite", write="duckdb")[0] ) == 1
+      -> fails on the current code: assert 3 == 1
++  where 3 = _evaluate_translated_length("SELECT LENGTH('a' || CHR(0) || 'b')")
+
+Answers (proposed: approving the rules agrees to them):
+  - A1 (written by the person): After direct SQLite-to-DuckDB transpilation, SELECT LENGTH('a' || CHAR(0) || 'b') must count text only up to its first NUL and return 1.
+  - A2 (written by the person): The stop-at-NUL rule applies to text, and counts all characters when the text has no NUL.
+  - A3 (written by the person): The text-specific stop-at-NUL rule does not truncate BLOB values, whose length counts all bytes.
+
+Also proposed:
+  - .emi/laws/answers.txt (not a rule file)
+
+Not this feature's concern (proposed: approving the rules agrees to it):
+  - sqlglot/__init__.py::parse_one: The issue is about the SQL returned by direct SQLite-to-DuckDB transpilation and does not add a requirement for the separate parse_one API.
+
+Noted (blocks nothing):
+  - .emi/laws/test_sqlite_length_nul_to_duckdb.py still passes when sqlglot/__init__.py::parse_one returns its first argument (`sql`) unchanged; sqlglot/__init__.py::parse_one returns None, which the proposed NOT-THIS-FEATURE says is not this feature's concern (it counts once the person approves it with the rules): not sent back.
+  - .emi/laws/test_sqlite_length_nul_to_duckdb.py: 284 function(s) the rules run outside their area were given no stand-ins (`--scope all` tries them; `laws.area` widens the area): sqlglot/dialects/__init__.py (1), sqlglot/dialects/dialect.py (25), sqlglot/errors.py (3), sqlglot/expressions/builders.py (1), sqlglot/expressions/core.py (32), sqlglot/expressions/datatypes.py (1), sqlglot/expressions/query.py (1), sqlglot/generator.py (24), sqlglot/generators/duckdb.py (6), sqlglot/helper.py (4), sqlglot/jsonpath.py (7), sqlglot/optimizer/scope.py (3), sqlglot/parser.py (146), sqlglot/parsers/duckdb.py (3), sqlglot/parsers/sqlite.py (3), sqlglot/tokenizer_core.py (14), sqlglot/tokens.py (6), sqlglot/transforms.py (3), sqlglot/trie.py (1)
+  - .emi/laws/test_sqlite_length_nul_to_duckdb.py: old tests import what its new rules are about: tests/dialects/test_bigquery.py, tests/dialects/test_databricks.py, tests/dialects/test_dremio.py, tests/dialects/test_exasol.py, tests/dialects/test_postgres.py and 3 more. If the task changes how they behave, the person lists them as expected changes
+
+Ready for a person: show them the rules above; `emi rules approve` approves and commits them.

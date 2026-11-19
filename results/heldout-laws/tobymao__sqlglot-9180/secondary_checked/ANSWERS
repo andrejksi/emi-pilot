@@ -1,0 +1,5 @@
+A1 written: Direct SQLite-to-DuckDB transpilation of SELECT 5 / 2 must preserve the SQLite integer result 2.
+A2 written: Direct SQLite-to-DuckDB transpilation must also preserve negative integer quotients, including truncation toward zero.
+A3 written: Division with a decimal operand must retain floating-point division.
+A4 written: SQLite division by zero must still return NULL after transpilation to DuckDB.
+A5 written: The type-annotated path already preserves integer division and must keep working.

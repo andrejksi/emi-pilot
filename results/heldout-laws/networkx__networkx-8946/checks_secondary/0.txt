@@ -1,0 +1,19 @@
+Rules check: stop. Not checked: none.
+
+.emi/laws/test_directed_edge_label_hash.py
+  Example, new behaviour: An outward star and an inward star with identical edge labels get different hashes when the labels are used (A1).
+      assert weisfeiler_lehman_graph_hash( outward_star, edge_attr="label" ) != weisfeiler_lehman_graph_hash(inward_star, edge_attr="label")
+      -> fails on the current code: AssertionError: assert 'd1641122285109f01881f6e512001393' != 'd1641122285109f01881f6e512001393'
++  where 'd1641122285109f01881f6e512001393' = weisfeiler_lehman_graph_hash(<networkx.classes.digraph.DiGraph object at 0x…>, edge_attr='label')
+ …
+
+Answers (proposed: approving the rules agrees to them):
+  - A1 (written by the person): With edge_attr="label" and every edge labeled "e", the outward star 0→1 and 0→2 and the inward star 1→0 and 2→0 must have different Weisfeiler–Lehman graph hashes because the hash must distinguish successors from predecessors when using edge labels.
+
+Also proposed:
+  - .emi/laws/answers.txt (not a rule file)
+
+Noted (blocks nothing):
+  - .emi/laws/test_directed_edge_label_hash.py: old tests import what its new rules are about: networkx/algorithms/tests/test_tournament.py, networkx/classes/tests/dispatch_interface.py. If the task changes how they behave, the person lists them as expected changes
+
+Ready for a person: show them the rules above; `emi rules approve` approves and commits them.

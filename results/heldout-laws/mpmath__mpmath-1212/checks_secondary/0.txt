@@ -1,0 +1,22 @@
+Rules check: stop. Not checked: none.
+
+.emi/laws/test_besselyzero.py
+  Example, new behaviour: fp.besselyzero(2, 1) returns 3.3842417671495935, the "1st positive zero of the 2nd degree Bessel function of the second kind" (A1).
+      assert fp.besselyzero(2, 1) == pytest.approx(3.3842417671495935, rel=1e-12)
+      -> fails on the current code: ZeroDivisionError: float division by zero
+  Example, guard: mp.besselyzero(2, 1) still "returns the proper result" of 3.3842417671495935 (A2).
+      assert mp.besselyzero(2, 1) == pytest.approx(3.3842417671495935, rel=1e-12)
+      -> holds on the current code
+
+Answers (proposed: approving the rules agrees to them):
+  - A1 (written by the person): The "1st positive zero of the 2nd degree Bessel function of the second kind" is 3.3842417671495935, and fp.besselyzero(2, 1) should return it without raising ZeroDivisionError.
+  - A2 (written by the person): mp.besselyzero(2, 1) already "returns the proper result", mpf('3.3842417671495935').
+
+Also proposed:
+  - .emi/laws/answers.txt (not a rule file)
+
+Noted (blocks nothing):
+  - .emi/laws/test_besselyzero.py: 122 function(s) the rules run outside their area were given no stand-ins (`--scope all` tries them; `laws.area` widens the area): conftest.py (1), mpmath/calculus/optimization.py (5), mpmath/ctx_base.py (2), mpmath/ctx_iv.py (1), mpmath/ctx_mp.py (11), mpmath/ctx_mp_python.py (32), mpmath/functions/bessel.py (7), mpmath/functions/hypergeometric.py (5), mpmath/libmp/gammazeta.py (8), mpmath/libmp/libelefun.py (20), mpmath/libmp/libhyper.py (1), mpmath/libmp/libintmath.py (4), mpmath/libmp/libmpf.py (25)
+  - .emi/laws/test_besselyzero.py: old tests import what its new rules are about: mpmath/tests/test_basic_ops.py, mpmath/tests/test_bitwise.py, mpmath/tests/test_calculus.py, mpmath/tests/test_compatibility.py, mpmath/tests/test_convert.py and 28 more. If the task changes how they behave, the person lists them as expected changes
+
+Ready for a person: show them the rules above; `emi rules approve` approves and commits them.

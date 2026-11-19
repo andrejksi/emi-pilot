@@ -1,0 +1,3 @@
+A1 written: This is a fix. The issue gives a directed graph with node demands 1 and -1 and a 1-to-0 edge of capacity 0 and weight 1. capacity_scaling must raise NetworkXUnfeasible when no flow satisfies the demands.
+A2 written: The issue says a graph with the same demands and no edges at all has the same bug, so capacity_scaling must raise NetworkXUnfeasible for that case as well.
+A3 written: The issue identifies network_simplex and min_cost_flow raising NetworkXUnfeasible for the zero-capacity edge reproducer as correct.

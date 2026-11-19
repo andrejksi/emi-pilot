@@ -1,0 +1,18 @@
+Rules check: stop. Not checked: none.
+
+.emi/laws/test_streaming_connection_cleanup.py
+  Example, new behaviour: The streaming-callback test closes its accepted socket even while the peer close is pending (A1).
+      -> fails on the current code: assert 12 == -1
++  where 12 = <built-in method fileno of socket object at 0x…>()
++    where <built-in method fileno of socket object at 0x…> = <socket.socket fd=12, family=1, type=1, proto=0>.fileno
+
+Answers (proposed: approving the rules agrees to them):
+  - A1 (written by the person): The curl HTTP client's streaming-callback test must release its sockets without an unclosed-socket ResourceWarning on stderr on Windows with Python earlier than 3.13.
+
+Also proposed:
+  - .emi/laws/answers.txt (not a rule file)
+
+Noted (blocks nothing):
+  - .emi/laws/test_streaming_connection_cleanup.py: old tests import what its new rules are about: tornado/test/concurrent_test.py, tornado/test/http1connection_test.py, tornado/test/httpclient_test.py, tornado/test/httpserver_test.py, tornado/test/iostream_test.py and 8 more. If the task changes how they behave, the person lists them as expected changes
+
+Ready for a person: show them the rules above; `emi rules approve` approves and commits them.

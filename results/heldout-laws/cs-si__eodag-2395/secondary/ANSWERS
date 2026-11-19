@@ -1,0 +1,3 @@
+A1 written: A clean download of DEDL MSG_HRSEVIRI products with extract=True is expected to yield complete folders containing both EOPMetadata.xml and the .nat data present in their ZIP archives.
+A2 written: Re-running the download of a recorded product should yield the complete extracted product when its retained ZIP contains both files, even if its existing folder contains only one of them.
+A3 written: The reported download uses delete_archive=False, keeping the complete ZIP archive alongside the extracted product.

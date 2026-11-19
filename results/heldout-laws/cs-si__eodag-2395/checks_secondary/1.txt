@@ -1,0 +1,48 @@
+Rules check: incomplete. Not checked: 1 (listed below).
+
+.emi/laws/test_hrseviri_extraction.py
+  Example, new behaviour: a clean DEDL HRSEVIRI download extracts both the .nat data and EOPMetadata.xml for each product (A1).
+      assert [extracted_files(path) for path in downloaded] == [ dict(first_files), dict(second_files), ]
+      -> fails on the current code: AssertionError: assert [{'first.nat'...native data'}] == [{'EOPMetadat...native data'}]
+At index 0 diff: {'first.nat': b'first native data'} != {'EOPMetadata.xml': b'<metadata>HRSEVIRI</metadata>', 'first.nat': b'first native data'}
+Use -v  …
+  Example, guard: a DEDL HRSEVIRI download with delete_archive=False keeps the complete ZIP beside the extracted product (A3).
+      assert (Path(path).parent / f"{title}.zip").read_bytes() == payload
+      -> holds on the current code
+  Example, new behaviour: re-running a recorded DEDL HRSEVIRI download returns both files when its extracted folder contains only one and the ZIP is complete (A2).
+      assert extracted_files(path) == files
+      -> fails on the current code: AssertionError: assert {'EOPMetadata...I</metadata>'} == {'EOPMetadata...'native data'}
+Omitting 1 identical items, use -vv to show
+Right contains 1 more item:
+{'product.nat': b'native data'}
+Use -v to get more diff
+  Example, new behaviour: re-running a recorded DEDL HRSEVIRI download returns both files when its extracted folder contains only one and the ZIP is complete (A2).
+      assert extracted_files(path) == files
+      -> fails on the current code: AssertionError: assert {'product.nat...'native data'} == {'EOPMetadata...'native data'}
+Omitting 1 identical items, use -vv to show
+Right contains 1 more item:
+{'EOPMetadata.xml': b'<metadata>HRSEVIRI</metadata>'}
+Use -v to get more diff
+
+Answers (proposed: approving the rules agrees to them):
+  - A1 (written by the person): A clean download of DEDL MSG_HRSEVIRI products with extract=True is expected to yield complete folders containing both EOPMetadata.xml and the .nat data present in their ZIP archives.
+  - A2 (written by the person): Re-running the download of a recorded product should yield the complete extracted product when its retained ZIP contains both files, even if its existing folder contains only one of them.
+  - A3 (written by the person): The reported download uses delete_archive=False, keeping the complete ZIP archive alongside the extracted product.
+
+Also proposed:
+  - .emi/laws/answers.txt (not a rule file)
+
+Not this feature's concern (proposed: approving the rules agrees to it):
+  - eodag/config.py::__init__: The reported failure occurs after download and concerns archive extraction, so configuration object initialization is outside this fix.
+  - eodag/config.py::load_stac_provider_config: The report concerns a completed DEDL ZIP download and leaves STAC provider configuration loading unspecified.
+  - eodag/config.py::validate: The issue supplies a working download configuration and leaves configuration validation behavior unspecified.
+  - eodag/plugins/download/http.py::_check_stream_size: The report confirms that the downloaded ZIP contains both expected files, so HTTP stream size checks are outside this extraction fix.
+  - eodag/plugins/download/http.py::_order_request: The report concerns extraction of completed downloads and leaves the provider's order requests unspecified.
+
+Not checked:
+  - .emi/laws/test_hrseviri_extraction.py: 1 stand-in(s) were not tried: the stand-in budget ran out
+
+Noted (blocks nothing):
+  - .emi/laws/test_hrseviri_extraction.py still passes when 12 stand-in(s) replace 5 function(s): eodag/config.py::__init__ (3), eodag/config.py::validate (2), eodag/config.py::load_stac_provider_config (3), eodag/plugins/download/http.py::_check_stream_size (2), eodag/plugins/download/http.py::_order_request (2) (`--format json` lists each), which the proposed NOT-THIS-FEATURE says is not this feature's concern (it counts once the person approves it with the rules): not sent back.
+  - .emi/laws/test_hrseviri_extraction.py: 54 function(s) the rules run outside their area were given no stand-ins (`--scope all` tries them; `laws.area` widens the area): eodag/__init__.py (1), eodag/api/product/_assets.py (1), eodag/api/product/_product.py (5), eodag/api/product/drivers/generic.py (1), eodag/api/product/drivers/sentinel1.py (1), eodag/api/product/drivers/sentinel2.py (1), eodag/api/provider.py (3), eodag/plugins/authentication/base.py (1), eodag/plugins/base.py (4), eodag/plugins/download/base.py (9), eodag/plugins/search/base.py (1), eodag/plugins/search/qssearch.py (1), eodag/utils/__init__.py (16), eodag/utils/cache.py (2), eodag/utils/logging.py (1), eodag/utils/notebook.py (2), eodag/utils/yaml.py (4)
+  - .emi/laws/test_hrseviri_extraction.py: old tests import what its new rules are about: tests/__init__.py, tests/context.py, tests/test_requirements.py, tests/units/test_crunch.py, tests/units/test_metadata_mapping.py. If the task changes how they behave, the person lists them as expected changes

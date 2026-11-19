@@ -1,0 +1,23 @@
+{
+  "checked_files": [
+    "ANSWERS",
+    "answers.txt",
+    "test_nested_dict_env_decoding.py"
+  ],
+  "model": "gpt-6.2-sol",
+  "passed": true,
+  "role": "secondary",
+  "rounds": [
+    {
+      "exit": 0,
+      "files": [
+        "ANSWERS",
+        "answers.txt",
+        "test_nested_dict_env_decoding.py"
+      ],
+      "round": 0,
+      "seconds": 12.1
+    }
+  ],
+  "task": "pydantic__pydantic-settings-1109"
+}

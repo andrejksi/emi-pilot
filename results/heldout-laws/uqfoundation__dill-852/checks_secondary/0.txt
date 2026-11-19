@@ -1,0 +1,28 @@
+Rules check: stop. Not checked: none.
+
+.emi/laws/test_temp_dump_file_cleanup.py
+  Example, new behaviour: A failed temp.dump closes any file it opened and leaves no partial file while the error is retained (A1).
+      temp.dump(CannotSerialize(), dir=tmp_path) is refused with RuntimeError
+      assert retained_error.value.__traceback__ is not None
+      assert all(opened_file.closed for opened_file in opened_files)
+      assert list(tmp_path.iterdir()) == []
+      -> fails on the current code: assert False
++  where False = all(<generator object test_failed_temp_dump_closes_and_removes_its_default_temporary_file.<locals>.<genexpr> at 0x…>)
+  Example, guard: A successful temp.dump still returns an open temporary file (A2).
+      assert not returned_file.closed
+      assert pickle.load(returned_file) == [1, 2, 3]
+      -> holds on the current code
+
+Answers (proposed: approving the rules agrees to them):
+  - A1 (written by the person): When dill.temp.dump fails to serialize an object, any temporary file it created is closed even while the exception is retained, and the default delete-on-close behavior removes the partial file.
+  - A2 (written by the person): A successful dill.temp.dump call still returns an open temporary file to the caller.
+
+Also proposed:
+  - .emi/laws/answers.txt (not a rule file)
+
+Noted (blocks nothing):
+  - .emi/laws/test_temp_dump_file_cleanup.py: 8 function(s) the rules run outside their area were given no stand-ins (`--scope all` tries them; `laws.area` widens the area): dill/_dill.py (6), dill/logger.py (1), dill/temp.py (1)
+  - .emi/laws/test_temp_dump_file_cleanup.py: test_failed_temp_dump_closes_and_removes_its_default_temporary_file: it holds the exact wording of a message: ask the person whether the wording is part of the rule
+  - .emi/laws/test_temp_dump_file_cleanup.py: test_failed_temp_dump_closes_and_removes_its_default_temporary_file: its sentence speaks of any input, but an example tries only the cases it names: make it an any-input rule, or name the cases in the sentence
+
+Ready for a person: show them the rules above; `emi rules approve` approves and commits them.
