@@ -1,0 +1,61 @@
+diff --git a/Lib/fontTools/cffLib/__init__.py b/Lib/fontTools/cffLib/__init__.py
+index a1e1ece..42fcd82 100644
+--- a/Lib/fontTools/cffLib/__init__.py
++++ b/Lib/fontTools/cffLib/__init__.py
+@@ -294,6 +294,15 @@ class CFFFontSet(object):
+                     if hasattr(fontDict, "Private"):
+                         fontDict.Private.vstore = topDict.VarStore
+ 
++            # In the XML, VarStore follows CharStrings, so the CharStrings
++            # object was built before the VarStore was available.
++            if (
++                hasattr(topDict, "VarStore")
++                and hasattr(topDict, "CharStrings")
++                and getattr(topDict.CharStrings, "varStore", None) is None
++            ):
++                topDict.CharStrings.varStore = topDict.VarStore
++
+         elif name == "GlobalSubrs":
+             subrCharStringClass = psCharStrings.T2CharString
+             if not hasattr(self, "GlobalSubrs"):
+diff --git a/Tests/cffLib/cffLib_test.py b/Tests/cffLib/cffLib_test.py
+index 8f7e922..c6f718d 100644
+--- a/Tests/cffLib/cffLib_test.py
++++ b/Tests/cffLib/cffLib_test.py
+@@ -235,6 +235,36 @@ class CffLibTest(DataFilesHandler):
+             varStore2.VarRegionList.Region[0].VarRegionAxis[0].PeakCoord, 0.5
+         )
+ 
++    def test_CFF2_glyphSet_variations_from_ttx(self):
++        """A CFF2 font imported from TTX must apply variations like the binary."""
++        from fontTools.pens.boundsPen import BoundsPen
++
++        ttx_path = self.getpath("TestSparseCFF2VF.ttx")
++        fontFromTTX = TTFont(recalcBBoxes=False, recalcTimestamp=False)
++        fontFromTTX.importXML(ttx_path)
++        top = fontFromTTX["CFF2"].cff.topDictIndex[0]
++        self.assertIs(top.CharStrings.varStore, top.VarStore)
++
++        buf = BytesIO()
++        fontFromTTX.save(buf)
++        buf.seek(0)
++        fontFromOTF = TTFont(buf)
++
++        def bounds(font, location):
++            glyphSet = font.getGlyphSet(location=location)
++            result = {}
++            for name in glyphSet.keys():
++                pen = BoundsPen(glyphSet)
++                glyphSet[name].draw(pen)
++                result[name] = pen.bounds
++            return result
++
++        default = bounds(fontFromOTF, {})
++        varied = bounds(fontFromOTF, {"wght": 900})
++        self.assertNotEqual(default, varied)
++        self.assertEqual(bounds(fontFromTTX, {}), default)
++        self.assertEqual(bounds(fontFromTTX, {"wght": 900}), varied)
++
+     def test_FDSelect_format_4(self):
+         ttx_path = self.getpath("TestFDSelect4.ttx")
+         font = TTFont(recalcBBoxes=False, recalcTimestamp=False)
