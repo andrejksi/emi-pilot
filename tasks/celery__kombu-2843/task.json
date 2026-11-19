@@ -1,0 +1,44 @@
+{
+  "base_commit": "425356c8a5ada67e59dfbdc896ef88b6c0ce2486",
+  "created_at": "2026-11-18T17:49:18Z",
+  "install": [
+    "pip install -q -e .",
+    "pip install -q pytest"
+  ],
+  "install_from": "default",
+  "issue": 2842,
+  "kind": "git",
+  "license": null,
+  "oracle": {
+    "fail_to_pass": [
+      "t/unit/asynchronous/test_timer.py::test_without_tzdata::test_import_with_no_time_zone_data"
+    ],
+    "pass_to_pass": [
+      "t/unit/asynchronous/test_timer.py::test_Entry::test_call",
+      "t/unit/asynchronous/test_timer.py::test_Entry::test_cancel",
+      "t/unit/asynchronous/test_timer.py::test_Entry::test_eq",
+      "t/unit/asynchronous/test_timer.py::test_Entry::test_hash",
+      "t/unit/asynchronous/test_timer.py::test_Entry::test_ordering",
+      "t/unit/asynchronous/test_timer.py::test_Entry::test_repr",
+      "t/unit/asynchronous/test_timer.py::test_Timer::test_apply_entry_error_handled",
+      "t/unit/asynchronous/test_timer.py::test_Timer::test_apply_entry_error_not_handled",
+      "t/unit/asynchronous/test_timer.py::test_Timer::test_call_repeatedly",
+      "t/unit/asynchronous/test_timer.py::test_Timer::test_cancel",
+      "t/unit/asynchronous/test_timer.py::test_Timer::test_enter_after",
+      "t/unit/asynchronous/test_timer.py::test_Timer::test_enter_exit",
+      "t/unit/asynchronous/test_timer.py::test_Timer::test_handle_error",
+      "t/unit/asynchronous/test_timer.py::test_Timer::test_supports_Timer_interface",
+      "t/unit/asynchronous/test_timer.py::test_to_timestamp::test_datetime",
+      "t/unit/asynchronous/test_timer.py::test_to_timestamp::test_timestamp",
+      "t/unit/asynchronous/test_timer.py::test_without_tzdata::test_naive_datetime_is_read_as_utc"
+    ]
+  },
+  "prompt": "Running `import kombu.asynchronous` with `kombu==5.7.0` fails on Linux without OS tz data\n\nHi Kombu team! \n\nUpgrading to `kombu==5.7.0` broke our celery webapp running in a Linux container without an IANA database, so we needed to add `tzdata` to the requirements and redeploy. This is the same issue as #2106, but now on Linux instead of Windows. It looks like this occurred due to #2808 scoping `tzdata` to win32 only. \n\nTo reproduce, you can run the following: (`PYTHONTZPATH` pointed at an empty dir simulates a host without OS tz data)\n\n```bash\nuv venv -p 3.13 .venv\nuv pip install -p .venv kombu==5.7.0\nmkdir empty\nPYTHONTZPATH=$PWD/empty .venv/bin/python -I -c \"import kombu.asynchronous\"\n```\n\n```\n  File \".../lib/python3.13/zoneinfo/_common.py\", line 29, in load_tzdata\n    raise ZoneInfoNotFoundError(f\"No time zone found with key {key}\")\nzoneinfo._common.ZoneInfoNotFoundError: 'No time zone found with key UTC'\n```\n\n`kombu==5.6.2` imports fine with the same steps, because `tzdata` gets installed.\n\nTo fix this, what if we tried option 1 from #2802 and removed the need for a timezone database altogether? So in [timer.py](https://github.com/celery/kombu/blob/main/kombu/asynchronous/timer.py) it would look like \n```python\nfrom datetime import datetime, timezone\n\nEPOCH = datetime.fromtimestamp(0, timezone.utc)\n\ndef to_timestamp(d, default_timezone=timezone.utc, time=monotonic):\n```\n\n**Versions:** kombu 5.7.0 (5.6.2 OK), celery 5.7.0, CPython 3.13, Linux. Also reproduced on macOS via `PYTHONTZPATH`.",
+  "pull": 2843,
+  "python": "3.11",
+  "repo": "celery/kombu",
+  "source": "github-pr",
+  "test_files": [
+    "t/unit/asynchronous/test_timer.py"
+  ]
+}

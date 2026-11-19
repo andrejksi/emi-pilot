@@ -1,0 +1,94 @@
+diff --git a/kombu/__init__.py b/kombu/__init__.py
+index 722a5219..9160ca55 100644
+--- a/kombu/__init__.py
++++ b/kombu/__init__.py
+@@ -43,7 +43,7 @@ if STATICA_HACK:  # pragma: no cover
+     from kombu.messaging import Consumer, Producer  # noqa
+     from kombu.pools import connections, producers  # noqa
+     from kombu.serialization import disable_insecure_serializers  # noqa
+-    from kombu.serialization import enable_insecure_serializers
++    from kombu.serialization import enable_insecure_serializers  # noqa
+     from kombu.utils.url import parse_url  # noqa
+ 
+ # Lazy loading.
+diff --git a/kombu/asynchronous/timer.py b/kombu/asynchronous/timer.py
+index a58b4ce0..70998fcc 100644
+--- a/kombu/asynchronous/timer.py
++++ b/kombu/asynchronous/timer.py
+@@ -5,7 +5,7 @@ from __future__ import annotations
+ import heapq
+ import sys
+ from collections import namedtuple
+-from datetime import datetime
++from datetime import datetime, timezone
+ from functools import total_ordering
+ from time import monotonic
+ from time import time as _time
+@@ -16,11 +16,6 @@ from vine.utils import wraps
+ 
+ from kombu.log import get_logger
+ 
+-if sys.version_info >= (3, 9):
+-    from zoneinfo import ZoneInfo
+-else:
+-    from backports.zoneinfo import ZoneInfo
+-
+ if TYPE_CHECKING:
+     from types import TracebackType
+ 
+@@ -29,13 +24,13 @@ __all__ = ('Entry', 'Timer', 'to_timestamp')
+ logger = get_logger(__name__)
+ 
+ DEFAULT_MAX_INTERVAL = 2
+-EPOCH = datetime.fromtimestamp(0, ZoneInfo("UTC"))
++EPOCH = datetime.fromtimestamp(0, timezone.utc)
+ IS_PYPY = hasattr(sys, 'pypy_version_info')
+ 
+ scheduled = namedtuple('scheduled', ('eta', 'priority', 'entry'))
+ 
+ 
+-def to_timestamp(d, default_timezone=ZoneInfo("UTC"), time=monotonic):
++def to_timestamp(d, default_timezone=timezone.utc, time=monotonic):
+     """Convert datetime to timestamp.
+ 
+     If d' is already a timestamp, then that will be used.
+diff --git a/t/unit/asynchronous/test_timer.py b/t/unit/asynchronous/test_timer.py
+index 75362a67..b491da55 100644
+--- a/t/unit/asynchronous/test_timer.py
++++ b/t/unit/asynchronous/test_timer.py
+@@ -1,6 +1,6 @@
+ from __future__ import annotations
+ 
+-from datetime import datetime, timezone
++from datetime import datetime, timedelta, timezone
+ from unittest.mock import Mock, patch
+ 
+ import pytest
+@@ -154,3 +154,27 @@ class test_Timer:
+         tref = Mock()
+         t.cancel(tref)
+         tref.cancel.assert_called_with()
++
++
++class test_without_tzdata:
++
++    def test_import_with_no_time_zone_data(self, tmp_path):
++        # PYTHONTZPATH hides the system database; the tzdata package, when
++        # it is installed, has to be hidden as well.
++        import os
++        import subprocess
++        import sys
++        code = ("import sys; sys.modules['tzdata'] = None; "
++                "import kombu.asynchronous")
++        result = subprocess.run(
++            [sys.executable, '-c', code],
++            env=dict(os.environ, PYTHONTZPATH=str(tmp_path)),
++            capture_output=True, text=True,
++        )
++        assert result.returncode == 0, result.stderr
++
++    def test_naive_datetime_is_read_as_utc(self):
++        aware = datetime.now(timezone.utc) + timedelta(hours=1)
++        naive = aware.replace(tzinfo=None)
++        assert to_timestamp(naive) == pytest.approx(
++            to_timestamp(aware), abs=1)
