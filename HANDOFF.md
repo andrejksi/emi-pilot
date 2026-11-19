@@ -44,42 +44,47 @@ twice with the same instructions (`emi-drafting/DRAFTING_ROUND3.md`): arm
 (`emi-drafting/round3/labels.json`). Pass line: tasks with a gap only under
 old rules minus tasks with a gap only under new rules ≥ 3.
 
-State at handoff:
+State (19 Nov, 00:50 UTC): **phase 1 done in both arms; the question page
+is filled and waits for the user.**
 
 | | old arm | new arm |
 |---|---|---|
 | session | `session_01MWwBLBM3d3vRBYXky9ppz8` | `session_01MWwBLDQzKR67EFENMV5RFD` |
 | branch (emi-drafting) | `claude/round3-old` | `claude/round3-new` |
-| phase 1 | done 20:41, 12 tasks, 25 questions; openmdao and yt-dlp finished without questions | task 10 of 12 at 20:46, 42 questions so far; about 4–5 min a task |
+| phase 1 | done 20:41; 25 questions; openmdao and yt-dlp finished without questions | done 00:42; 55 questions (paused 20:52–00:35 by the account's usage limit) |
 
-The new arm is slower because the new brief asks for more (ANSWERS record,
-varied inputs, guards in their own files, more questions). That is expected
-and is reported as drafting cost (PREREG measure 4).
+The new arm is slower and asks more because its brief asks for more
+(ANSWERS record, varied inputs, guards in their own files, more questions):
+reported as drafting cost (PREREG measures 3 and 4).
 
-The question page is published and empty:
-https://claude.ai/artifact/5h1pJuuWtTWTjUbSCkwNsJ (source:
-`results/adversary-round3/page/index.html`, capability `db`). It reads three
-collections and writes one:
+**Deviation to report: pyflyby-391's environment.** setup_task.py installs
+pytest 8; the project's root conftest uses a hook argument pytest 8
+deprecates, and its pytest.ini turns that warning into an error, so no
+pytest run collects anything there, the project's own tests included. The
+old arm worked round it inside `.emi/laws/` (its own pytest.ini plus a
+conftest that names tests as from the repository root) and reached exit 0;
+the new arm tried a pytest.ini alone, EMI then found no tests, and it left
+the task unchecked. The setup stays as it is for both arms (changing it
+after one arm adapted would not be the same condition); report d with and
+without pyflyby.
 
-- `tasks/{task id}`: `{name, report}` (report = the task's `prompt`).
-- `questions/{qid}`: `{task, order, situation, question, options, suggested}`.
-- `answers/{qid}`: written by the page: `{answer, how: option|own|doesnt_matter, seconds, at, changes}`.
+The question page: https://claude.ai/artifact/5h1pJuuWtTWTjUbSCkwNsJ
+(source `results/adversary-round3/page/index.html`, capability `db`). It
+holds 12 `tasks/{task id}` `{name, report}` and 80 `questions/{q001..q080}`
+`{task, order, situation, question, options, suggested}`, laid out by
+`results/adversary-round3/seed_questions.py` (run in emi-drafting; it gives
+the same layout every time). The page writes `answers/{qid}`
+`{answer, how: option|own|doesnt_matter, seconds, at, changes}`. Which arm
+asked which question is in the scratchpad's `r3seed/question-map.json`; if
+the scratchpad is gone, rerun the script to get it again. Keep it from the
+user until every question is answered.
 
 ### Next steps, in order
 
-1. **Wait for the new arm's "phase 1 done"** (`list_sessions` with
-   `children: true`, or its branch). Done when both sessions are idle with
-   that reply.
-2. **Fill the page.** Fetch both branches; for each task gather both arms'
-   `questions.json`; give every question a neutral id (`q001`…); shuffle
-   within each task with `random.Random(20261118)`; write `tasks` and
-   `questions` with `ArtifactData` `batch`. Do not copy the `from` field
-   (its question numbers differ between briefs and would reveal the arm).
-   Keep the qid → (arm, task, Q-id) map in the scratchpad until the user
-   has answered; then commit it as
-   `results/adversary-round3/question-map.json`. Done when the page lists
-   every question (one `ArtifactData list` of `questions`), and the user is
-   told it is ready.
+1. ~~Wait for both arms' "phase 1 done".~~ Done 00:42.
+2. ~~Fill the page.~~ Done 00:50: 80 questions, checked with one
+   `ArtifactData list`. After the user has answered, commit the map as
+   `results/adversary-round3/question-map.json`.
 3. **Return the answers.** When `answers` covers every question: map them
    back and send each drafting session its answers with `send_message`
    (the JSON per task as `DRAFTING_ROUND3.md` phase 2 describes, asking it
