@@ -1,0 +1,94 @@
+diff --git a/Lib/fontTools/varLib/iup.py b/Lib/fontTools/varLib/iup.py
+index a53de40..d993faf 100644
+--- a/Lib/fontTools/varLib/iup.py
++++ b/Lib/fontTools/varLib/iup.py
+@@ -12,6 +12,8 @@ from typing import (
+ )
+ from numbers import Integral, Real
+ 
++from fontTools.misc.roundTools import otRound
++
+ _Point = Tuple[Real, Real]
+ _Delta = Tuple[Real, Real]
+ _PointSegment = Sequence[_Point]
+@@ -359,6 +361,10 @@ def _rot_set(s: set, k: int, n: int):
+     return {(v + k) % n for v in s}
+ 
+ 
++def _round_points(points: _PointSegment) -> list:
++    return [(otRound(x), otRound(y)) for x, y in points]
++
++
+ def iup_contour_optimize(
+     deltas: _DeltaSegment, coords: _PointSegment, tolerance: Real = 0.0
+ ) -> _DeltaOrNoneSegment:
+@@ -367,7 +373,28 @@ def iup_contour_optimize(
+ 
+     Returns delta vector that has most number of None items instead of
+     the input delta.
++
++    Coordinates and deltas may be floats, but the decision of which deltas
++    can be inferred is made on their values rounded to integers: at render
++    time both are integers, so interpolation and point equality must be
++    judged under the same conditions (see fonttools issue #3634). The deltas
++    that are kept are returned as given, unrounded.
+     """
++    if len(deltas) != len(coords):
++        raise ValueError(
++            "Expected len(deltas) == len(coords); found %d != %d"
++            % (len(deltas), len(coords))
++        )
++    optimized = _iup_contour_optimize(
++        _round_points(deltas), _round_points(coords), tolerance
++    )
++    return [d if o is not None else None for d, o in zip(deltas, optimized)]
++
++
++def _iup_contour_optimize(
++    deltas: _DeltaSegment, coords: _PointSegment, tolerance: Real = 0.0
++) -> _DeltaOrNoneSegment:
++    """Implementation of iup_contour_optimize on integer coordinates and deltas."""
+ 
+     n = len(deltas)
+ 
+diff --git a/Tests/varLib/iup_test.py b/Tests/varLib/iup_test.py
+index 36f63e0..2d008ef 100644
+--- a/Tests/varLib/iup_test.py
++++ b/Tests/varLib/iup_test.py
+@@ -118,6 +118,36 @@ class IupTest:
+         assert chain1 == chain2, f
+         assert costs1 == costs2, f
+ 
++    def test_optimize_judges_rounded_coords(self):
++        # At render time the middle point sits at x=0, on top of the first
++        # point, so it would take the first point's delta (0) rather than the
++        # 4 that interpolating at the unrounded x=0.4 suggests.
++        coords = [(0, 0), (0.4, 0), (10, 0)]
++        deltas = [(0, 0), (4, 0), (100, 0)]
++        result = iup.iup_contour_optimize(deltas, coords, tolerance=0.5)
++        assert result[1] == (4, 0)
++
++    def test_optimize_judges_rounded_deltas(self):
++        # Rounded deltas are all equal, so only one needs to be encoded.
++        coords = [(0, 0), (10, 0), (10, 10), (0, 10)]
++        deltas = [(1.2, 0), (0.8, 0), (1.4, 0), (0.6, 0)]
++        result = iup.iup_contour_optimize(deltas, coords)
++        assert result == [(1.2, 0), None, None, None]
++
++    def test_optimize_keeps_given_values_and_round_trips(self):
++        coords = [(0.4, 0.2), (99.6, 0.3), (100.2, 50.5), (0.1, 49.7)]
++        deltas = [(1.6, 2.4), (10.4, -3.5), (7.5, 8.2), (-2.6, 0.4)]
++        result = iup.iup_contour_optimize(deltas, coords)
++        for d, r in zip(deltas, result):
++            assert r is None or r == d
++        rounded = iup._round_points(deltas)
++        explicit = [None if r is None else rd for r, rd in zip(result, rounded)]
++        assert iup.iup_contour(explicit, iup._round_points(coords)) == rounded
++
++    def test_optimize_rejects_mismatched_lengths(self):
++        with pytest.raises(ValueError):
++            iup.iup_contour_optimize([(0, 0), (1, 1)], [(0, 0)])
++
+ 
+ if __name__ == "__main__":
+     sys.exit(pytest.main(sys.argv))
