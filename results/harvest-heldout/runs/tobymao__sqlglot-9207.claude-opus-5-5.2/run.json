@@ -1,0 +1,7 @@
+{
+  "arm": "control",
+  "final": "accepted",
+  "model": "claude-opus-5-5",
+  "seed": "2",
+  "task": "tobymao__sqlglot-9207"
+}

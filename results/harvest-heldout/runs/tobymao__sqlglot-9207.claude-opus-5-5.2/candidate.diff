@@ -1,0 +1,32 @@
+diff --git a/sqlglot/parsers/sqlite.py b/sqlglot/parsers/sqlite.py
+index 7ce5673..e994e31 100644
+--- a/sqlglot/parsers/sqlite.py
++++ b/sqlglot/parsers/sqlite.py
+@@ -283,6 +283,27 @@ class SQLiteParser(parser.Parser):
+ 
+         return this
+ 
++    def _parse_limit(
++        self,
++        this: exp.Expr | None = None,
++        top: bool = False,
++        skip_limit_token: bool = False,
++    ) -> exp.Expr | None:
++        limit = super()._parse_limit(this=this, top=top, skip_limit_token=skip_limit_token)
++
++        # A negative LIMIT means "no upper bound" in SQLite, which is equivalent to LIMIT ALL
++        # https://www.sqlite.org/lang_select.html#limitoffset
++        if isinstance(limit, exp.Limit) and not top:
++            expression = limit.expression
++            if (
++                isinstance(expression, exp.Expr)
++                and expression.is_number
++                and expression.to_py() < 0
++            ):
++                limit.set("expression", exp.var("ALL"))
++
++        return limit
++
+     def _parse_unique(self) -> exp.UniqueColumnConstraint:
+         # Do not consume more tokens if UNIQUE is used as a standalone constraint, e.g:
+         # CREATE TABLE foo (bar TEXT UNIQUE REFERENCES baz ...)
