@@ -154,9 +154,12 @@ def write_task(task, c, out):
 
 
 def validate(c, out):
-    tmpl = template(c["repo"])
-    if tmpl is None:
-        return {"kept": False, "why": "no pilot task from this repository to take install steps from"}
+    tmpl = template(c["repo"]) or {
+        "id": "default",
+        "python": "3.11",
+        "install": ["pip install -q -e .", "pip install -q pytest"],
+        "license": None,
+    }
     task = as_task(c, tmpl)
     if not task["test_files"]:
         return {"kept": False, "why": "the test changes add no test file"}
