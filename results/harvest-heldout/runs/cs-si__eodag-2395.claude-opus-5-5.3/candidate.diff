@@ -1,0 +1,20 @@
+diff --git a/eodag/plugins/download/base.py b/eodag/plugins/download/base.py
+index fcd47da..cc8fa05 100644
+--- a/eodag/plugins/download/base.py
++++ b/eodag/plugins/download/base.py
+@@ -332,7 +332,14 @@ class Download(PluginTopic):
+         archive_depth = getattr(self.config, "archive_depth", 1)
+         count = 1
+         while count < archive_depth:
+-            product_path = os.path.join(product_path, os.listdir(product_path)[0])
++            if not os.path.isdir(product_path):
++                break
++            entries = os.listdir(product_path)
++            # only go deeper if there is a single entry at this level, otherwise
++            # keep the whole level to avoid losing extracted files
++            if len(entries) != 1:
++                break
++            product_path = os.path.join(product_path, entries[0])
+             count += 1
+         return product_path
+ 
