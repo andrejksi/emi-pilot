@@ -1,0 +1,141 @@
+diff --git a/prometheus_client/metrics_core.py b/prometheus_client/metrics_core.py
+index 27d1712..29c0ace 100644
+--- a/prometheus_client/metrics_core.py
++++ b/prometheus_client/metrics_core.py
+@@ -9,6 +9,11 @@ METRIC_TYPES = (
+ )
+ 
+ 
++def _label_values(labels: Sequence[object]) -> Tuple[str, ...]:
++    """Coerce label values to strings, as the instrumented metrics do."""
++    return tuple(str(label) for label in labels)
++
++
+ class Metric:
+     """A single metric family and its samples.
+ 
+@@ -92,6 +97,7 @@ class UnknownMetricFamily(Metric):
+         labels: A list of label values
+         value: The value of the metric.
+         """
++        labels = _label_values(labels)
+         self.samples.append(Sample(self.name, dict(zip(self._labelnames, labels)), value, timestamp))
+ 
+ 
+@@ -140,6 +146,7 @@ class CounterMetricFamily(Metric):
+           value: The value of the metric
+           created: Optional unix timestamp the child was created at.
+         """
++        labels = _label_values(labels)
+         self.samples.append(Sample(self.name + '_total', dict(zip(self._labelnames, labels)), value, timestamp, exemplar))
+         if created is not None:
+             self.samples.append(Sample(self.name + '_created', dict(zip(self._labelnames, labels)), created, timestamp))
+@@ -174,6 +181,7 @@ class GaugeMetricFamily(Metric):
+           labels: A list of label values
+           value: A float
+         """
++        labels = _label_values(labels)
+         self.samples.append(Sample(self.name, dict(zip(self._labelnames, labels)), value, timestamp))
+ 
+ 
+@@ -217,6 +225,7 @@ class SummaryMetricFamily(Metric):
+           count_value: The count value of the metric.
+           sum_value: The sum value of the metric.
+         """
++        labels = _label_values(labels)
+         self.samples.append(Sample(self.name + '_count', dict(zip(self._labelnames, labels)), count_value, timestamp))
+         self.samples.append(Sample(self.name + '_sum', dict(zip(self._labelnames, labels)), sum_value, timestamp))
+ 
+@@ -261,6 +270,7 @@ class HistogramMetricFamily(Metric):
+               The buckets must be sorted, and +Inf present.
+           sum_value: The sum value of the metric.
+         """
++        labels = _label_values(labels)
+         for b in buckets:
+             bucket, value = b[:2]
+             exemplar = None
+@@ -319,6 +329,7 @@ class GaugeHistogramMetricFamily(Metric):
+               The buckets must be sorted, and +Inf present.
+           gsum_value: The sum value of the metric.
+         """
++        labels = _label_values(labels)
+         for bucket, value in buckets:
+             self.samples.append(Sample(
+                 self.name + '_bucket',
+@@ -364,9 +375,10 @@ class InfoMetricFamily(Metric):
+           labels: A list of label values
+           value: A dict of labels
+         """
++        labels = _label_values(labels)
+         self.samples.append(Sample(
+             self.name + '_info',
+-            dict(dict(zip(self._labelnames, labels)), **value),
++            dict(dict(zip(self._labelnames, labels)), **{k: str(v) for k, v in value.items()}),
+             1,
+             timestamp,
+         ))
+@@ -404,7 +416,7 @@ class StateSetMetricFamily(Metric):
+           labels: A list of label values
+           value: A dict of string state names to booleans
+         """
+-        labels = tuple(labels)
++        labels = _label_values(labels)
+         for state, enabled in sorted(value.items()):
+             v = (1 if enabled else 0)
+             self.samples.append(Sample(
+diff --git a/tests/test_core.py b/tests/test_core.py
+index b883fbc..d35b913 100644
+--- a/tests/test_core.py
++++ b/tests/test_core.py
+@@ -14,6 +14,7 @@ from prometheus_client.core import (
+     StateSetMetricFamily, Summary, SummaryMetricFamily, UntypedMetricFamily,
+ )
+ from prometheus_client.decorator import getargspec
++from prometheus_client.exposition import generate_latest
+ from prometheus_client.metrics import _get_use_created
+ from prometheus_client.validation import (
+     disable_legacy_validation, enable_legacy_validation,
+@@ -984,6 +985,43 @@ class TestMetricFamilies(unittest.TestCase):
+         self.assertEqual(0, self.registry.get_sample_value('s', {'foo': 'bar', 's': 'a'}))
+         self.assertEqual(0, self.registry.get_sample_value('s', {'foo': 'bar', 's': 'b'}))
+ 
++    def test_non_string_label_values_coerced_to_string(self):
++        families = [
++            UntypedMetricFamily('u', 'help', labels=['a']),
++            CounterMetricFamily('c', 'help', labels=['a']),
++            GaugeMetricFamily('g', 'help', labels=['a']),
++            SummaryMetricFamily('s', 'help', labels=['a']),
++            HistogramMetricFamily('h', 'help', labels=['a']),
++            GaugeHistogramMetricFamily('gh', 'help', labels=['a']),
++            InfoMetricFamily('i', 'help', labels=['a']),
++            StateSetMetricFamily('ss', 'help', labels=['a']),
++        ]
++        families[0].add_metric([1], 2)
++        families[1].add_metric([1], 2, created=3)
++        families[2].add_metric([1], 2)
++        families[3].add_metric([1], count_value=1, sum_value=2)
++        families[4].add_metric([1], buckets=[('0', 1), ('+Inf', 2)], sum_value=3)
++        families[5].add_metric([1], buckets=[('0', 1), ('+Inf', 2)], gsum_value=3)
++        families[6].add_metric([1], {'c': 2})
++        families[7].add_metric([1], {'x': True})
++        for family in families:
++            self.custom_collector(family)
++            for sample in family.samples:
++                for value in sample.labels.values():
++                    self.assertIsInstance(value, str)
++
++        self.assertEqual(2, self.registry.get_sample_value('u', {'a': '1'}))
++        self.assertEqual(2, self.registry.get_sample_value('c_total', {'a': '1'}))
++        self.assertEqual(3, self.registry.get_sample_value('c_created', {'a': '1'}))
++        self.assertEqual(2, self.registry.get_sample_value('g', {'a': '1'}))
++        self.assertEqual(2, self.registry.get_sample_value('h_bucket', {'a': '1', 'le': '+Inf'}))
++        self.assertEqual(1, self.registry.get_sample_value('i_info', {'a': '1', 'c': '2'}))
++        self.assertEqual(1, self.registry.get_sample_value('ss', {'a': '1', 'ss': 'x'}))
++
++        output = generate_latest(self.registry).decode('utf-8')
++        self.assertIn('g{a="1"} 2.0', output)
++        self.assertIn('c_total{a="1"} 2.0', output)
++
+     def test_bad_constructors(self):
+         self.assertRaises(ValueError, UntypedMetricFamily, 'u', 'help', value=1, labels=[])
+         self.assertRaises(ValueError, UntypedMetricFamily, 'u', 'help', value=1, labels=['a'])
