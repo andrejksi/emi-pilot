@@ -1,0 +1,168 @@
+# Double-replay gate evaluation (see study/gate.md).
+#
+# Replays every saved candidate twice, sandboxed with bubblewrap, on the tagged
+# EMI binary across all 8 conditions of study/gate.md, writes raw records to
+# replays.jsonl, and runs study/score.py twice independently to verify identical
+# deterministic output.
+name: gate-replay
+
+on:
+  workflow_dispatch:
+    inputs:
+      tasks:
+        description: "tasks: @tuning, @heldout, or space-separated task ids"
+        default: "@tuning"
+      attempts:
+        description: "space-separated attempt directories containing run.json + oracle.json"
+        default: "results/harvest-tuning/runs results/run-09/runs"
+      laws_root:
+        description: "directory containing <task>/{first,checked,secondary}"
+        default: "results/tuning-laws"
+      runs:
+        description: "number of sandboxed replays per (candidate, condition)"
+        default: "2"
+      include_gold:
+        description: "include each task's gold-with-tests.patch as a known-right candidate"
+        type: boolean
+        default: true
+      emi_ref:
+        description: "andrejksi/EMI git tag, branch, or commit to build"
+        default: "study-gate-v1"
+
+permissions:
+  contents: read
+
+jobs:
+  build-emi:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: andrejksi/EMI
+          ref: ${{ inputs.emi_ref }}
+          persist-credentials: false
+      - name: Build emi
+        run: cargo build --release -p emi-cli --bin emi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: emi-bin
+          path: target/release/emi
+          if-no-files-found: error
+
+  plan:
+    runs-on: ubuntu-24.04
+    outputs:
+      tasks: ${{ steps.plan.outputs.tasks }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - id: plan
+        env:
+          TASKS: ${{ inputs.tasks }}
+        run: |
+          # shellcheck disable=SC2086 # TASKS is a list of words
+          tasks="$(python3 harness/plan.py chat --arms cooperative --tasks $TASKS --task-list)"
+          echo "tasks=$tasks" | tee -a "$GITHUB_OUTPUT"
+
+  replay:
+    needs: [plan, build-emi]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      max-parallel: 10
+      matrix:
+        task: ${{ fromJSON(needs.plan.outputs.tasks) }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Sandbox
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq bubblewrap
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+      - uses: actions/download-artifact@v4
+        with:
+          name: emi-bin
+          path: ${{ runner.temp }}/tools/bin
+      - name: EMI and uv
+        run: |
+          chmod +x "$RUNNER_TEMP/tools/bin/emi"
+          python3 -m venv "$RUNNER_TEMP/uv-venv"
+          "$RUNNER_TEMP/uv-venv/bin/pip" install -q uv
+          echo "$RUNNER_TEMP/tools/bin" >>"$GITHUB_PATH"
+          echo "$RUNNER_TEMP/uv-venv/bin" >>"$GITHUB_PATH"
+      - name: Double-replay all conditions
+        env:
+          EMI: ${{ runner.temp }}/tools/bin/emi
+          WORK: ${{ runner.temp }}/work
+          TASK: ${{ matrix.task }}
+          ATTEMPTS: ${{ inputs.attempts }}
+          LAWS_ROOT: ${{ inputs.laws_root }}
+          RUNS: ${{ inputs.runs }}
+          INCLUDE_GOLD: ${{ inputs.include_gold }}
+        run: |
+          mkdir -p "$WORK" out
+          gold_flag=""
+          if [ "$INCLUDE_GOLD" != "true" ]; then
+            gold_flag="--no-gold"
+          fi
+          # shellcheck disable=SC2086 # ATTEMPTS is space-separated dirs
+          python3 study/replay_gate.py \
+            --task "$TASK" \
+            --attempts $ATTEMPTS \
+            --laws-root "$LAWS_ROOT" \
+            --runs "$RUNS" \
+            $gold_flag \
+            --emi "$EMI" \
+            --out "out/${TASK}.replays.jsonl"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: gate-replay-${{ matrix.task }}
+          path: out/
+          if-no-files-found: error
+
+  score:
+    needs: replay
+    if: always() && needs.replay.result != 'skipped'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: gate-replay-*
+          path: raw/
+          merge-multiple: true
+      - name: Merge raw replay records
+        run: |
+          mkdir -p out
+          LC_ALL=C cat raw/*.replays.jsonl | sort > out/replays.jsonl
+          wc -l out/replays.jsonl
+      - name: Score gate (primary pass)
+        run: |
+          python3 study/score.py \
+            --replays out/replays.jsonl \
+            --json out/score-1.json \
+            --md out/score-1.md
+      - name: Score gate (independent verification pass)
+        run: |
+          python3 study/score.py \
+            --replays out/replays.jsonl \
+            --json out/score-2.json \
+            --md out/score-2.md
+          diff -u out/score-1.json out/score-2.json
+          diff -u out/score-1.md out/score-2.md
+          cp out/score-1.json out/score.json
+          cp out/score-1.md out/score.md
+          cat out/score.md >>"$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gate-replay-results
+          path: |
+            out/replays.jsonl
+            out/score.json
+            out/score.md

@@ -1,0 +1,40 @@
+{
+  "base_commit": "1971972753bf258272e605c653cfe67bff90e8a6",
+  "created_at": "2026-11-18T17:39:26Z",
+  "install": [
+    "pip install -q -e .",
+    "pip install -q pytest==8 flake8 restructuredtext_lint Pygments"
+  ],
+  "install_from": "matthewwithanm__python-markdownify-230",
+  "issue": 286,
+  "kind": "git",
+  "license": "MIT",
+  "oracle": {
+    "fail_to_pass": [
+      "tests/test_args.py::test_strip_pre_long_indentation"
+    ],
+    "pass_to_pass": [
+      "tests/test_args.py::test_convert",
+      "tests/test_args.py::test_do_not_convert",
+      "tests/test_args.py::test_do_not_strip",
+      "tests/test_args.py::test_strip",
+      "tests/test_args.py::test_strip_document",
+      "tests/test_args.py::test_strip_pre",
+      "tests/test_args.py::test_strip_pre_whitespace_semantics[",
+      "tests/test_args.py::test_strip_pre_whitespace_semantics[-]",
+      "tests/test_args.py::test_strip_pre_whitespace_semantics[\\tx\\t-\\tx\\t]",
+      "tests/test_args.py::test_strip_pre_whitespace_semantics[x",
+      "tests/test_args.py::test_strip_pre_whitespace_semantics[x\\r-x\\r]",
+      "tests/test_args.py::test_strip_pre_whitespace_semantics[x\\x0b-x\\x0b]",
+      "tests/test_args.py::test_strip_pre_whitespace_semantics[x\\xa0-x\\xa0]"
+    ]
+  },
+  "prompt": "Trailing whitespace strip in <pre> is quadratic on a long whitespace run\n\n`strip_pre()` takes quadratic time on a `<pre>` block whose trailing whitespace run is a run of spaces not ended by a newline. Measured through `markdownify()` on tag `1.2.3`, both trees in one isolated run:\n\n| HTML | before | after |\n|---|---|---|\n| 16,000 B | 0.6881 s | 0.0003 s |\n| 32,000 B | 2.6570 s | 0.0004 s |\n| 65,536 B | 9.1117 s | 0.0007 s |\n| 131,072 B | 35.5100 s | 0.0014 s |\n| 16,000 B of ordinary words | 0.0011 s | 0.0009 s |\n\nEach doubling of the block quadruples the time, so the cost belongs to the shape rather than the size - the last row is a document of the same size that converts in a millisecond. The input is an HTML document, so nothing bounds it, and this is the **default** path: `strip_pre` defaults to `STRIP`, while `STRIP_ONE` uses the separate `re_pre_rstrip1 = r'\\n *$'` and is unaffected.\n\n**Cause.** `re_pre_rstrip = re.compile(r'[ \\n]*$')` applied with `.sub()` at `__init__.py:78`. `.sub` restarts at every position in the string, and at each one the unbounded `[ \\n]*` run expands and then backtracks looking for the `$` that the following character denies.\n\nIt is worth saying why the costly shape is **spaces** and not newlines, because it is not obvious from the pattern alone: `re_pre_lstrip = r'^[ \\n]*\\n'` runs on the line before, so a leading newline run is consumed there and `re_pre_rstrip` is handed a one-character string. With no newline in the block, `lstrip` does not fire and `rstrip` receives the whole thing. On the same 65,536-byte input a newline run costs 0.0001 s and a space run 9.3704 s.\n\n**Fix.** The docstring already describes a strip, so use one:\n\n```python\n-    text = re_pre_rstrip.sub('', text)\n+    text = text.rstrip(' \\n')\n```\n\n**Verification.**\n\n- Test suite on both trees at tag `1.2.3`: **83 passed**, unchanged, with each run asserting which `markdownify/__init__.py` was loaded and whether it still contains the regex call.\n- Differential: **0 differences** from current behaviour across all **29,524** strings of length 0 to 9 over `{space, newline, x}` - the whole alphabet the two patterns act on.\n- A new test converts a 64 KB `<pre>` block in under 0.5 s and checks seven `<pre>` spellings (blank lines, leading and trailing spaces, indentation, empty, whitespace-only). On `1.2.3` the timing test fails and the behaviour test passes.\n- Shapes aimed at the fix rather than the original (pure space run with no terminator, a leading `x` then a run, many short runs split by `x`) are all flat: worst 0.0003 s at 65,536 B.\n\n`re_pre_rstrip` is now unused. I have deliberately left the definition in place to keep the diff to one line, since it is a module-level name that something downstream may import; say the word and I will remove it.\n\nI am happy to open a pull request with the patch if that is easier.\n\nFound with AI assistance (Claude) and verified by hand.\n\n<details><summary>Patch: full patch</summary>\n\n```diff\n--- a/markdownify/__init__.py\n+++ b/markdownify/__init__.py\n@@ -75,7 +75,7 @@\n def strip_pre(text):\n     \"\"\"Strip all leading and trailing newlines from a <pre> string.\"\"\"\n     text = re_pre_lstrip.sub('', text)\n-    text = re_pre_rstrip.sub('', text)\n+    text = text.rstrip(' \\n')\n     return text\n```\n\n</details>",
+  "pull": 287,
+  "python": "3.10",
+  "repo": "matthewwithanm/python-markdownify",
+  "source": "github-pr",
+  "test_files": [
+    "tests/test_args.py"
+  ]
+}
