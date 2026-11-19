@@ -1,0 +1,1 @@
+sqlglot/__init__.py::parse_one: The issue is about the SQL returned by direct SQLite-to-DuckDB transpilation and does not add a requirement for the separate parse_one API.

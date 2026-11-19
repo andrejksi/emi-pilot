@@ -1,0 +1,19 @@
+Rules check: stop. Not checked: none.
+
+.emi/laws/test_section_comment_prefix.py
+  Example, new behaviour: An empty comment prefix leaves both configured region marker lines unchanged around the import (A1).
+      assert [ line for line in code( "import sys\n", comment_prefix="", import_heading_stdlib="#region Standard Library", import_footer_stdlib="#endregion Standard Library", ).splitlines() if line ] == ["#region Standard Library", "import sys", "#endregion Standard Library"]
+      -> fails on the current code: AssertionError: assert ['# #region S...dard Library'] == ['#region Sta...dard Library']
+At index 0 diff: '# #region Standard Library' != '#region Standard Library'
+Use -v to get more diff
+
+Answers (proposed: approving the rules agrees to them):
+  - A1 (written by the person): Section headings and footers should honor comment_prefix; with an empty prefix, the configured #region Standard Library and #endregion Standard Library markers surround import sys without an extra comment marker, so region folding can recognize them.
+
+Also proposed:
+  - .emi/laws/answers.txt (not a rule file)
+
+Noted (blocks nothing):
+  - .emi/laws/test_section_comment_prefix.py: old tests import what its new rules are about: tests/unit/test_settings.py, tests/unit/test_wrap.py. If the task changes how they behave, the person lists them as expected changes
+
+Ready for a person: show them the rules above; `emi rules approve` approves and commits them.

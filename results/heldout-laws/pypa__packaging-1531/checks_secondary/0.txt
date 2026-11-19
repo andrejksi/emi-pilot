@@ -1,0 +1,51 @@
+Rules check: repair. Not checked: none.
+
+.emi/laws/test_arbitrary_equality_requirement_spacing.py
+  Example, guard: The direct SpecifierSet API continues to accept ===0,>= 0 as two specifiers (A6).
+      assert str(SpecifierSet("===0,>= 0")) == "===0,>=0"
+      -> holds on the current code
+  Example, new behaviour: The requirement x (===0,>= 0) parses as two version specifiers (A4).
+      assert Requirement("x (===0,>= 0)").specifier == SpecifierSet("===0,>=0")
+      -> fails on the current code: packaging.requirements.InvalidRequirement: Expected matching RIGHT_PARENTHESIS for LEFT_PARENTHESIS, after version specifier
+x (===0,>= 0)
+~~~~~~~~~^
+  Example, new behaviour: The requirement x===0, >=0 parses as two version specifiers (A2).
+      assert Requirement("x===0, >=0").specifier == SpecifierSet("===0,>=0")
+      -> fails on the current code: packaging.requirements.InvalidRequirement: Expected comma (within version specifier), semicolon (after version specifier) or end
+x===0, >=0
+~~~~~~^
+  Example, new behaviour: The requirement x===0,>= 0 parses as two version specifiers (A1).
+      assert Requirement("x===0,>= 0").specifier == SpecifierSet("===0,>=0")
+      -> fails on the current code: packaging.requirements.InvalidRequirement: Expected comma (within version specifier), semicolon (after version specifier) or end
+x===0,>= 0
+~~~~~~~~^
+  Example, new behaviour: The requirement x===0,!= 1.0 parses as two version specifiers (A3).
+      assert Requirement("x===0,!= 1.0").specifier == SpecifierSet("===0,!=1.0")
+      -> fails on the current code: packaging.requirements.InvalidRequirement: Expected comma (within version specifier), semicolon (after version specifier) or end
+x===0,!= 1.0
+~~~~~~~~^
+  Example, guard: The unspaced requirement x===0,>=0 continues to parse as two version specifiers (A5).
+      assert Requirement("x===0,>=0").specifier == SpecifierSet("===0,>=0")
+      -> holds on the current code
+  Example, guard: The standalone arbitrary-equality specifier ===a,b keeps the comma in its version (A7).
+      assert Specifier("===a,b").version == "a,b"
+      -> holds on the current code
+
+Answers (proposed: approving the rules agrees to them):
+  - A1 (written by the person): Requirement("x===0,>= 0") is valid and has the two specifiers ===0 and >=0.
+  - A2 (written by the person): Requirement("x===0, >=0") is valid and has the two specifiers ===0 and >=0.
+  - A3 (written by the person): Requirement("x===0,!= 1.0") is valid and has the two specifiers ===0 and !=1.0.
+  - A4 (written by the person): Requirement("x (===0,>= 0)") is valid and has the two specifiers ===0 and >=0.
+  - A5 (written by the person): Requirement("x===0,>=0") already parses and must continue to parse as two specifiers.
+  - A6 (written by the person): SpecifierSet("===0,>= 0") already parses the two specifiers directly.
+  - A7 (written by the person): The standalone Specifier("===a,b") API intentionally allows the comma within the arbitrary version a,b.
+
+Also proposed:
+  - .emi/laws/answers.txt (not a rule file)
+
+Send back (fix these, then run `emi rules check` again):
+  - .emi/laws/test_arbitrary_equality_requirement_spacing.py still passes when 5 stand-in(s) replace 4 function(s): src/packaging/specifiers.py::_get_spec_version (1), src/packaging/specifiers.py::_require_spec_version (1), src/packaging/specifiers.py::__hash__ (1), src/packaging/specifiers.py::__eq__ (2) (`--format json` lists each): trivial code satisfies every rule in it, or every guard in it, so it pins nothing down. Add a case that such code fails.
+
+Noted (blocks nothing):
+  - .emi/laws/test_arbitrary_equality_requirement_spacing.py: 19 function(s) the rules run outside their area were given no stand-ins (`--scope all` tries them; `laws.area` widens the area): src/packaging/_parser.py (8), src/packaging/_ranges.py (1), src/packaging/_tokenizer.py (6), src/packaging/utils.py (1), src/packaging/version.py (3)
+  - .emi/laws/test_arbitrary_equality_requirement_spacing.py: old tests import what its new rules are about: tests/property/strategies.py, tests/property/test_ranges_overlapping_literals.py, tests/property/test_ranges_set_algebra.py, tests/property/test_ranges_set_relations.py, tests/property/test_ranges_to_specifier_set.py and 11 more. If the task changes how they behave, the person lists them as expected changes

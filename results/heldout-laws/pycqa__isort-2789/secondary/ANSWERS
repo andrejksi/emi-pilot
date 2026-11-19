@@ -1,0 +1,1 @@
+A1 written: Section headings and footers should honor comment_prefix; with an empty prefix, the configured #region Standard Library and #endregion Standard Library markers surround import sys without an extra comment marker, so region folding can recognize them.

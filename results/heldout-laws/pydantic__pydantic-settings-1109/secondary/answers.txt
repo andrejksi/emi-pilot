@@ -1,0 +1,2 @@
+A1 written: With the APP_ prefix and __ delimiter, APP_B__X='[{"k": "v"}]' must JSON-decode into an entry x with value [{"k": "v"}] in b: dict[str, list[dict[str, str]]].
+A2 written: With the same prefix and delimiter, APP_A__X='["v"]' already JSON-decodes into an entry x with value ["v"] in a: dict[str, list[str]].

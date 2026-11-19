@@ -1,0 +1,25 @@
+Rules check: stop. Not checked: none.
+
+.emi/laws/test_nested_dict_env_decoding.py
+  Example, new behaviour: APP_B__X JSON-decodes a list of dictionaries into the outer dictionary's x entry (A1).
+      assert Settings().b == {"x": [{"k": "v"}]}
+      -> fails on the current code: pydantic_core._pydantic_core.ValidationError: 1 validation error for Settings
+b.x
+Input should be a valid list [type=list_type, input_value='[{"k": "v"}]', input_type=str]
+For further information visit https://errors.pydantic.dev/2.14/v/lis …
+  Example, guard: APP_A__X continues to JSON-decode a list of strings into the dictionary's x entry (A2).
+      assert Settings().a == {"x": ["v"]}
+      -> holds on the current code
+
+Answers (proposed: approving the rules agrees to them):
+  - A1 (written by the person): With the APP_ prefix and __ delimiter, APP_B__X='[{"k": "v"}]' must JSON-decode into an entry x with value [{"k": "v"}] in b: dict[str, list[dict[str, str]]].
+  - A2 (written by the person): With the same prefix and delimiter, APP_A__X='["v"]' already JSON-decodes into an entry x with value ["v"] in a: dict[str, list[str]].
+
+Also proposed:
+  - .emi/laws/answers.txt (not a rule file)
+
+Noted (blocks nothing):
+  - .emi/laws/test_nested_dict_env_decoding.py: 52 function(s) the rules run outside their area were given no stand-ins (`--scope all` tries them; `laws.area` widens the area): pydantic_settings/main.py (7), pydantic_settings/sources/base.py (17), pydantic_settings/sources/providers/dotenv.py (4), pydantic_settings/sources/providers/env.py (8), pydantic_settings/sources/providers/secrets.py (2), pydantic_settings/sources/utils.py (12), pydantic_settings/utils.py (2)
+  - .emi/laws/test_nested_dict_env_decoding.py: old tests import what its new rules are about: tests/test_precedence_and_merging.py, tests/test_settings.py, tests/test_source_aws_secrets_manager.py, tests/test_source_aws_systems_manager.py, tests/test_source_azure_key_vault.py and 7 more. If the task changes how they behave, the person lists them as expected changes
+
+Ready for a person: show them the rules above; `emi rules approve` approves and commits them.

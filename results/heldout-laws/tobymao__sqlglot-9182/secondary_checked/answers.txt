@@ -1,0 +1,3 @@
+A1 written: After direct SQLite-to-DuckDB transpilation, SELECT LENGTH('a' || CHAR(0) || 'b') must count text only up to its first NUL and return 1.
+A2 written: The stop-at-NUL rule applies to text, and counts all characters when the text has no NUL.
+A3 written: The text-specific stop-at-NUL rule does not truncate BLOB values, whose length counts all bytes.
