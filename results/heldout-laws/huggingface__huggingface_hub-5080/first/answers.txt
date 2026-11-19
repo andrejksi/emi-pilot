@@ -1,0 +1,5 @@
+A1 written: kind is feature: HfFileSystem.cp_file must support bucket paths (hf://buckets/...) instead of raising NotImplementedError("Copy from/to buckets is not available yet"), and fsspec's mv/rename, which go through cp_file, must then work on buckets.
+A2 written: example: torch.distributed.checkpoint writes "ckpt/.metadata.tmp" in a bucket then renames it to "ckpt/.metadata"; after the rename the bucket must have ".metadata" (with the written content) and the temp file must be gone.
+A3 written: example: datasets writes temp parquet shards to hf://buckets/... and renames them to their final names; the rename must succeed and leave no temp shards behind.
+A4 written: the same-bucket copy is expected to be a copy of the same file (same content), e.g. a server-side copy by xet hash; source file stays in place after cp_file.
+A5 written: anything else (cross-bucket or bucket<->repo copies, directories, error messages, repo copy behaviour) is not stated in the issue: doesn't matter.
