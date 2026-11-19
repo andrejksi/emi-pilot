@@ -1,0 +1,24 @@
+diff --git a/Lib/fontTools/cffLib/__init__.py b/Lib/fontTools/cffLib/__init__.py
+index a1e1ece..0ee5c21 100644
+--- a/Lib/fontTools/cffLib/__init__.py
++++ b/Lib/fontTools/cffLib/__init__.py
+@@ -2659,6 +2659,19 @@ class TopDict(BaseDict):
+             ]
+         BaseDict.toXML(self, xmlWriter)
+ 
++    def fromXML(self, name, attrs, content):
++        BaseDict.fromXML(self, name, attrs, content)
++        # The VarStore element may be read after CharStrings (or vice versa):
++        # make sure the CharStrings always reference the font's VarStore.
++        if name == "VarStore":
++            charStrings = getattr(self, "CharStrings", None)
++            if charStrings is not None:
++                charStrings.varStore = self.VarStore
++        elif name == "CharStrings":
++            varStore = getattr(self, "VarStore", None)
++            if varStore is not None:
++                self.CharStrings.varStore = varStore
++
+     def decompileAllCharStrings(self):
+         # Make sure that all the Private Dicts have been instantiated.
+         for i, charString in enumerate(self.CharStrings.values()):
