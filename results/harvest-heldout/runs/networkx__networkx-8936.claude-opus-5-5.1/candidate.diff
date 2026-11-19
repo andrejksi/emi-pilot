@@ -1,0 +1,48 @@
+diff --git a/networkx/algorithms/flow/capacityscaling.py b/networkx/algorithms/flow/capacityscaling.py
+index d7e8d8a..1637edf 100644
+--- a/networkx/algorithms/flow/capacityscaling.py
++++ b/networkx/algorithms/flow/capacityscaling.py
+@@ -296,7 +296,10 @@ def capacity_scaling(
+     # Determine the maximum edge capacity.
+     wmax = max(chain([-inf], (e["capacity"] for u, v, e in R.edges(data=True))))
+     if wmax == -inf:
+-        # Residual network has no edges.
++        # Residual network has no edges, so no flow can be sent: the demands
++        # are satisfiable only if every node already has zero excess.
++        if any(R.nodes[u]["excess"] != 0 for u in R):
++            raise nx.NetworkXUnfeasible("No flow satisfying all demands.")
+         return flow_cost, _build_flow_dict(G, R, capacity, weight)
+ 
+     R_nodes = R.nodes
+diff --git a/networkx/algorithms/flow/tests/test_mincost.py b/networkx/algorithms/flow/tests/test_mincost.py
+index edc6262..7a572ed 100644
+--- a/networkx/algorithms/flow/tests/test_mincost.py
++++ b/networkx/algorithms/flow/tests/test_mincost.py
+@@ -460,6 +460,27 @@ class TestMinCostFlow:
+         pytest.raises(nx.NetworkXUnfeasible, nx.network_simplex, G)
+         # pytest.raises(nx.NetworkXUnfeasible, nx.capacity_scaling, G)
+ 
++    def test_unfeasible_without_residual_edges(self):
++        # Only a zero-capacity edge: no flow can be sent to meet the demands.
++        G = nx.DiGraph()
++        G.add_node(0, demand=1)
++        G.add_node(1, demand=-1)
++        G.add_edge(1, 0, capacity=0, weight=1)
++        pytest.raises(nx.NetworkXUnfeasible, nx.network_simplex, G)
++        pytest.raises(nx.NetworkXUnfeasible, nx.capacity_scaling, G)
++        pytest.raises(nx.NetworkXUnfeasible, nx.min_cost_flow, G)
++        # No edges at all.
++        G = nx.DiGraph()
++        G.add_node(0, demand=1)
++        G.add_node(1, demand=-1)
++        pytest.raises(nx.NetworkXUnfeasible, nx.capacity_scaling, G)
++        # Zero demands with no residual edges are still feasible.
++        G = nx.DiGraph()
++        G.add_node(0, demand=0)
++        G.add_node(1)
++        G.add_edge(1, 0, capacity=0, weight=1)
++        assert nx.capacity_scaling(G) == (0, {0: {}, 1: {0: 0}})
++
+     def test_large(self):
+         fname = (
+             importlib.resources.files("networkx.algorithms.flow.tests")
