@@ -29,7 +29,7 @@ To preserve held-out scientific validity per `study/gate.md`:
 | Double-replay runner + workflow | Ready & verified (0 `incomplete`, 100% `ceiling` catch / 0% false-block) | `study/replay_gate.py`, `.github/workflows/gate-replay.yml` |
 | Deterministic scorer | Ready & verified byte-identical across 3 independent passes | `study/score.py` |
 | Blind candidate helper | Ready | `study/save_candidate.py` |
-| Held-out task list | 12 tasks staged (8 verified sound in `batches/heldout.txt` + 4 undergoing soundness replay); target is 30 | `batches/heldout.txt` |
+| Held-out task list | 12 verified sound tasks in `batches/heldout.txt` (target is 30) | `batches/heldout.txt` |
 
 ---
 

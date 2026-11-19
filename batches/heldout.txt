@@ -5,4 +5,8 @@ cs-si__eodag-2441
 huggingface__huggingface_hub-5080
 huggingface__huggingface_hub-5287
 matthewwithanm__python-markdownify-287
+pycqa__isort-2747
+pycqa__isort-2789
+pydantic__pydantic-settings-1109
+pypa__packaging-1531
 tornadoweb__tornado-3880
