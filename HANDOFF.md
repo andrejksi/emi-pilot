@@ -50,7 +50,7 @@ State at handoff:
 |---|---|---|
 | session | `session_01MWwBLBM3d3vRBYXky9ppz8` | `session_01MWwBLDQzKR67EFENMV5RFD` |
 | branch (emi-drafting) | `claude/round3-old` | `claude/round3-new` |
-| phase 1 | done 20:41, 12 tasks, 25 questions; openmdao and yt-dlp finished without questions | task 10 of 12 at 20:46, 42 questions so far; about 4–5 min a task |
+| phase 1 | done 20:41, 12 tasks, 25 questions; openmdao and yt-dlp finished without questions | task 10 of 12; 42 questions so far; about 4–5 min a task. Stopped 20:52–00:35 by the account's usage limit, resumed by itself |
 
 The new arm is slower because the new brief asks for more (ANSWERS record,
 varied inputs, guards in their own files, more questions). That is expected
