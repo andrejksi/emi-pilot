@@ -1,0 +1,63 @@
+{
+  "checked_files": [
+    "ANSWERS",
+    "answers.txt",
+    "cff2_ttx_glyph_variations_test.py"
+  ],
+  "model": "gpt-6.2-sol",
+  "passed": true,
+  "role": "secondary",
+  "rounds": [
+    {
+      "exit": 5,
+      "files": [
+        "ANSWERS",
+        "answers.txt",
+        "test_cff2_ttx_glyph_variations.py"
+      ],
+      "round": 0,
+      "seconds": 58.0
+    },
+    {
+      "exit": 5,
+      "files": [
+        "ANSWERS",
+        "answers.txt",
+        "test_cff2_ttx_glyph_variations.py"
+      ],
+      "round": 1,
+      "seconds": 32.2
+    },
+    {
+      "exit": 3,
+      "files": [
+        "ANSWERS",
+        "answers.txt",
+        "cff2_ttx_glyph_variations_test.py"
+      ],
+      "round": 2,
+      "seconds": 317.6
+    },
+    {
+      "exit": 3,
+      "files": [
+        "ANSWERS",
+        "answers.txt",
+        "cff2_ttx_glyph_variations_test.py"
+      ],
+      "round": 3,
+      "seconds": 60.3
+    },
+    {
+      "exit": 0,
+      "files": [
+        "ANSWERS",
+        "answers.txt",
+        "cff2_ttx_glyph_variations_test.py"
+      ],
+      "round": 4,
+      "seconds": 57.5
+    }
+  ],
+  "task": "fonttools__fonttools-4388"
+}

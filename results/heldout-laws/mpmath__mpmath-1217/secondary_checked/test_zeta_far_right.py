@@ -7,7 +7,7 @@ def test_zeta_far_right_imaginary_part():
         assert mp.almosteq(
             zeta(50 + 5j).imag,
             mp.mpf("2.82881957300551842714082e-16"),
-            rel_eps="2e-15",
+            rel_eps=mp.mpf("2e-15"),
             abs_eps=0,
         )
 

@@ -1,0 +1,1 @@
+A1 written: With edge_attr="label" and every edge labeled "e", the outward star 0→1 and 0→2 and the inward star 1→0 and 2→0 must have different Weisfeiler–Lehman graph hashes because the hash must distinguish successors from predecessors when using edge labels.

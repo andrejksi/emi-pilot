@@ -1,0 +1,3 @@
+eodag/config.py::__init__: The reported failure occurs after download and concerns archive extraction, so configuration object initialization is outside this fix.
+eodag/config.py::validate: The issue supplies a working download configuration and leaves configuration validation behavior unspecified.
+eodag/config.py::load_stac_provider_config: The report concerns a completed DEDL ZIP download and leaves STAC provider configuration loading unspecified.

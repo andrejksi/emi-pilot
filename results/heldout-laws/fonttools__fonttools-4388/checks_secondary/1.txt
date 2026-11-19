@@ -1,0 +1,15 @@
+Rules check: incomplete. Not checked: 2 (listed below).
+
+.emi/laws/test_cff2_ttx_glyph_variations.py
+
+Answers (proposed: approving the rules agrees to them):
+  - A1 (written by the person): Fix the CFF2 TTX import so that getGlyphSet(location={"wght": 1000}) draws period with bounds (30.0, 0, 220.0, 300.0).
+  - A2 (written by the person): From the binary OTF, period has bounds (60, 0, 110, 120) at the default location and (30.0, 0, 220.0, 300.0) at wght 1000.
+  - A3 (written by the person): From TTX, period already has bounds (60, 0, 110, 120) at the default location.
+
+Also proposed:
+  - .emi/laws/answers.txt (not a rule file)
+
+Not checked:
+  - .emi/laws/test_cff2_ttx_glyph_variations.py: listing the tests at the drafted rules exited 5
+  - .emi/laws/test_cff2_ttx_glyph_variations.py: the law files could not be listed together: listing the tests at the law files together exited 5

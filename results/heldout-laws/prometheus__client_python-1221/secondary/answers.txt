@@ -1,0 +1,3 @@
+A1 written: Integer label values passed to GaugeMetricFamily.add_metric() should be coerced to their string equivalents and export successfully.
+A2 written: Integer label values passed to CounterMetricFamily.add_metric() should be coerced to their string equivalents and export successfully.
+A3 written: Wrapping the label values in str() already allows the metric to export successfully.

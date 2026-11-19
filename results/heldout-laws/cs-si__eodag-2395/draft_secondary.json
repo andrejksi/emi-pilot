@@ -1,0 +1,46 @@
+{
+  "checked_files": [
+    "ANSWERS",
+    "NOT-THIS-FEATURE",
+    "answers.txt",
+    "test_hrseviri_extraction.py"
+  ],
+  "model": "gpt-6.2-sol",
+  "passed": true,
+  "role": "secondary",
+  "rounds": [
+    {
+      "exit": 3,
+      "files": [
+        "ANSWERS",
+        "answers.txt",
+        "test_hrseviri_extraction.py"
+      ],
+      "round": 0,
+      "seconds": 310.4
+    },
+    {
+      "exit": 5,
+      "files": [
+        "ANSWERS",
+        "NOT-THIS-FEATURE",
+        "answers.txt",
+        "test_hrseviri_extraction.py"
+      ],
+      "round": 1,
+      "seconds": 469.4
+    },
+    {
+      "exit": 0,
+      "files": [
+        "ANSWERS",
+        "NOT-THIS-FEATURE",
+        "answers.txt",
+        "test_hrseviri_extraction.py"
+      ],
+      "round": 2,
+      "seconds": 105.9
+    }
+  ],
+  "task": "cs-si__eodag-2395"
+}

@@ -1,0 +1,33 @@
+Rules check: stop. Not checked: none.
+
+.emi/laws/cff2_ttx_glyph_variations_test.py
+  Example, guard: at the default location, getGlyphSet draws the same CFF2 outline after TTX import as from the binary OTF (A3).
+      assert glyph_outline(ttx, {}) == glyph_outline(otf, {})
+      -> holds on the current code
+  Example, guard: the binary OTF keeps the CFF2 glyph's serif contour and stem curve at both reported locations (A2).
+      assert outline[:len(expected_contour)] == expected_contour
+      assert ("curveTo", stem_curve) in outline
+      -> holds on the current code
+  Example, guard: the binary OTF keeps the CFF2 glyph's serif contour and stem curve at both reported locations (A2).
+      assert outline[:len(expected_contour)] == expected_contour
+      assert ("curveTo", stem_curve) in outline
+      -> holds on the current code
+  Example, new behaviour: at weight 1000, getGlyphSet draws the same CFF2 outline after TTX import as from the binary OTF (A1).
+      assert glyph_outline(ttx, {"wght": 1000}) == glyph_outline(otf, {"wght": 1000})
+      -> fails on the current code: AssertionError: assert [('moveTo', (..., 55),)), ...] == [('moveTo', (...74.0),)), ...]
+At index 0 diff: ('moveTo', ((175, 55),)) != ('moveTo', ((179.0, 74.0),))
+Use -v to get more diff
+
+Answers (proposed: approving the rules agrees to them):
+  - A1 (written by the person): Fix getGlyphSet so that a CFF2 font imported from TTX draws the same varied outline as the binary OTF at weight 1000. In the reported font, period should have bounds (30.0, 0, 220.0, 300.0).
+  - A2 (written by the person): The binary OTF already draws the correct outlines at the default location and at weight 1000.
+  - A3 (written by the person): The CFF2 font imported from TTX already draws the correct outline at the default location.
+
+Also proposed:
+  - .emi/laws/answers.txt (not a rule file)
+
+Noted (blocks nothing):
+  - .emi/laws/cff2_ttx_glyph_variations_test.py: 445 function(s) the rules run outside their area were given no stand-ins (`--scope all` tries them; `laws.area` widens the area): Lib/fontTools/agl.py (1), Lib/fontTools/cffLib/__init__.py (77), Lib/fontTools/designspaceLib/__init__.py (1), Lib/fontTools/misc/configTools.py (2), Lib/fontTools/misc/cython.py (1), Lib/fontTools/misc/encodingTools.py (1), Lib/fontTools/misc/fixedTools.py (5), Lib/fontTools/misc/loggingTools.py (2), Lib/fontTools/misc/psCharStrings.py (57), Lib/fontTools/misc/roundTools.py (2), Lib/fontTools/misc/sstruct.py (4), Lib/fontTools/misc/textTools.py (11), Lib/fontTools/misc/timeTools.py (3), Lib/fontTools/misc/visitor.py (5), Lib/fontTools/misc/xmlReader.py (6), Lib/fontTools/misc/xmlWriter.py (14), Lib/fontTools/ttLib/beyond64k.py (1), Lib/fontTools/ttLib/sfnt.py (10), Lib/fontTools/ttLib/tables/C_F_F_.py (3), Lib/fontTools/ttLib/tables/C_F_F__2.py (1), Lib/fontTools/ttLib/tables/DefaultTable.py (1), Lib/fontTools/ttLib/tables/O_S_2f_2.py (6), Lib/fontTools/ttLib/tables/_a_v_a_r.py (5), Lib/fontTools/ttLib/tables/_c_m_a_p.py (15), Lib/fontTools/ttLib/tables/_f_v_a_r.py (13), Lib/fontTools/ttLib/tables/_h_e_a_d.py (3), Lib/fontTools/ttLib/tables/_h_h_e_a.py (3), Lib/fontTools/ttLib/tables/_h_m_t_x.py (3), Lib/fontTools/ttLib/tables/_m_a_x_p.py (3), Lib/fontTools/ttLib/tables/_n_a_m_e.py (10), Lib/fontTools/ttLib/tables/_p_o_s_t.py (5), Lib/fontTools/ttLib/tables/otBase.py (42), Lib/fontTools/ttLib/tables/otConverters.py (51), Lib/fontTools/ttLib/tables/otTables.py (14), Lib/fontTools/ttLib/tables/ttProgram.py (1), Lib/fontTools/ttLib/ttFont.py (39), Lib/fontTools/ttLib/ttGlyphSet.py (7), Lib/fontTools/unicode.py (1), Lib/fontTools/varLib/merger.py (2), Lib/fontTools/varLib/models.py (4), Lib/fontTools/varLib/varStore.py (10)
+  - .emi/laws/cff2_ttx_glyph_variations_test.py: old tests import what its new rules are about: Tests/cffLib/cffLib_test.py, Tests/cffLib/specializer_test.py, Tests/cffLib/width_test.py, Tests/config_test.py, Tests/feaLib/builder_test.py and 79 more. If the task changes how they behave, the person lists them as expected changes
+
+Ready for a person: show them the rules above; `emi rules approve` approves and commits them.

@@ -1,0 +1,3 @@
+A1 written: Fix getGlyphSet so that a CFF2 font imported from TTX draws the same varied outline as the binary OTF at weight 1000. In the reported font, period should have bounds (30.0, 0, 220.0, 300.0).
+A2 written: The binary OTF already draws the correct outlines at the default location and at weight 1000.
+A3 written: The CFF2 font imported from TTX already draws the correct outline at the default location.
