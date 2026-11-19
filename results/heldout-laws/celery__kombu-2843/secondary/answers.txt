@@ -1,0 +1,2 @@
+A1 written: Fix the import regression so `import kombu.asynchronous` succeeds on a host with no OS timezone database and no installed `tzdata` package.
+A2 written: Remove the timer's need for a timezone database by using UTC for its Unix epoch and as the default timezone for `to_timestamp`.

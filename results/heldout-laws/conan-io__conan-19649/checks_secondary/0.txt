@@ -1,0 +1,22 @@
+Rules check: stop. Not checked: none.
+
+.emi/laws/test_build_activation_scripts.py
+  Example, new behaviour: one Windows install can generate both conanbuild.ps1 for PowerShell and conanbuild.bat for CMD (A1).
+      assert {"conanbuild.ps1", "conanbuild.bat"} <= generated_files
+      -> fails on the current code: AssertionError: assert {'conanbuild....nanbuild.ps1'} <= {'conanbuild....ild.ps1', ...}
+Extra items in the left set:
+'conanbuild.bat'
+
+Answers (proposed: approving the rules agrees to them):
+  - A1 (written by the person): It would be handy to have a way `tools.env.virtualenv:powershell` to create both `.ps1` and `.bat` files, with `.ps1` for activating the build environment in interactive PowerShell and `.bat` for activating it from CMD build scripts.
+
+Also proposed:
+  - .emi/laws/answers.txt (not a rule file)
+
+Old tests the person expects to change:
+  - test/functional/toolchains/env/test_virtualenv_powershell.py::test_virtualenv
+
+Noted (blocks nothing):
+  - .emi/laws/test_build_activation_scripts.py: old tests import what its new rules are about: test/functional/command/export_test.py, test/functional/command/profile_test.py, test/functional/command/report_test.py, test/functional/command/runner_test.py, test/functional/command/test_build.py and 453 more. If the task changes how they behave, the person lists them as expected changes
+
+Ready for a person: show them the rules above; `emi rules approve` approves and commits them.
