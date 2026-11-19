@@ -5,8 +5,11 @@ conan-io__conan-19649
 cs-si__eodag-2395
 cs-si__eodag-2435
 cs-si__eodag-2441
+fonttools__fonttools-4382
+fonttools__fonttools-4388
 huggingface__huggingface_hub-5080
 huggingface__huggingface_hub-5287
+huggingface__smolagents-2356
 joke2k__faker-2446
 matthewwithanm__python-markdownify-287
 mpmath__mpmath-1210
@@ -14,8 +17,12 @@ mpmath__mpmath-1212
 mpmath__mpmath-1217
 networkx__networkx-8936
 networkx__networkx-8946
+prometheus__client_python-1221
 pycqa__isort-2747
 pycqa__isort-2789
 pydantic__pydantic-settings-1109
 pypa__packaging-1531
+tobymao__sqlglot-9180
+tobymao__sqlglot-9182
+tobymao__sqlglot-9207
 tornadoweb__tornado-3880
