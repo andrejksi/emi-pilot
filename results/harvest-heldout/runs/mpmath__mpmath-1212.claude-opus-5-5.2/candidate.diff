@@ -1,0 +1,24 @@
+diff --git a/mpmath/functions/bessel.py b/mpmath/functions/bessel.py
+index f6c3da5..b1456b0 100644
+--- a/mpmath/functions/bessel.py
++++ b/mpmath/functions/bessel.py
+@@ -156,6 +156,19 @@ def bessely(ctx, n, z, derivative=0, *, eliminate=True, eliminate_all=False,
+     # XXX: use hypercomb
+     ctx.prec += 10
+     m, d = ctx.nint_distance(n)
++    if ctx._fixed_precision and d < -10:
++        # The reflection formula below suffers catastrophic cancellation
++        # (or division by zero) for (near-)integer orders, and the working
++        # precision cannot be raised in a fixed-precision context.
++        # Fall back to arbitrary-precision evaluation.
++        from .. import mp
++        with mp.workprec(53 + 20):
++            v = mp.bessely(n, z, derivative, eliminate=eliminate,
++                           eliminate_all=eliminate_all,
++                           force_series=force_series, maxterms=maxterms,
++                           zeroprec=zeroprec, infprec=infprec,
++                           verbose=verbose)
++        return ctx.convert(v)
+     if d < -ctx.prec:
+         h = +ctx.eps
+         ctx.prec *= 2
