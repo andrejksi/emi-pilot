@@ -1,0 +1,4 @@
+A1 written: kind is fix: dill.temp.load must close the file it opens on failure; 20 failed loads of a file containing b"not a pickle", keeping each exception, must not leave 20 extra open descriptors (currently /proc/self/fd grows by 20).
+A2 written: dill.temp.load must also close the file it opens on success.
+A3 written: the original loading exception must be preserved (for b"not a pickle" that is pickle.UnpicklingError "invalid load key, 'n'.").
+A4 written: files supplied directly to dill.load are not this task's concern; anything else doesn't matter.
