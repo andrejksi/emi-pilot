@@ -1,0 +1,19 @@
+Rules check: incomplete. Not checked: 4 (listed below).
+
+.emi/laws/test_iup_int_equality.py
+
+.emi/laws/test_iup_int_guard.py
+
+Answers (proposed: approving the rules agrees to them):
+  - A1 (written by the person): kind is fix - IUP optimisation must decide point and delta equality the way render time does, on rounded (int) points and deltas, so fractional parts must not change those equality decisions.
+  - A2 (written by the person): either remedy is acceptable - accept only integers (refusing or never receiving fractional input) or round inside iup.py for equality tests while keeping fractional parts for tolerance calculations; which one doesn't matter.
+  - A3 (written by the person): optimising already-integer points and deltas keeps working as before (backwards compatibility); no other concrete examples, refusals or edges are stated, so they don't matter.
+
+Also proposed:
+  - .emi/laws/answers.txt (not a rule file)
+
+Not checked:
+  - .emi/laws/test_iup_int_equality.py: listing the tests at the drafted rules exited 5
+  - .emi/laws/test_iup_int_equality.py: the law files could not be listed together: listing the tests at the law files together exited 5
+  - .emi/laws/test_iup_int_guard.py: listing the tests at the drafted rules exited 5
+  - .emi/laws/test_iup_int_guard.py: the law files could not be listed together: listing the tests at the law files together exited 5

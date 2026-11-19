@@ -1,0 +1,33 @@
+{
+  "checked_files": [
+    "ANSWERS",
+    "answers.txt",
+    "test_no_tzdata_import.py"
+  ],
+  "model": "claude-opus-5-5",
+  "passed": true,
+  "role": "primary",
+  "rounds": [
+    {
+      "exit": 3,
+      "files": [
+        "ANSWERS",
+        "answers.txt",
+        "test_no_tzdata_import.py"
+      ],
+      "round": 0,
+      "seconds": 8.4
+    },
+    {
+      "exit": 0,
+      "files": [
+        "ANSWERS",
+        "answers.txt",
+        "test_no_tzdata_import.py"
+      ],
+      "round": 1,
+      "seconds": 9.4
+    }
+  ],
+  "task": "celery__kombu-2843"
+}

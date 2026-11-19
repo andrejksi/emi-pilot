@@ -1,0 +1,33 @@
+Rules check: stop. Not checked: none.
+
+.emi/laws/test_bucket_copy_move.py
+  Example, new behaviour: fs.cp_file("hf://buckets/user/ckpts/ckpt/__0_0.distcp", ".../ckpt/copy.distcp") creates the copy with the same content instead of raising NotImplementedError, and keeps the source (A1, A4).
+      assert store.buckets[BUCKET].get("ckpt/copy.distcp") == b"shard bytes"
+      assert store.buckets[BUCKET].get("ckpt/__0_0.distcp") == b"shard bytes"
+      assert fs.exists(f"hf://buckets/{BUCKET}/ckpt/copy.distcp") is True
+      -> fails on the current code: NotImplementedError: Copy from/to buckets is not available yet
+  Example, new behaviour: fs.mv(".../ckpt/.metadata.tmp", ".../ckpt/.metadata") on a bucket leaves ".metadata" with the written content and removes ".metadata.tmp" (A1, A2).
+      assert store.buckets[BUCKET].get("ckpt/.metadata") == b"checkpoint metadata"
+      assert "ckpt/.metadata.tmp" not in store.buckets[BUCKET]
+      assert fs.exists(f"hf://buckets/{BUCKET}/ckpt/.metadata") is True
+      assert fs.exists(f"hf://buckets/{BUCKET}/ckpt/.metadata.tmp") is False
+      -> fails on the current code: NotImplementedError: Copy from/to buckets is not available yet
+  Example, new behaviour: fs.rename(".../data/train-00000-of-00001.parquet.tmp", ".../data/train-00000-of-00001.parquet") on a bucket succeeds and leaves no temp shard behind (A1, A3).
+      assert sorted(store.buckets[BUCKET]) == [ "ckpt/.metadata.tmp", "ckpt/__0_0.distcp", "data/train-00000-of-00001.parquet", ]
+      assert store.buckets[BUCKET]["data/train-00000-of-00001.parquet"] == b"PAR1 parquet shard"
+      -> fails on the current code: NotImplementedError: Copy from/to buckets is not available yet
+
+Answers (proposed: approving the rules agrees to them):
+  - A1 (written by the person): kind is feature: HfFileSystem.cp_file must support bucket paths (hf://buckets/...) instead of raising NotImplementedError("Copy from/to buckets is not available yet"), and fsspec's mv/rename, which go through cp_file, must then work on buckets.
+  - A2 (written by the person): example: torch.distributed.checkpoint writes "ckpt/.metadata.tmp" in a bucket then renames it to "ckpt/.metadata"; after the rename the bucket must have ".metadata" (with the written content) and the temp file must be gone.
+  - A3 (written by the person): example: datasets writes temp parquet shards to hf://buckets/... and renames them to their final names; the rename must succeed and leave no temp shards behind.
+  - A4 (written by the person): the same-bucket copy is expected to be a copy of the same file (same content), e.g. a server-side copy by xet hash; source file stays in place after cp_file.
+  - A5 (written by the person): anything else (cross-bucket or bucket<->repo copies, directories, error messages, repo copy behaviour) is not stated in the issue: doesn't matter.
+
+Also proposed:
+  - .emi/laws/answers.txt (not a rule file)
+
+Noted (blocks nothing):
+  - .emi/laws/test_bucket_copy_move.py: old tests import what its new rules are about: tests/test_buckets.py, tests/test_buckets_cli.py, tests/test_buckets_hf_file_system.py, tests/test_cli_errors.py, tests/test_copy_files.py and 2 more. If the task changes how they behave, the person lists them as expected changes
+
+Ready for a person: show them the rules above; `emi rules approve` approves and commits them.

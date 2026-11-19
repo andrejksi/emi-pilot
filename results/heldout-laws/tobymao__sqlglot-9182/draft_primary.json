@@ -1,0 +1,25 @@
+{
+  "checked_files": [
+    "ANSWERS",
+    "_duck_eval.py",
+    "answers.txt",
+    "test_sqlite_length_nul.py"
+  ],
+  "model": "claude-opus-5-5",
+  "passed": true,
+  "role": "primary",
+  "rounds": [
+    {
+      "exit": 0,
+      "files": [
+        "ANSWERS",
+        "_duck_eval.py",
+        "answers.txt",
+        "test_sqlite_length_nul.py"
+      ],
+      "round": 0,
+      "seconds": 37.0
+    }
+  ],
+  "task": "tobymao__sqlglot-9182"
+}

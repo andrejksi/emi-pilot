@@ -1,0 +1,22 @@
+Rules check: stop. Not checked: none.
+
+.emi/laws/test_timezone_database.py
+  Example, new behaviour: `import kombu.asynchronous` succeeds without a timezone database (A1).
+      assert result.returncode == 0, result.stderr
+      -> fails on the current code: AssertionError: Traceback (most recent call last):
+File "/workspace/emi-tools/python/cpython-3.11.18-linux-x86_64-gnu/lib/python3.11/zoneinfo/_common.py", line 12, in load_tzdata
+return resources.files(package_name).joinpath(resource_name). …
+  Example, new behaviour: the timer converts a naive datetime as UTC without a timezone database (A2).
+      assert result.returncode == 0, result.stderr
+      -> fails on the current code: AssertionError: Traceback (most recent call last):
+File "/workspace/emi-tools/python/cpython-3.11.18-linux-x86_64-gnu/lib/python3.11/zoneinfo/_common.py", line 12, in load_tzdata
+return resources.files(package_name).joinpath(resource_name). …
+
+Answers (proposed: approving the rules agrees to them):
+  - A1 (written by the person): Fix the import regression so `import kombu.asynchronous` succeeds on a host with no OS timezone database and no installed `tzdata` package.
+  - A2 (written by the person): Remove the timer's need for a timezone database by using UTC for its Unix epoch and as the default timezone for `to_timestamp`.
+
+Also proposed:
+  - .emi/laws/answers.txt (not a rule file)
+
+Ready for a person: show them the rules above; `emi rules approve` approves and commits them.

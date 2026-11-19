@@ -1,0 +1,42 @@
+Rules check: stop. Not checked: none.
+
+.emi/laws/test_sqlite_length_nul.py
+  Example, new behaviour: "SELECT LENGTH('a' || CHAR(0) || 'b')" transpiled from sqlite to duckdb computes 1, as SQLite does (A1, A3).
+      assert duckdb_value("SELECT LENGTH('a' || CHAR(0) || 'b')") == 1
+      -> fails on the current code: assert 3 == 1
++  where 3 = duckdb_value("SELECT LENGTH('a' || CHAR(0) || 'b')")
+  Example, new behaviour: LENGTH of text containing CHAR(0), such as 'abc' || CHAR(0) || 'de', transpiled to duckdb computes the same count as SQLite (A1, A3).
+      assert duckdb_value(q) == _sqlite(q)
+      -> fails on the current code: assert 6 == 3
++  where 6 = duckdb_value("SELECT LENGTH('abc' || CHAR(0) || 'de')")
++  and   3 = _sqlite("SELECT LENGTH('abc' || CHAR(0) || 'de')")
+  Example, new behaviour: LENGTH of text containing CHAR(0), such as 'abc' || CHAR(0) || 'de', transpiled to duckdb computes the same count as SQLite (A1, A3).
+      assert duckdb_value(q) == _sqlite(q)
+      -> fails on the current code: assert 6 == 5
++  where 6 = duckdb_value("SELECT LENGTH('hello' || CHAR(0))")
++  and   5 = _sqlite("SELECT LENGTH('hello' || CHAR(0))")
+  Example, new behaviour: LENGTH of text containing CHAR(0), such as 'abc' || CHAR(0) || 'de', transpiled to duckdb computes the same count as SQLite (A1, A3).
+      assert duckdb_value(q) == _sqlite(q)
+      -> fails on the current code: assert 4 == 0
++  where 4 = duckdb_value("SELECT LENGTH(CHAR(0) || 'xyz')")
++  and   0 = _sqlite("SELECT LENGTH(CHAR(0) || 'xyz')")
+  Example, guard: LENGTH of text without a NUL, such as LENGTH('abc'), transpiled to duckdb still computes its full length (A2, A3).
+      assert duckdb_value(q) == _sqlite(q)
+      -> holds on the current code
+  Example, guard: LENGTH of text without a NUL, such as LENGTH('abc'), transpiled to duckdb still computes its full length (A2, A3).
+      assert duckdb_value(q) == _sqlite(q)
+      -> holds on the current code
+
+Answers (proposed: approving the rules agrees to them):
+  - A1 (written by the person): kind is fix: SQLite LENGTH stops counting text at the first NUL character; "SELECT LENGTH('a' || CHAR(0) || 'b')" transpiled from sqlite to duckdb must compute 1, as SQLite does, not 3.
+  - A2 (written by the person): text without a NUL keeps its full length (the issue only concerns text past a NUL).
+  - A3 (written by the person): the exact SQL text generated doesn't matter, only what DuckDB computes; BLOB lengths and other cases don't matter.
+
+Also proposed:
+  - .emi/laws/_duck_eval.py (not a rule file)
+  - .emi/laws/answers.txt (not a rule file)
+
+Noted (blocks nothing):
+  - .emi/laws/test_sqlite_length_nul.py: 291 function(s) the rules run outside their area were given no stand-ins (`--scope all` tries them; `laws.area` widens the area): sqlglot/dialects/__init__.py (1), sqlglot/dialects/dialect.py (25), sqlglot/errors.py (3), sqlglot/expressions/builders.py (1), sqlglot/expressions/core.py (33), sqlglot/expressions/datatypes.py (1), sqlglot/expressions/query.py (1), sqlglot/generator.py (25), sqlglot/generators/duckdb.py (5), sqlglot/helper.py (4), sqlglot/jsonpath.py (7), sqlglot/optimizer/scope.py (3), sqlglot/parser.py (147), sqlglot/parsers/duckdb.py (8), sqlglot/parsers/sqlite.py (3), sqlglot/tokenizer_core.py (14), sqlglot/tokens.py (6), sqlglot/transforms.py (3), sqlglot/trie.py (1)
+
+Ready for a person: show them the rules above; `emi rules approve` approves and commits them.

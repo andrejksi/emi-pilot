@@ -1,0 +1,23 @@
+{
+  "checked_files": [
+    "ANSWERS",
+    "answers.txt",
+    "test_planetary_computer_date.py"
+  ],
+  "model": "gpt-6.2-sol",
+  "passed": true,
+  "role": "secondary",
+  "rounds": [
+    {
+      "exit": 0,
+      "files": [
+        "ANSWERS",
+        "answers.txt",
+        "test_planetary_computer_date.py"
+      ],
+      "round": 0,
+      "seconds": 70.5
+    }
+  ],
+  "task": "cs-si__eodag-2441"
+}

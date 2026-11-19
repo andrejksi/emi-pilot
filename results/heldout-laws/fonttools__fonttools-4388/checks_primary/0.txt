@@ -1,0 +1,16 @@
+Rules check: incomplete. Not checked: 2 (listed below).
+
+.emi/laws/test_cff2_ttx_glyphset.py
+
+Answers (proposed: approving the rules agrees to them):
+  - A1 (written by the person): kind is fix: a CFF2 variable TTFont imported from TTX (importXML) ignores the location passed to getGlyphSet(location=...) and draws default outlines; it must draw the varied outlines.
+  - A2 (written by the person): example: after saveXML+importXML of a CFF2 font, getGlyphSet(location={"wght": 1000})["period"] bounds should be (30.0, 0, 220.0, 300.0), the same as the font loaded from the binary OTF, not the default (60, 0, 110, 120).
+  - A3 (written by the person): the default location ({}) gives the default outlines (60, 0, 110, 120) for both the OTF-loaded and TTX-imported font, and the OTF-loaded font already renders variations correctly; these keep working.
+  - A4 (written by the person): refusals, edges and anything else not stated: doesn't matter.
+
+Also proposed:
+  - .emi/laws/answers.txt (not a rule file)
+
+Not checked:
+  - .emi/laws/test_cff2_ttx_glyphset.py: listing the tests at the drafted rules exited 5
+  - .emi/laws/test_cff2_ttx_glyphset.py: the law files could not be listed together: listing the tests at the law files together exited 5

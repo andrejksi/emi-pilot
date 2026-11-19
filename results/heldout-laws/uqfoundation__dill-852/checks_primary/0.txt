@@ -1,0 +1,35 @@
+Rules check: stop. Not checked: none.
+
+.emi/laws/test_temp_dump_failure_closes.py
+  Example, guard: dill.temp.dump(CannotSerialize()) still raises RuntimeError('cannot serialize') (A2).
+      dill.temp.dump(CannotSerialize()) is refused with RuntimeError
+      -> holds on the current code
+  Example, new behaviour: dill.temp.dump(CannotSerialize(), dir=tmp_path) that fails with the exception kept leaves no temporary file in tmp_path (A1).
+      assert (len(errors), os.listdir(tmp_path)) == (1, [])
+      -> fails on the current code: AssertionError: assert (1, ['tmpgc0ulax0']) == (1, [])
+At index 1 diff: ['tmpgc0ulax0'] != []
+Use -v to get more diff
+  Example, new behaviour: 20 failed dill.temp.dump(CannotSerialize()) calls, with every exception kept, leave no extra open descriptors (A1).
+      assert (len(errors), _open_fds() - before) == (20, 0)
+      -> fails on the current code: assert (20, 20) == (20, 0)
+At index 1 diff: 20 != 0
+Use -v to get more diff
+  Example, guard: dill.temp.dump([1, 2, 3, 4, 5]) still returns an open file that dill.temp.load reads back as [1, 2, 3, 4, 5] (A3).
+      assert (f.closed, os.path.exists(f.name), dill.temp.load(f)) == (False, True, [1, 2, 3, 4, 5])
+      -> holds on the current code
+
+Answers (proposed: approving the rules agrees to them):
+  - A1 (written by the person): kind is fix: when dill.temp.dump() fails to serialize (e.g. an object whose __reduce__ raises RuntimeError('cannot serialize')), the NamedTemporaryFile it created must be closed, so the normal delete-on-close behaviour removes the partial file, even while the exception is retained.
+  - A2 (written by the person): the original RuntimeError('cannot serialize') still propagates (the example catches RuntimeError).
+  - A3 (written by the person): successful calls must still return an open file.
+  - A4 (written by the person): loading untrusted data and anything else doesn't matter.
+
+Also proposed:
+  - .emi/laws/answers.txt (not a rule file)
+
+Noted (blocks nothing):
+  - .emi/laws/test_temp_dump_failure_closes.py: 13 function(s) the rules run outside their area were given no stand-ins (`--scope all` tries them; `laws.area` widens the area): dill/_dill.py (10), dill/logger.py (1), dill/temp.py (2)
+  - .emi/laws/test_temp_dump_failure_closes.py: test_failed_dump_raises_original_error: it holds the exact wording of a message: ask the person whether the wording is part of the rule
+  - .emi/laws/test_temp_dump_failure_closes.py: test_repeated_failed_dumps_keep_no_descriptors: its sentence speaks of any input, but an example tries only the cases it names: make it an any-input rule, or name the cases in the sentence
+
+Ready for a person: show them the rules above; `emi rules approve` approves and commits them.

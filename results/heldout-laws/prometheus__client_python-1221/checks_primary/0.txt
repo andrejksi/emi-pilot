@@ -1,0 +1,29 @@
+Rules check: stop. Not checked: none.
+
+.emi/laws/test_int_label_values.py
+  Example, new behaviour: a CounterMetricFamily metric added with the int label value 8080 exports as port="8080", like str(8080) (A1).
+      assert 'c_total{port="8080"} 3.0' in _export(c)
+      -> fails on the current code: AttributeError: ("'int' object has no attribute 'replace'", Metric(c, help, counter, , [Sample(name='c_total', labels={'port': 8080}, value=3.0, timestamp=None, exemplar=None, native_histogram=None)]))
+  Example, guard: a CounterMetricFamily metric added with the str label value "8080" still exports as port="8080" (A2).
+      assert 'c_total{port="8080"} 3.0' in _export(c)
+      -> holds on the current code
+  Example, new behaviour: a GaugeMetricFamily metric added with the int label value 1 exports as port="1", like str(1) (A1).
+      assert 'g{port="1"} 2.0' in _export(g)
+      -> fails on the current code: AttributeError: ("'int' object has no attribute 'replace'", Metric(g, help, gauge, , [Sample(name='g', labels={'port': 1}, value=2.0, timestamp=None, exemplar=None, native_histogram=None)]))
+  Example, guard: a GaugeMetricFamily metric added with the str label value "1" still exports as port="1" (A2).
+      assert 'g{port="1"} 2.0' in _export(g)
+      -> holds on the current code
+
+Answers (proposed: approving the rules agrees to them):
+  - A1 (written by the person): kind is fix: passing ints as label values to GaugeMetricFamily.add_metric / CounterMetricFamily.add_metric makes export (generate_latest) fail with AttributeError: 'int' object has no attribute 'replace'; the values must be coerced to strings, as was done for #18, so export works as if str() had been wrapped around them.
+  - A2 (written by the person): wrapping str() around the label values already works and must keep working.
+  - A3 (written by the person): anything else (other metric families, error type for unconvertible values) doesn't matter.
+
+Also proposed:
+  - .emi/laws/answers.txt (not a rule file)
+
+Noted (blocks nothing):
+  - .emi/laws/test_int_label_values.py: 19 function(s) the rules run outside their area were given no stand-ins (`--scope all` tries them; `laws.area` widens the area): prometheus_client/exposition.py (2), prometheus_client/metrics_core.py (5), prometheus_client/openmetrics/exposition.py (3), prometheus_client/registry.py (5), prometheus_client/utils.py (1), prometheus_client/validation.py (3)
+  - .emi/laws/test_int_label_values.py: old tests import what its new rules are about: tests/openmetrics/test_exposition.py, tests/openmetrics/test_parser.py, tests/test_core.py, tests/test_django.py, tests/test_exposition.py and 3 more. If the task changes how they behave, the person lists them as expected changes
+
+Ready for a person: show them the rules above; `emi rules approve` approves and commits them.

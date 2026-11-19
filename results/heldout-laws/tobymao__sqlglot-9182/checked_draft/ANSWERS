@@ -1,0 +1,3 @@
+A1 written: kind is fix: SQLite LENGTH stops counting text at the first NUL character; "SELECT LENGTH('a' || CHAR(0) || 'b')" transpiled from sqlite to duckdb must compute 1, as SQLite does, not 3.
+A2 written: text without a NUL keeps its full length (the issue only concerns text past a NUL).
+A3 written: the exact SQL text generated doesn't matter, only what DuckDB computes; BLOB lengths and other cases don't matter.

@@ -1,0 +1,4 @@
+A1 written: kind is fix: pt_BR numeric CNPJ roots (first eight digits of company_id/cnpj without use_alphanumeric) currently never contain repeated digits because they are sampled without replacement; this is wrong.
+A2 written: each position of the numeric root should be sampled independently (with replacement), so roots with repeated digits such as 18781203 must be possible; over 10,000 samples the count of roots with fewer than 8 distinct digits must not be 0 and not all roots may have 8 distinct digits.
+A3 written: the generated checksum is valid today and must stay valid; the numeric company_id still has the form eight digits + 0001 + two check digits.
+A4 written: the alphanumeric branch already samples with replacement and is the model to match; it must keep working.

@@ -1,0 +1,1 @@
+Lib/fontTools/pens/boundsPen.py::_curveToOne: BoundsPen is only the measuring tool in these rules (the test glyphs have no curves); the issue is about CFF2 variations being ignored after importXML, not about curve bounds.

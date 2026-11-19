@@ -1,0 +1,3 @@
+A1 written: kind is fix: with env_prefix "APP_" and env_nested_delimiter "__", a field b: dict[str, list[dict[str, str]]] given APP_B__X='[{"k": "v"}]' must JSON-decode to b == {"x": [{"k": "v"}]} instead of raising ValidationError.
+A2 written: a field a: dict[str, list[str]] given APP_A__X='["v"]' already gives a == {"x": ["v"]} and must keep doing so.
+A3 written: anything else doesn't matter.

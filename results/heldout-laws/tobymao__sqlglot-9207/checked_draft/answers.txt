@@ -1,0 +1,3 @@
+A1 written: kind is fix: in SQLite a negative LIMIT means "no limit"; reading "SELECT x FROM t LIMIT -1 OFFSET 5" from sqlite must give the same output as reading "SELECT x FROM t LIMIT ALL OFFSET 5" from Postgres, e.g. "SELECT x FROM t LIMIT ALL OFFSET 5" for DuckDB and "... OFFSET 5 ROWS" (no FETCH) for T-SQL.
+A2 written: Postgres "SELECT x FROM t OFFSET 5" is already written as "LIMIT -1 OFFSET 5" for SQLite; the postgres -> sqlite -> duckdb round trip must work (give a valid no-limit query).
+A3 written: anything else (positive limits, non-literal limits) doesn't matter.

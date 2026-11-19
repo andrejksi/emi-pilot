@@ -1,0 +1,18 @@
+Rules check: stop. Not checked: none.
+
+.emi/laws/test_search_dates.py
+  Example, new behaviour: "check dates validity before search" for completionDate=2023-11-31 (A1).
+      assert provider_request.call_count == 0
+      -> fails on the current code: AssertionError: assert 1 == 0
++  where 1 = <Mock id='139929198709776'>.call_count
+
+Answers (proposed: approving the rules agrees to them):
+  - A1 (written by the person): Check dates validity before search. Searching for S2_MSI_L1C with startDate=2020-01-01 and completionDate=2023-11-31 produced a 500 Internal Server Error from PEPS.
+
+Also proposed:
+  - .emi/laws/answers.txt (not a rule file)
+
+Noted (blocks nothing):
+  - .emi/laws/test_search_dates.py: old tests import what its new rules are about: tests/context.py, tests/units/test_collection.py, tests/units/test_core.py, tests/units/test_crunch.py, tests/units/test_download_plugins.py and 2 more. If the task changes how they behave, the person lists them as expected changes
+
+Ready for a person: show them the rules above; `emi rules approve` approves and commits them.

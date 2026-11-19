@@ -1,0 +1,34 @@
+Rules check: stop. Not checked: none.
+
+.emi/laws/test_temp_load_closes_file.py
+  Example, guard: dill.temp.load on b"not a pickle" still raises pickle.UnpicklingError "invalid load key, 'n'." (A3).
+      assert (type(error), str(error)) == (pickle.UnpicklingError, "invalid load key, 'n'.")
+      -> holds on the current code
+  Example, new behaviour: after a failed dill.temp.load whose exception is kept, no file object reachable from its traceback is still open (A1).
+      assert open_files == []
+      -> fails on the current code: AssertionError: assert [<_io.Buffere...invalid.pkl'>] == []
+Left contains one more item: <_io.BufferedReader name='/tmp/pytest-of-root/pytest-13/test_failed_load_leaves_no_ope0/invalid.pkl'>
+Use -v to get more diff
+  Example, new behaviour: 20 failed dill.temp.load calls on b"not a pickle", with every exception kept, leave no extra open descriptors (A1).
+      assert (len(errors), _open_fds() - before) == (20, 0)
+      -> fails on the current code: assert (20, 20) == (20, 0)
+At index 1 diff: 20 != 0
+Use -v to get more diff
+  Example, guard: dill.temp.load of a dill.temp.dump of [1, 2, 3, 4, 5] returns [1, 2, 3, 4, 5] and leaves no extra open descriptors (A2).
+      assert (results[-1], _open_fds() - before) == ([1, 2, 3, 4, 5], 0)
+      -> holds on the current code
+
+Answers (proposed: approving the rules agrees to them):
+  - A1 (written by the person): kind is fix: dill.temp.load must close the file it opens on failure; 20 failed loads of a file containing b"not a pickle", keeping each exception, must not leave 20 extra open descriptors (currently /proc/self/fd grows by 20).
+  - A2 (written by the person): dill.temp.load must also close the file it opens on success.
+  - A3 (written by the person): the original loading exception must be preserved (for b"not a pickle" that is pickle.UnpicklingError "invalid load key, 'n'.").
+  - A4 (written by the person): files supplied directly to dill.load are not this task's concern; anything else doesn't matter.
+
+Also proposed:
+  - .emi/laws/answers.txt (not a rule file)
+
+Noted (blocks nothing):
+  - .emi/laws/test_temp_load_closes_file.py: 12 function(s) the rules run outside their area were given no stand-ins (`--scope all` tries them; `laws.area` widens the area): dill/_dill.py (9), dill/logger.py (1), dill/temp.py (2)
+  - .emi/laws/test_temp_load_closes_file.py: test_failed_loads_keep_no_descriptors: its sentence speaks of any input, but an example tries only the cases it names: make it an any-input rule, or name the cases in the sentence
+
+Ready for a person: show them the rules above; `emi rules approve` approves and commits them.

@@ -1,0 +1,40 @@
+Rules check: repair. Not checked: none.
+
+.emi/laws/test_cff2_ttx_glyphset_test.py
+  Example, guard: a CFF2 font loaded from binary still draws glyph "A" at wght=900 with bounds (0, 0, 600, 650) (A3).
+      assert _bounds(OTF, "A", {"wght": 900}) == (0.0, 0, 600.0, 650.0)
+      -> holds on the current code
+  Example, guard: at the default location a CFF2 font imported from TTX still draws glyph "A" with default bounds (31, 0, 569, 656) (A3).
+      assert _bounds(TTX, "A", {}) == (31, 0, 569, 656)
+      -> holds on the current code
+  Example, new behaviour: a CFF2 font imported from TTX draws glyph "A" at wght=900 with the varied bounds (0, 0, 600, 650), like the binary font (A1, A2).
+      assert _bounds(TTX, "A", {"wght": 900}) == (0.0, 0, 600.0, 650.0)
+      -> fails on the current code: assert (31, 0, 569, 656) == (0.0, 0, 600.0, 650.0)
+At index 0 diff: 31 != 0.0
+Use -v to get more diff
+  Example, new behaviour: a CFF2 font imported from TTX draws glyph "T" at wght=900 with the varied bounds (27, 0, 573, 650) (A1, A2).
+      assert _bounds(TTX, "T", {"wght": 900}) == (27.0, 0, 573.0, 650.0)
+      -> fails on the current code: assert (41, 0, 559, 656) == (27.0, 0, 573.0, 650.0)
+At index 0 diff: 41 != 27.0
+Use -v to get more diff
+  Any input, new behaviour: for any glyph and wght location, a CFF2 font imported from TTX draws the same bounds as the same font loaded from binary (A1, A2).
+      tried on: glyph='A', wght=200.0
+      -> fails on the current code; the smallest failing input: Failing test case: tried( glyph='A', wght=200.0, ) — assert (31, 0, 569, 656) == (50.0, 0, 550.0, 660.0)
+At index 0 diff: 31 != 50.0
+Use -v to get more diff
+
+Answers (proposed: approving the rules agrees to them):
+  - A1 (written by the person): kind is fix: a CFF2 variable TTFont imported from TTX (importXML) ignores the location passed to getGlyphSet(location=...) and draws default outlines; it must draw the varied outlines.
+  - A2 (written by the person): example: after saveXML+importXML of a CFF2 font, getGlyphSet(location={"wght": 1000})["period"] bounds should be (30.0, 0, 220.0, 300.0), the same as the font loaded from the binary OTF, not the default (60, 0, 110, 120).
+  - A3 (written by the person): the default location ({}) gives the default outlines (60, 0, 110, 120) for both the OTF-loaded and TTX-imported font, and the OTF-loaded font already renders variations correctly; these keep working.
+  - A4 (written by the person): refusals, edges and anything else not stated: doesn't matter.
+
+Also proposed:
+  - .emi/laws/answers.txt (not a rule file)
+
+Send back (fix these, then run `emi rules check` again):
+  - .emi/laws/test_cff2_ttx_glyphset_test.py still passes when Lib/fontTools/pens/boundsPen.py::_curveToOne returns its first argument (`bcp1`) unchanged; Lib/fontTools/pens/boundsPen.py::_curveToOne returns None: trivial code satisfies every rule in it, or every guard in it, so it pins nothing down. Add a case that such code fails.
+
+Noted (blocks nothing):
+  - .emi/laws/test_cff2_ttx_glyphset_test.py: 86 function(s) the rules run outside their area were given no stand-ins (`--scope all` tries them; `laws.area` widens the area): Lib/fontTools/cffLib/__init__.py (9), Lib/fontTools/misc/arrayTools.py (2), Lib/fontTools/misc/psCharStrings.py (30), Lib/fontTools/misc/textTools.py (4), Lib/fontTools/pens/basePen.py (7), Lib/fontTools/ttLib/sfnt.py (2), Lib/fontTools/ttLib/tables/_a_v_a_r.py (1), Lib/fontTools/ttLib/tables/_f_v_a_r.py (1), Lib/fontTools/ttLib/ttFont.py (9), Lib/fontTools/ttLib/ttGlyphSet.py (7), Lib/fontTools/varLib/models.py (4), Lib/fontTools/varLib/varStore.py (10)
+  - .emi/laws/test_cff2_ttx_glyphset_test.py: old tests import what its new rules are about: Tests/cffLib/cffLib_test.py, Tests/cffLib/specializer_test.py, Tests/cffLib/width_test.py, Tests/config_test.py, Tests/feaLib/builder_test.py and 68 more. If the task changes how they behave, the person lists them as expected changes

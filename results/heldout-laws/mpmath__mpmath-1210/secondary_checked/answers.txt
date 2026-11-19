@@ -1,0 +1,2 @@
+A1 written: This is a fix for the RecursionError when calling gammainc(3, 0, -0.1).
+A2 written: The region of failure for the reported call seems to be from -0.21518225944126573 to 0.

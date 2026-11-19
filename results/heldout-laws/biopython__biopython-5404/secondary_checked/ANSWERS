@@ -1,0 +1,2 @@
+A1 written: This is a bug fix for BgzfWriter failing on incompressible input. The given 65,500-byte and 65,536-byte samples from random.Random(42).randbytes, and already-compressed data, should write and close successfully as valid BGZF that preserves the input bytes.
+A2 written: The choice between smaller fixed blocks and retrying with less data doesn't matter.

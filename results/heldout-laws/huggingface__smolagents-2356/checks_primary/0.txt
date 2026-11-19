@@ -1,0 +1,30 @@
+Rules check: repair. Not checked: none.
+
+.emi/laws/test_consecutive_system_messages.py
+  Example, new behaviour: get_clean_message_list on the issue's messages does not raise and keeps both system instructions, in order, before the user message (A2, A3).
+      assert "When you say anything Start with 'FOO'" in system_text
+      assert "When you say anything End with 'BAR'" in system_text
+      assert system_text.index("Start with 'FOO'") < system_text.index("End with 'BAR'")
+      assert out[-1]["role"] == "user" and "Just say '.'" in _text(out[-1]["content"])
+      -> fails on the current code: AssertionError: Error: wrong content:When you say anything End with 'BAR'
+  Example, new behaviour: LiteLLMModel called with the issue's two consecutive system messages and a user message does not raise and sends both system instructions and the user text to the client (A1, A2).
+      assert result.content == "FOO . BAR"
+      assert "When you say anything Start with 'FOO'" in system_text
+      assert "When you say anything End with 'BAR'" in system_text
+      assert system_text.index("Start with 'FOO'") < system_text.index("End with 'BAR'")
+      assert sent[-1]["role"] == "user" and "Just say '.'" in _text(sent[-1]["content"])
+      -> fails on the current code: AssertionError: Error: wrong content:When you say anything End with 'BAR'
+
+Answers (proposed: approving the rules agrees to them):
+  - A1 (written by the person): kind is fix: LiteLLMModel crashes with an AssertionError ("Error: wrong content:...") when the message list has multiple consecutive system messages; this must change.
+  - A2 (written by the person): example: LiteLLMModel(model_id="gemini/gemini-2.5-flash") called with [{"role": "system", "content": "When you say anything Start with 'FOO'"}, {"role": "system", "content": "When you say anything End with 'BAR'"}, {"role": "user", "content": "Just say '.'"}] must not raise; the framework should transform the messages correctly (layered system instructions are expressed), without any error.
+  - A3 (written by the person): the crash is raised inside get_clean_message_list (via Model._prepare_completion_kwargs) when merging the second consecutive system message; that transformation must succeed for the issue's messages.
+
+Also proposed:
+  - .emi/laws/answers.txt (not a rule file)
+
+Send back (fix these, then run `emi rules check` again):
+  - .emi/laws/test_consecutive_system_messages.py still passes when src/smolagents/models.py::get_clean_message_list returns its first argument (`message_list`) unchanged: trivial code satisfies every rule in it, or every guard in it, so it pins nothing down. Add a case that such code fails.
+
+Noted (blocks nothing):
+  - .emi/laws/test_consecutive_system_messages.py: old tests import what its new rules are about: tests/test_cli.py, tests/test_models.py. If the task changes how they behave, the person lists them as expected changes

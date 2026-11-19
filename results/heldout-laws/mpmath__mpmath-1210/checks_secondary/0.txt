@@ -1,0 +1,22 @@
+Rules check: stop. Not checked: none.
+
+.emi/laws/test_gammainc.py
+  Any input, new behaviour: gammainc(3, 0, b) evaluates the incomplete gamma integral for negative b in the reported failure interval (A2).
+      tried on: upper_limit=-0.21518225944126573
+      tried on: upper_limit=-0.125
+      -> fails on the current code; the smallest failing input: Failing test case: tried( upper_limit=-0.125, ) — RecursionError: maximum recursion depth exceeded in comparison
+  Example, new behaviour: gammainc(3, 0, -0.1) evaluates the incomplete gamma integral without a recursion error (A1).
+      assert almosteq( gammainc(3, 0, -0.1), quad(lambda t: t**2 * exp(-t), [0, -0.1]), abs_eps=0, rel_eps=1e-12, )
+      -> fails on the current code: RecursionError: maximum recursion depth exceeded in comparison
+
+Answers (proposed: approving the rules agrees to them):
+  - A1 (written by the person): This is a fix for the RecursionError when calling gammainc(3, 0, -0.1).
+  - A2 (written by the person): The region of failure for the reported call seems to be from -0.21518225944126573 to 0.
+
+Also proposed:
+  - .emi/laws/answers.txt (not a rule file)
+
+Noted (blocks nothing):
+  - .emi/laws/test_gammainc.py: old tests import what its new rules are about: mpmath/tests/test_calculus.py, mpmath/tests/test_diff.py, mpmath/tests/test_elliptic.py, mpmath/tests/test_extra_gamma.py, mpmath/tests/test_functions.py and 10 more. If the task changes how they behave, the person lists them as expected changes
+
+Ready for a person: show them the rules above; `emi rules approve` approves and commits them.

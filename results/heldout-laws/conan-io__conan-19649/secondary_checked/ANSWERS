@@ -1,0 +1,1 @@
+A1 written: It would be handy to have a way `tools.env.virtualenv:powershell` to create both `.ps1` and `.bat` files, with `.ps1` for activating the build environment in interactive PowerShell and `.bat` for activating it from CMD build scripts.

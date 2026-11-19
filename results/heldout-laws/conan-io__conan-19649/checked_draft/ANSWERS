@@ -1,0 +1,3 @@
+A1 written: kind is feature: there should be a way, through the conf tools.env.virtualenv:powershell, to generate both the .ps1 and the .bat launcher (e.g. both conanbuild.bat and conanbuild.ps1) for the same environment.
+A2 written: the .ps1 file is for activating the environment in an interactive PowerShell; the .bat file is for CMD build scripting that activates the environment before running CMake or other commands, so both must set the environment (e.g. a variable defined in the buildenv).
+A3 written: the exact conf value spelling that requests both, refusals, edges and other unchanged behaviour are not stated: doesn't matter.

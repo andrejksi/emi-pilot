@@ -1,0 +1,2 @@
+A1 written: Microsoft Planetary Computer results without start_datetime or end_datetime should be filterable by date.
+A2 written: The first product 20210214T105131 should be filtered out when filtering the reported Sentinel-2 results from 2021-02-10T00:00:00 through 2021-02-12T00:00:00.

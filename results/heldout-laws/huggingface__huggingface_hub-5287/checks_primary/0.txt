@@ -1,0 +1,54 @@
+Rules check: repair. Not checked: none.
+
+.emi/laws/test_stream_file_write_modes.py
+  Example, guard: opening a repo or bucket path for reading ("rb", "r", "rt") with block_size=0 still gives a streaming file without error (A5).
+      -> holds on the current code
+  Example, guard: opening a repo or bucket path for reading ("rb", "r", "rt") with block_size=0 still gives a streaming file without error (A5).
+      -> holds on the current code
+  Example, guard: opening a repo or bucket path for reading ("rb", "r", "rt") with block_size=0 still gives a streaming file without error (A5).
+      -> holds on the current code
+  Example, guard: opening a repo or bucket path for reading ("rb", "r", "rt") with block_size=0 still gives a streaming file without error (A5).
+      -> holds on the current code
+  Example, guard: opening a repo or bucket path for reading ("rb", "r", "rt") with block_size=0 still gives a streaming file without error (A5).
+      -> holds on the current code
+  Example, guard: opening a repo or bucket path for reading ("rb", "r", "rt") with block_size=0 still gives a streaming file without error (A5).
+      -> holds on the current code
+  Example, new behaviour: constructing HfFileSystemStreamFile directly with mode "xb" raises ValueError (A1, A4).
+      -> fails on the current code: Failed: DID NOT RAISE <class 'ValueError'>
+  Example, new behaviour: opening with text mode "x" and block_size=0 is refused with ValueError (A2, A4).
+      _open_and_write(fs, REPO_PATH, "x", block_size=0) is refused with ValueError
+      -> fails on the current code: Failed: DID NOT RAISE <class 'ValueError'>
+  Example, guard: opening with "wb" and block_size=0 still raises the same ValueError (A4).
+      _open_and_write(fs, REPO_PATH, "wb", block_size=0) is refused with ValueError
+      -> holds on the current code
+  Example, new behaviour: opening a bucket path with mode "xb" and block_size=0 is refused with ValueError (A1, A3, A4).
+      _open_and_write(fs, BUCKET_PATH, "xb", block_size=0) is refused with ValueError
+      -> fails on the current code: Failed: DID NOT RAISE <class 'ValueError'>
+  Example, new behaviour: opening a repo path with mode "xb" and block_size=0 is refused with the same ValueError as "wb" instead of silently dropping writes (A1, A3, A4).
+      _open_and_write(fs, REPO_PATH, "xb", block_size=0) is refused with ValueError
+      -> fails on the current code: Failed: DID NOT RAISE <class 'ValueError'>
+  Example, new behaviour: opening with "xb" on HfFileSystem(block_size=0) without overriding block_size is refused with ValueError (A2, A4).
+      _open_and_write(fs, REPO_PATH, "xb") is refused with ValueError
+      -> fails on the current code: Failed: DID NOT RAISE <class 'ValueError'>
+
+Answers (proposed: approving the rules agrees to them):
+  - A1 (written by the person): kind is fix - with block_size=0 (streaming), opening a file in exclusive-create mode "xb" accepts writes and closes without error but nothing is uploaded (silent data loss); this must be rejected.
+  - A2 (written by the person): the same applies to text mode "x", and when block_size=0 is set on the instance (HfFileSystem(block_size=0)) and the open call does not override it.
+  - A3 (written by the person): it affects both repo paths (e.g. hf://datasets/<user>/<repo>/marker.txt) and bucket paths.
+  - A4 (written by the person): "wb" with block_size=0 already raises a ValueError; the rejection should be a ValueError and the error message stays the same ("HfFileSystemStreamFile only supports reading but got mode='...'"), i.e. any mode other than "rb" is rejected.
+  - A5 (written by the person): read paths are unchanged - reading with block_size=0 ("rb", and "r"/"rt" which fsspec normalises to "rb") must keep working with HfFileSystemStreamFile.
+
+Also proposed:
+  - .emi/laws/answers.txt (not a rule file)
+
+Send back (fix these, then run `emi rules check` again):
+  - .emi/laws/test_stream_file_write_modes.py still passes when 5 stand-in(s) replace 2 function(s): src/huggingface_hub/hf_file_system.py::_tokenize (3), src/huggingface_hub/hf_file_system.py::__del__ (2) (`--format json` lists each): trivial code satisfies every rule in it, or every guard in it, so it pins nothing down. Add a case that such code fails.
+
+Noted (blocks nothing):
+  - .emi/laws/test_stream_file_write_modes.py: test_stream_file_constructor_refuses_xb: it holds the exact wording of a message: ask the person whether the wording is part of the rule
+  - .emi/laws/test_stream_file_write_modes.py: test_text_x_with_block_size_zero_is_refused: it holds the exact wording of a message: ask the person whether the wording is part of the rule
+  - .emi/laws/test_stream_file_write_modes.py: test_wb_with_block_size_zero_is_still_refused: it holds the exact wording of a message: ask the person whether the wording is part of the rule
+  - .emi/laws/test_stream_file_write_modes.py: test_xb_with_block_size_zero_on_bucket_path_is_refused: it holds the exact wording of a message: ask the person whether the wording is part of the rule
+  - .emi/laws/test_stream_file_write_modes.py: test_xb_with_block_size_zero_on_repo_path_is_refused: it holds the exact wording of a message: ask the person whether the wording is part of the rule
+  - .emi/laws/test_stream_file_write_modes.py: test_xb_with_instance_block_size_zero_is_refused: it holds the exact wording of a message: ask the person whether the wording is part of the rule
+  - .emi/laws/test_stream_file_write_modes.py: old tests import what its new rules are about: tests/test_bucket_live_follow.py, tests/test_hf_file_system.py. If the task changes how they behave, the person lists them as expected changes
