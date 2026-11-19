@@ -15,6 +15,8 @@ tests' verdict in `oracle.json`.
 | `rivals-2026-11-18` | the two wrong attempts that passed both checkers, run on the drafted rules and side by side with the passing attempts on inputs the rules do not name | see its README | none (plain pytest) |
 | `adversary-round2` | round 2 of the adversary: rules strengthened with a lesson file, predictions and a fixed-example remark, attacked afresh; `PREREG.md` was committed before drafting | see its `PREREG.md` | 0.1.1 (drafting); none (scoring) |
 | `harvest-tuning` | live runs of both models, no checker, on the 10 tuning tasks, 3 seeds each: 50 attempts (10 refused by the provider), the inputs of the laws trial | see its README | none |
+| `gate-replay-tuning` | double-replay of the 10 tuning tasks (120 candidates x 7 conditions x 2 runs) against `study/gate.md` | [44505647263](https://github.com/andrejksi/emi-pilot/actions/runs/44505647263) | `study-gate-v1` (`fc602d2`) |
+| `gate-replay-heldout` | double-replay of the 28 clean held-out tasks (165 candidates x 8 conditions x 2 runs) against `study/gate.md` (`replays.jsonl`, `score.json`, `score.md`, `oracles/`) | [44571822516](https://github.com/andrejksi/emi-pilot/actions/runs/44571822516) | `study-gate-v1` (`fc602d2`) |
 
 Run 8 predates the src-layout fix (c674a06): both huggingface_hub tasks
 failed their gold replay there because every run tested the baseline's
