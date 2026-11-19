@@ -1,0 +1,55 @@
+{
+  "base_commit": "09af497ce32cf44c9cb5c33d9b589d7af4469b68",
+  "created_at": "2026-11-01T18:32:28Z",
+  "install": [
+    "pip install -q -e .",
+    "pip install -q pytest"
+  ],
+  "install_from": "default",
+  "issue": 3636,
+  "kind": "git",
+  "license": null,
+  "oracle": {
+    "fail_to_pass": [
+      "Tests/varLib/iup_test.py::IupTest::test_optimize_fractional_contours[0.5]",
+      "Tests/varLib/iup_test.py::IupTest::test_optimize_fractional_contours[1]",
+      "Tests/varLib/iup_test.py::IupTest::test_optimize_preserves_rounded_deltas[-2]",
+      "Tests/varLib/iup_test.py::IupTest::test_optimize_preserves_rounded_deltas[1]",
+      "Tests/varLib/iup_test.py::IupTest::test_optimize_preserves_rounded_interpolation[0.25-0]",
+      "Tests/varLib/iup_test.py::IupTest::test_optimize_preserves_rounded_interpolation[0.25-1]",
+      "Tests/varLib/iup_test.py::IupTest::test_optimize_preserves_rounded_interpolation[0.25-2]",
+      "Tests/varLib/iup_test.py::IupTest::test_optimize_preserves_rounded_interpolation[0.25-3]",
+      "Tests/varLib/iup_test.py::IupTest::test_optimize_zero_checks_rounded_deltas[delta0]",
+      "Tests/varLib/iup_test.py::IupTest::test_optimize_zero_checks_rounded_deltas[delta1]"
+    ],
+    "pass_to_pass": [
+      "Tests/varLib/iup_test.py::IupTest::test_forced_set[delta0-coords0-forced0]",
+      "Tests/varLib/iup_test.py::IupTest::test_forced_set[delta1-coords1-forced1]",
+      "Tests/varLib/iup_test.py::IupTest::test_forced_set[delta2-coords2-forced2]",
+      "Tests/varLib/iup_test.py::IupTest::test_forced_set[delta3-coords3-forced3]",
+      "Tests/varLib/iup_test.py::IupTest::test_forced_set[delta4-coords4-forced4]",
+      "Tests/varLib/iup_test.py::IupTest::test_interpolate_fractional_coordinates[0]",
+      "Tests/varLib/iup_test.py::IupTest::test_interpolate_fractional_coordinates[1]",
+      "Tests/varLib/iup_test.py::IupTest::test_interpolate_fractional_coordinates[2]",
+      "Tests/varLib/iup_test.py::IupTest::test_interpolate_fractional_reference_deltas[-1.5--1]",
+      "Tests/varLib/iup_test.py::IupTest::test_interpolate_fractional_reference_deltas[1.5-2]",
+      "Tests/varLib/iup_test.py::IupTest::test_optimize_equal_rounded_deltas[0.03]",
+      "Tests/varLib/iup_test.py::IupTest::test_optimize_equal_rounded_deltas[0]",
+      "Tests/varLib/iup_test.py::IupTest::test_optimize_fractional_contours[0]",
+      "Tests/varLib/iup_test.py::IupTest::test_optimize_preserves_rounded_interpolation[0-0]",
+      "Tests/varLib/iup_test.py::IupTest::test_optimize_preserves_rounded_interpolation[0-1]",
+      "Tests/varLib/iup_test.py::IupTest::test_optimize_preserves_rounded_interpolation[0-2]",
+      "Tests/varLib/iup_test.py::IupTest::test_optimize_preserves_rounded_interpolation[0-3]",
+      "Tests/varLib/iup_test.py::IupTest::test_optimize_zero_checks_rounded_deltas[delta2]",
+      "Tests/varLib/iup_test.py::IupTest::test_optimize_zero_checks_rounded_deltas[delta3]"
+    ]
+  },
+  "prompt": "IUP optimisation should compare points and deltas as `int`s\n\n*Spun off from #3635, see PR and originating issue for fuller discussion*\r\n\r\n`iup.py` accepts floats for positions and deltas, and retains their fractional part throughout its calculations:\r\n\r\nhttps://github.com/fonttools/fonttools/blob/11343ed64c10d3905f4fb4c8d2810c9612ee8acd/Lib/fontTools/varLib/iup.py#L460-L465\r\n\r\nThis is potentially unsound, however, as IUP optimisation must determine point and delta equality in identical conditions to render time: as at render time points and deltas will always have been rounded, IUP optimisation can only be performed on rounded points and deltas for its equality assumptions to be correct.\r\n\r\nSo far this has only led to one real-world issue (#3634), and so it is possible that most call sites are already rounding their coordinates and deltas before calling the optimiser. If all of them are, then we can change `iup.py` to accept only integers.\r\n\r\nIf any of them are not, then we should consider which fix would be best:\r\n- Round at remaining call sites, and then change `iup.py` to accept only integers\r\n- Round within `iup.py` for equality tests, but otherwise allow fractional parts for backwards compatibility with existing tolerance calculations",
+  "pull": 4382,
+  "python": "3.11",
+  "repo": "fonttools/fonttools",
+  "source": "github-pr",
+  "test_files": [
+    "Tests/varLib/iup_test.py"
+  ]
+}

@@ -1,0 +1,51 @@
+diff --git a/Lib/fontTools/cffLib/__init__.py b/Lib/fontTools/cffLib/__init__.py
+index a1e1ece1a..3c6b30f87 100644
+--- a/Lib/fontTools/cffLib/__init__.py
++++ b/Lib/fontTools/cffLib/__init__.py
+@@ -288,11 +288,14 @@ class CFFFontSet(object):
+                 name, attrs, content = element
+                 topDict.fromXML(name, attrs, content)
+ 
+-            if hasattr(topDict, "VarStore") and topDict.FDArray[0].vstore is None:
+-                fdArray = topDict.FDArray
+-                for fontDict in fdArray:
+-                    if hasattr(fontDict, "Private"):
+-                        fontDict.Private.vstore = topDict.VarStore
++            if hasattr(topDict, "VarStore"):
++                # VarStore is read after CharStrings in the XML.
++                topDict.CharStrings.varStore = topDict.VarStore
++                if topDict.FDArray[0].vstore is None:
++                    fdArray = topDict.FDArray
++                    for fontDict in fdArray:
++                        if hasattr(fontDict, "Private"):
++                            fontDict.Private.vstore = topDict.VarStore
+ 
+         elif name == "GlobalSubrs":
+             subrCharStringClass = psCharStrings.T2CharString
+diff --git a/Tests/ttLib/ttGlyphSet_test.py b/Tests/ttLib/ttGlyphSet_test.py
+index 906489fe4..aff30be89 100644
+--- a/Tests/ttLib/ttGlyphSet_test.py
++++ b/Tests/ttLib/ttGlyphSet_test.py
+@@ -237,6 +237,22 @@ class TTGlyphSetTest(object):
+ 
+         assert actual == expected, (location, actual, expected)
+ 
++    @pytest.mark.parametrize("location", [{}, {"wght": 1000}])
++    def test_cff2_glyphset_from_xml(self, location):
++        font = TTFont(self.getpath("I.otf"))
++        expected = RecordingPen()
++        font.getGlyphSet(location=location)["I"].draw(expected)
++
++        xml = BytesIO()
++        font.saveXML(xml)
++        xml.seek(0)
++        from_xml = TTFont()
++        from_xml.importXML(xml)
++
++        actual = RecordingPen()
++        from_xml.getGlyphSet(location=location)["I"].draw(actual)
++        assert actual.value == expected.value
++
+     @pytest.mark.parametrize("initial", [{}, {"wght": 0.75, "CNTR": 0.5}])
+     @pytest.mark.parametrize("reset", [False, True])
+     def test_cff2_push_location_inherits_and_restores(self, initial, reset):

@@ -1,0 +1,65 @@
+{
+  "base_commit": "2f73bdbce88711e502d9d319641bfb1d39a396e1",
+  "created_at": "2026-11-17T15:00:42Z",
+  "install": [
+    "pip install -q -e .",
+    "pip install -q pytest"
+  ],
+  "install_from": "default",
+  "issue": 9181,
+  "kind": "git",
+  "license": null,
+  "oracle": {
+    "fail_to_pass": [
+      "tests/dialects/test_sqlite.py::TestSQLite::test_length_null_terminated_text"
+    ],
+    "pass_to_pass": [
+      "tests/dialects/test_sqlite.py::TestSQLite::test_analyze",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_cast",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_create_trigger",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_date_add_sub_day_units_retain_time",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_datediff",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_ddl",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_digit_separators",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_floating_point_types",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_generated_columns",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_group_concat_distinct_separator",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_group_concat_null_separator",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_hexadecimal_literal",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_identity_columns",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_is_operator_null_safe_comparison",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_is_precedence",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_json_arrow_precedence",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_json_cast",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_longvarchar_dtype",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_pragma_quoted_names",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_pragma_quoted_schemas",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_random",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_reindex",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_round",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_safe_div",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_sqlite",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_strftime",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_strftime_fractional_seconds",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_subquery_modifier_conflicts",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_subquery_modifiers",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_table_options",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_trunc",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_unary_plus",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_unary_plus_preserves_affinity",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_unicode",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_unsupported_auto_increment",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_warnings",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_week_date_arithmetic",
+      "tests/dialects/test_sqlite.py::TestSQLite::test_window_null_treatment"
+    ]
+  },
+  "prompt": "SQLite LENGTH counts text past a NUL after transpilation to DuckDB\n\nSQLite stops counting text at the first `\\0` (NUL character), while the translated DuckDB query counts the whole text. This can change length-based filters.\n\n```python\nimport sqlite3\nimport duckdb\nimport sqlglot\n\nquery = \"SELECT LENGTH('a' || CHAR(0) || 'b')\"\ngenerated = sqlglot.transpile(query, read=\"sqlite\", write=\"duckdb\")[0]\nprint(generated)  # SELECT LENGTH('a' || CHR(0) || 'b')\nprint(sqlite3.connect(\":memory:\").execute(query).fetchone())  # (1,)\nprint(duckdb.sql(generated).fetchone())                     # (3,)\n```\n\nReproduced on main `f59bcbcaa0ed549d61ed6d15f16f015cb2e9edc7`, SQLite 3.53.1 and DuckDB 2.0.0. SQLite's [LENGTH documentation](https://www.sqlite.org/lang_corefunc.html#length) specifies this behavior for text; BLOB length instead counts all bytes.\n\nAI assistance: OpenAI Codex assisted reproduction, implementation, and testing. The problem description was supplied by the contributor.",
+  "pull": 9182,
+  "python": "3.11",
+  "repo": "tobymao/sqlglot",
+  "source": "github-pr",
+  "test_files": [
+    "tests/dialects/test_sqlite.py"
+  ]
+}
