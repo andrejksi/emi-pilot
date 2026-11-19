@@ -1,0 +1,75 @@
+diff --git a/sqlglot/expressions/string.py b/sqlglot/expressions/string.py
+index e8c946f..1090016 100644
+--- a/sqlglot/expressions/string.py
++++ b/sqlglot/expressions/string.py
+@@ -70,7 +70,7 @@ class Left(Expression, Func):
+ 
+ 
+ class Length(Expression, Func):
+-    arg_types = {"this": True, "binary": False, "encoding": False}
++    arg_types = {"this": True, "binary": False, "encoding": False, "nul_terminated": False}
+     _sql_names = ["LENGTH", "LEN", "CHAR_LENGTH", "CHARACTER_LENGTH"]
+ 
+ 
+diff --git a/sqlglot/generators/duckdb.py b/sqlglot/generators/duckdb.py
+index 76c998b..d97e9e5 100644
+--- a/sqlglot/generators/duckdb.py
++++ b/sqlglot/generators/duckdb.py
+@@ -3403,11 +3403,22 @@ class DuckDBGenerator(generator.Generator):
+ 
+     def length_sql(self, expression: exp.Length) -> str:
+         arg = expression.this
++        nul_terminated = expression.args.get("nul_terminated")
++
++        def _text(text: exp.Expr) -> exp.Expr:
++            # Some dialects (e.g. SQLite) stop counting text at the first NUL character
++            if nul_terminated and not (text.is_string and "\0" not in text.name):
++                text = exp.SplitPart(
++                    this=text,
++                    delimiter=exp.Chr(expressions=[exp.Literal.number(0)]),
++                    part_index=exp.Literal.number(1),
++                )
++            return text
+ 
+         # Dialects like BQ and Snowflake also accept binary values as args, so
+         # DDB will attempt to infer the type or resort to case/when resolution
+         if not expression.args.get("binary") or arg.is_string:
+-            return self.func("LENGTH", arg)
++            return self.func("LENGTH", _text(arg))
+ 
+         if not arg.type:
+             from sqlglot.optimizer.annotate_types import annotate_types
+@@ -3415,7 +3426,7 @@ class DuckDBGenerator(generator.Generator):
+             arg = annotate_types(arg, dialect=self.dialect)
+ 
+         if arg.is_type(*exp.DataType.TEXT_TYPES):
+-            return self.func("LENGTH", arg)
++            return self.func("LENGTH", _text(arg))
+ 
+         # We need these casts to make duckdb's static type checker happy
+         blob = exp.cast(arg, exp.DType.VARBINARY)
+@@ -3424,7 +3435,7 @@ class DuckDBGenerator(generator.Generator):
+         case = (
+             exp.case(exp.Anonymous(this="TYPEOF", expressions=[arg]))
+             .when(exp.Literal.string("BLOB"), exp.ByteLength(this=blob))
+-            .else_(exp.Anonymous(this="LENGTH", expressions=[varchar]))
++            .else_(exp.Anonymous(this="LENGTH", expressions=[_text(varchar)]))
+         )
+         return self.sql(case)
+ 
+diff --git a/sqlglot/parsers/sqlite.py b/sqlglot/parsers/sqlite.py
+index 9265222..e630b3d 100644
+--- a/sqlglot/parsers/sqlite.py
++++ b/sqlglot/parsers/sqlite.py
+@@ -111,6 +111,11 @@ class SQLiteParser(parser.Parser):
+         "JSON_EXTRACT": _build_json_extract,
+         "JSON_GROUP_ARRAY": exp.JSONArrayAgg.from_arg_list,
+         "JSON_GROUP_OBJECT": lambda args: exp.JSONObjectAgg(expressions=args),
++        # LENGTH counts bytes for BLOBs and stops at the first NUL character for text
++        # https://www.sqlite.org/lang_corefunc.html#length
++        "LENGTH": lambda args: exp.Length(
++            this=seq_get(args, 0), binary=True, nul_terminated=True
++        ),
+         "MAX": _build_max,
+         "MIN": _build_min,
+         "RANDOM": lambda args: exp.Rand(
