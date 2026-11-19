@@ -1,0 +1,3 @@
+A1 written: kind is fix; varLib.instancer's updateFontNames/updateNameTable fails to update font names when the STAT table is version 1.0, because it has no ElidedFallbackNameID field.
+A2 written: when ElidedFallbackNameID is missing, the instancer should default to the font's subFamilyName (nameID 2) in its place, so the instances export and get corrected font names.
+A3 written: STAT tables that do have an ElidedFallbackNameID (version 1.1+) are the normal case and must keep working as before.

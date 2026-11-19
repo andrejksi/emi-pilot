@@ -1,0 +1,37 @@
+Rules check: stop. Not checked: none.
+
+.emi/laws/test_stat_guards_test.py
+  Example, guard: when all axis values are elided and ElidedFallbackNameID points to Black, the typographic subfamily is still Black (A3).
+      assert (n.getName(2, 3, 1, 0x409).toUnicode(), n.getName(17, 3, 1, 0x409).toUnicode()) == ( "Regular", "Black", )
+      -> holds on the current code
+  Example, guard: with a STAT that has ElidedFallbackNameID, instancing at wght 900 still yields the Black names (A3).
+      assert (n.getName(1, 3, 1, 0x409).toUnicode(), n.getName(17, 3, 1, 0x409).toUnicode()) == ( "Test Variable Font Black", "Black", )
+      -> holds on the current code
+
+.emi/laws/test_stat_v10_names_test.py
+  Example, new behaviour: a version 1.0 STAT font saved and reloaded from binary still gets its names updated when instancing at wght 900 (A1, A2).
+      assert (names[1], names[6], names[17]) == ( "Test Variable Font Black", "TestVariableFont-Black", "Black", )
+      -> fails on the current code: AttributeError: ElidedFallbackNameID
+  Example, new behaviour: with a version 1.0 STAT whose axis values are all elided, the style falls back to the font's subFamilyName (nameID 2) (A2).
+      assert (names[1], names[2]) == ("Test Variable Font", "Bold")
+      -> fails on the current code: AttributeError: ElidedFallbackNameID
+  Example, new behaviour: with a version 1.0 STAT lacking ElidedFallbackNameID, instancing at wght 900 updates names to the Black instance names (A1, A2).
+      assert _names(f) == { 1: "Test Variable Font Black", 2: "Regular", 3: "2.001;GOOG;TestVariableFont-Black", 6: "TestVariableFont-Black", 16: "Test Variable Font", 17: "Black", }
+      -> fails on the current code: AttributeError: ElidedFallbackNameID
+  Example, new behaviour: with a version 1.0 STAT lacking ElidedFallbackNameID, instancing at wght 400 updates names to the Regular instance names (A1, A2).
+      assert (names[1], names[2], names[3], names[6]) == ( "Test Variable Font", "Regular", "2.001;GOOG;TestVariableFont-Regular", "TestVariableFont-Regular", )
+      -> fails on the current code: AttributeError: ElidedFallbackNameID
+
+Answers (proposed: approving the rules agrees to them):
+  - A1 (written by the person): kind is fix; varLib.instancer's updateFontNames/updateNameTable fails to update font names when the STAT table is version 1.0, because it has no ElidedFallbackNameID field.
+  - A2 (written by the person): when ElidedFallbackNameID is missing, the instancer should default to the font's subFamilyName (nameID 2) in its place, so the instances export and get corrected font names.
+  - A3 (written by the person): STAT tables that do have an ElidedFallbackNameID (version 1.1+) are the normal case and must keep working as before.
+
+Also proposed:
+  - .emi/laws/answers.txt (not a rule file)
+
+Noted (blocks nothing):
+  - .emi/laws/test_stat_guards_test.py: 136 function(s) the rules run outside their area were given no stand-ins (`--scope all` tries them; `laws.area` widens the area): Lib/fontTools/misc/configTools.py (1), Lib/fontTools/misc/encodingTools.py (1), Lib/fontTools/misc/fixedTools.py (3), Lib/fontTools/misc/roundTools.py (1), Lib/fontTools/misc/sstruct.py (2), Lib/fontTools/misc/textTools.py (8), Lib/fontTools/misc/timeTools.py (1), Lib/fontTools/misc/xmlReader.py (7), Lib/fontTools/ttLib/tables/DefaultTable.py (1), Lib/fontTools/ttLib/tables/O_S_2f_2.py (3), Lib/fontTools/ttLib/tables/TupleVariation.py (2), Lib/fontTools/ttLib/tables/_a_v_a_r.py (2), Lib/fontTools/ttLib/tables/_c_m_a_p.py (6), Lib/fontTools/ttLib/tables/_c_v_a_r.py (2), Lib/fontTools/ttLib/tables/_c_v_t.py (1), Lib/fontTools/ttLib/tables/_f_v_a_r.py (6), Lib/fontTools/ttLib/tables/_g_l_y_f.py (13), Lib/fontTools/ttLib/tables/_g_v_a_r.py (3), Lib/fontTools/ttLib/tables/_h_e_a_d.py (1), Lib/fontTools/ttLib/tables/_h_h_e_a.py (1), Lib/fontTools/ttLib/tables/_h_m_t_x.py (1), Lib/fontTools/ttLib/tables/_l_t_a_g.py (2), Lib/fontTools/ttLib/tables/_m_a_x_p.py (1), Lib/fontTools/ttLib/tables/_n_a_m_e.py (9), Lib/fontTools/ttLib/tables/_p_o_s_t.py (1), Lib/fontTools/ttLib/tables/_v_h_e_a.py (1), Lib/fontTools/ttLib/tables/otBase.py (10), Lib/fontTools/ttLib/tables/otConverters.py (8), Lib/fontTools/ttLib/tables/otTables.py (2), Lib/fontTools/ttLib/tables/ttProgram.py (1), Lib/fontTools/ttLib/ttFont.py (16), Lib/fontTools/varLib/instancer/__init__.py (11), Lib/fontTools/varLib/instancer/names.py (8)
+  - .emi/laws/test_stat_v10_names_test.py: old tests import what its new rules are about: Tests/designspaceLib/designspace_test.py, Tests/merge/merge_test.py, Tests/otlLib/builder_test.py, Tests/otlLib/contextual_overflow_test.py, Tests/pens/ttGlyphPen_test.py and 7 more. If the task changes how they behave, the person lists them as expected changes
+
+Ready for a person: show them the rules above; `emi rules approve` approves and commits them.
