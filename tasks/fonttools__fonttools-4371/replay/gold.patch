@@ -1,0 +1,18 @@
+diff --git a/Lib/fontTools/varLib/instancer/names.py b/Lib/fontTools/varLib/instancer/names.py
+index f9454688e..a5e11cde8 100644
+--- a/Lib/fontTools/varLib/instancer/names.py
++++ b/Lib/fontTools/varLib/instancer/names.py
+@@ -206,7 +206,12 @@ def _updateNameRecords(varfont, axisValues):
+     axisValueNameIDs = [a.ValueNameID for a in axisValues]
+     ribbiNameIDs = [n for n in axisValueNameIDs if _isRibbi(nametable, n)]
+     nonRibbiNameIDs = [n for n in axisValueNameIDs if n not in ribbiNameIDs]
+-    elidedNameID = stat.ElidedFallbackNameID
++    # STAT 1.0 has no elided fallback name; use the existing subfamily name.
++    elidedNameID = (
++        stat.ElidedFallbackNameID
++        if stat.Version >= 0x00010001
++        else NameID.SUBFAMILY_NAME
++    )
+     elidedNameIsRibbi = _isRibbi(nametable, elidedNameID)
+ 
+     getName = nametable.getName

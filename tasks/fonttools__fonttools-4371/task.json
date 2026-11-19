@@ -1,0 +1,47 @@
+{
+  "base_commit": "1ca5f7702d7ce019bc2f5b9d6183565ee3791c5a",
+  "created_at": "2026-10-27T15:35:44Z",
+  "install": [
+    "pip install -q -e .",
+    "pip install -q pytest"
+  ],
+  "install_from": "default",
+  "issue": 2933,
+  "kind": "git",
+  "license": null,
+  "oracle": {
+    "fail_to_pass": [
+      "Tests/varLib/instancer/names_test.py::test_updateNameTable_stat_version_1_0"
+    ],
+    "pass_to_pass": [
+      "Tests/varLib/instancer/names_test.py::test_name_irrelevant_axes",
+      "Tests/varLib/instancer/names_test.py::test_pruningUnusedNames",
+      "Tests/varLib/instancer/names_test.py::test_updateNameTable_elided_axisValues",
+      "Tests/varLib/instancer/names_test.py::test_updateNameTable_existing_subfamily_name_is_not_regular",
+      "Tests/varLib/instancer/names_test.py::test_updateNameTable_format4_axisValues",
+      "Tests/varLib/instancer/names_test.py::test_updateNameTable_missing_axisValues",
+      "Tests/varLib/instancer/names_test.py::test_updateNameTable_missing_stat",
+      "Tests/varLib/instancer/names_test.py::test_updateNameTable_vf_with_italic_attribute[limits0-expected0-False]",
+      "Tests/varLib/instancer/names_test.py::test_updateNameTable_vf_with_italic_attribute[limits1-expected1-True]",
+      "Tests/varLib/instancer/names_test.py::test_updateNameTable_with_multilingual_names[limits0-expected0-False]",
+      "Tests/varLib/instancer/names_test.py::test_updateNameTable_with_multilingual_names[limits1-expected1-True]",
+      "Tests/varLib/instancer/names_test.py::test_updateNameTable_with_multilingual_names[limits2-expected2-True]",
+      "Tests/varLib/instancer/names_test.py::test_updateNameTable_with_registered_axes_ribbi[limits0-expected0-False]",
+      "Tests/varLib/instancer/names_test.py::test_updateNameTable_with_registered_axes_ribbi[limits1-expected1-False]",
+      "Tests/varLib/instancer/names_test.py::test_updateNameTable_with_registered_axes_ribbi[limits2-expected2-True]",
+      "Tests/varLib/instancer/names_test.py::test_updateNameTable_with_registered_axes_ribbi[limits3-expected3-True]",
+      "Tests/varLib/instancer/names_test.py::test_updateNameTable_with_registered_axes_ribbi[limits4-expected4-True]",
+      "Tests/varLib/instancer/names_test.py::test_updateNameTable_with_registered_axes_ribbi[limits5-expected5-True]",
+      "Tests/varLib/instancer/names_test.py::test_updateNameTable_with_registered_axes_ribbi[limits6-expected6-True]",
+      "Tests/varLib/instancer/names_test.py::test_updatetNameTable_axis_order"
+    ]
+  },
+  "prompt": "varlib instancer fails on Version 1.0 STAT tables\n\nI have a varLib.instancer script that I'm running to produce instances on a variety of fonts, but found that the script fails to updateFontNames when the STAT table is set to version 1.0, specifically due to the lack of the ElidedFallbackNameID field. \r\n\r\nI tracked the issue down to names.py where\r\n```\r\n        if not all(getName(i, *platform) for i in (1, 2, elidedNameID)):\r\n            # Since no family name and subfamily name records were found,\r\n            # we cannot update this set of name Records.\r\n            continue\r\n```\r\nWhen ElidedFallbackNameID is missing, a elidedNameID value of 30564 is assigned, which is (obviously) not found in the font. Therefore, the above check fails and the font names are not updated. \r\n\r\nI've \"fixed\" the issue by inserting a check for this abnormal elidedNameID value into line 205 that defaults it to use the font's subFamilyName instead:\r\n\r\n```\r\n    axisValueNameIDs = [a.ValueNameID for a in axisValues]\r\n    ribbiNameIDs = [n for n in axisValueNameIDs if _isRibbi(nametable, n)]\r\n    nonRibbiNameIDs = [n for n in axisValueNameIDs if n not in ribbiNameIDs]\r\n    elidedNameID = stat.ElidedFallbackNameID\r\n\r\n    if elidedNameID == 30564:\r\n        elidedNameID = 2\r\n\r\n    elidedNameIsRibbi = _isRibbi(nametable, elidedNameID)\r\n```\r\n\r\nWith this correction, the font instances export and the individual instances have corrected font names. While Version 1.0 STAT tables are not very common, it would be good to have a check in the script to make sure this doesn't happen.",
+  "pull": 4371,
+  "python": "3.11",
+  "repo": "fonttools/fonttools",
+  "source": "github-pr",
+  "test_files": [
+    "Tests/varLib/instancer/names_test.py"
+  ]
+}
