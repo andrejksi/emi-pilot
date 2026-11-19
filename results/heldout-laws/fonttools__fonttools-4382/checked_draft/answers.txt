@@ -1,0 +1,3 @@
+A1 written: kind is fix - IUP optimisation must decide point and delta equality the way render time does, on rounded (int) points and deltas, so fractional parts must not change those equality decisions.
+A2 written: either remedy is acceptable - accept only integers (refusing or never receiving fractional input) or round inside iup.py for equality tests while keeping fractional parts for tolerance calculations; which one doesn't matter.
+A3 written: optimising already-integer points and deltas keeps working as before (backwards compatibility); no other concrete examples, refusals or edges are stated, so they don't matter.

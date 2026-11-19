@@ -1,0 +1,37 @@
+Rules check: stop. Not checked: none.
+
+.emi/laws/test_iup_int_equality_test.py
+  Example, new behaviour: deltas (1.2,0), (0.9,0), (1.1,0) all round to (1,0), so the optimiser treats them as equal and keeps only the first (or refuses fractional input) (A1, A2).
+      assert result == "refused" or result[1:] == [None, None]
+      -> fails on the current code: AssertionError: assert ([(1.2, 0), (0.9, 0), (1.1, 0)] == 'refused' or [(0.9, 0), (1.1, 0)] == [None, None]
+At index 0 diff: (0.9, 0) != None
+Use -v to get more diff)
+  Example, new behaviour: points (1.6,0) and (2,2) share x 2 after rounding, so the optimiser can infer two of four deltas as it would for the rounded points (or refuses fractional input) (A1, A2).
+      assert result == "refused" or result.count(None) == 2
+      -> fails on the current code: AssertionError: assert ([(0, 0), (1, 0), (0, 0), (2, 0)] == 'refused' or 0 == 2)
++  where 0 = <built-in method count of list object at 0x…>(None)
++    where <built-in method count of list object at 0x…> = [(0, 0), (1, 0), (0, 0), (2, 0)].co …
+
+.emi/laws/test_iup_int_guard_test.py
+  Example, guard: optimising integer deltas (1,0),(1,0),(1,0) keeps only the first, as before (A3).
+      assert iup_contour_optimize([(1, 0), (1, 0), (1, 0)], [(0, 0), (10, 0), (20, 5)], 0) == [(1, 0), None, None]
+      -> holds on the current code
+  Example, guard: integer points (0,2),(2,0),(1,1),(2,2) with deltas (0,0),(1,0),(0,0),(2,0) still encode only the second and fourth delta (A3).
+      assert iup_delta_optimize(deltas, coords, [3])[:4] == [None, (1, 0), None, (2, 0)]
+      -> holds on the current code
+
+Answers (proposed: approving the rules agrees to them):
+  - A1 (written by the person): kind is fix - IUP optimisation must decide point and delta equality the way render time does, on rounded (int) points and deltas, so fractional parts must not change those equality decisions.
+  - A2 (written by the person): either remedy is acceptable - accept only integers (refusing or never receiving fractional input) or round inside iup.py for equality tests while keeping fractional parts for tolerance calculations; which one doesn't matter.
+  - A3 (written by the person): optimising already-integer points and deltas keeps working as before (backwards compatibility); no other concrete examples, refusals or edges are stated, so they don't matter.
+
+Also proposed:
+  - .emi/laws/answers.txt (not a rule file)
+
+Not this feature's concern (proposed: approving the rules agrees to it):
+  - Lib/fontTools/varLib/iup.py::_iup_contour_bound_forced_set: the issue is about rounding for equality decisions, not about the forced-set speed-up, which is internal and already covered by Tests/varLib/iup_test.py
+
+Noted (blocks nothing):
+  - .emi/laws/test_iup_int_guard_test.py still passes when Lib/fontTools/varLib/iup.py::_iup_contour_bound_forced_set returns `set()`, which the proposed NOT-THIS-FEATURE says is not this feature's concern (it counts once the person approves it with the rules): not sent back.
+
+Ready for a person: show them the rules above; `emi rules approve` approves and commits them.
