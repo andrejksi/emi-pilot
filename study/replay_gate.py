@@ -120,12 +120,15 @@ def classify_emi_cause(receipt: dict[str, Any] | None, record: dict[str, Any]) -
                     return "incomplete:not_verified"
         return "incomplete"
     if receipt:
+        laws = receipt.get("laws") or {}
+        if isinstance(laws, dict):
+            if laws.get("broken"):
+                return "laws_broken"
+            if laws.get("unmet") or laws.get("failed"):
+                return "laws_unmet"
         rule = receipt.get("rule")
         if rule and rule != "none":
             return str(rule)
-        laws = receipt.get("laws") or {}
-        if isinstance(laws, dict) and (laws.get("failed") or laws.get("broken")):
-            return "laws"
         if receipt.get("regression"):
             return "regression"
         if receipt.get("changed_old_tests"):
@@ -234,6 +237,20 @@ def build_base_tree(
                 code, out = run(["git", "apply", "--binary", str(patch)], cwd=dst, env=GIT_ENV)
                 if code != 0:
                     raise RuntimeError(f"ceiling hidden patch failed to apply: {out[-500:]}")
+            f2p = (task.get("oracle") or {}).get("fail_to_pass") or []
+            if f2p:
+                laws_dir = dst / plain_check.LAWS
+                laws_dir.mkdir(parents=True, exist_ok=True)
+                law_src = (
+                    '"""Ceiling: the task\'s hidden fail_to_pass tests as laws."""\n'
+                    "import subprocess, sys\n\n"
+                    f"TESTS = {f2p!r}\n\n"
+                    "def test_hidden_fail_to_pass():\n"
+                    '    """New: all hidden fail_to_pass tests must pass."""\n'
+                    '    res = subprocess.run([sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider", *TESTS])\n'
+                    "    assert res.returncode == 0\n"
+                )
+                (laws_dir / "test_ceiling_hidden.py").write_text(law_src, encoding="utf-8")
         git(dst, "add", "-A")
         git(dst, "commit", "-q", "--no-verify", "-m", "ceiling: hidden tests as laws")
         git(dst, "branch", "-f", "main", "HEAD")
