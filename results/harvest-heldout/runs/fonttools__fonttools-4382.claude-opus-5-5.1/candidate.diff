@@ -1,0 +1,108 @@
+diff --git a/Lib/fontTools/varLib/iup.py b/Lib/fontTools/varLib/iup.py
+index a53de40..ddd8823 100644
+--- a/Lib/fontTools/varLib/iup.py
++++ b/Lib/fontTools/varLib/iup.py
+@@ -11,6 +11,7 @@ from typing import (
+     Union,
+ )
+ from numbers import Integral, Real
++from fontTools.misc.roundTools import otRound
+ 
+ _Point = Tuple[Real, Real]
+ _Delta = Tuple[Real, Real]
+@@ -359,16 +360,36 @@ def _rot_set(s: set, k: int, n: int):
+     return {(v + k) % n for v in s}
+ 
+ 
++def _round_points(points: Sequence[Tuple[Real, Real]]) -> list:
++    """Round each (x, y) pair to integers, the way the font stores them.
++
++    IUP optimization decides which deltas can be dropped by comparing point
++    coordinates and deltas (e.g. "are these two points at the same x?").
++    At render time, both coordinates and deltas are integers, so those
++    comparisons must be made on rounded values here too; otherwise a delta
++    may be dropped on the strength of a difference that rounding erases.
++    See https://github.com/fonttools/fonttools/issues/3634
++    """
++    return [(otRound(x), otRound(y)) for x, y in points]
++
++
+ def iup_contour_optimize(
+     deltas: _DeltaSegment, coords: _PointSegment, tolerance: Real = 0.0
+ ) -> _DeltaOrNoneSegment:
+     """For contour with coordinates `coords`, optimize a set of delta
+     values `deltas` within error `tolerance`.
+ 
++    Coordinates and deltas are rounded to integers (using ``otRound``) before
++    optimizing, since that is how they are compared when interpolated at
++    render time; the returned deltas are therefore integers too.
++
+     Returns delta vector that has most number of None items instead of
+     the input delta.
+     """
+ 
++    deltas = _round_points(deltas)
++    coords = _round_points(coords)
++
+     n = len(deltas)
+ 
+     # Get the easy cases out of the way:
+@@ -470,6 +491,9 @@ def iup_delta_optimize(
+     in sorted increasing order in `ends`, optimize a set of delta
+     values `deltas` within error `tolerance`.
+ 
++    Coordinates and deltas are rounded to integers before optimizing (see
++    :func:`iup_contour_optimize`); the returned deltas are integers.
++
+     Returns delta vector that has most number of None items instead of
+     the input delta.
+     """
+diff --git a/Tests/varLib/iup_test.py b/Tests/varLib/iup_test.py
+index 36f63e0..7bec3a8 100644
+--- a/Tests/varLib/iup_test.py
++++ b/Tests/varLib/iup_test.py
+@@ -118,6 +118,44 @@ class IupTest:
+         assert chain1 == chain2, f
+         assert costs1 == costs2, f
+ 
++    def test_optimize_compares_rounded_coords(self):
++        # Points 2, 3 and 4 all render at x=10, but differ before rounding.
++        # Point 3's delta can be interpolated from its neighbours' using the
++        # unrounded coordinates, but not with the rounded ones that are used
++        # at render time (equal x with unequal deltas interpolates to zero),
++        # so it must stay explicit.
++        coords = [(10.4, 0), (10.2, 0), (10.4, 0), (10.2, 30), (10.2, 30)]
++        deltas = [(3, 0), (0, 0), (0, 0), (1, 0), (1, 0)]
++
++        optimized = iup.iup_contour_optimize(deltas, coords)
++
++        assert optimized[3] is not None
++        rounded_coords = [(round(x), round(y)) for x, y in coords]
++        assert iup.iup_contour(optimized, rounded_coords) == deltas
++        assert optimized == iup.iup_contour_optimize(deltas, rounded_coords)
++
++    @pytest.mark.parametrize(
++        "deltas, coords",
++        [
++            ([(5.4, 0.6), (5.4, 0.6)], [(0, 0), (1, 1)]),
++            ([(4.6, 1.4), (5.4, 0.6)], [(0, 0), (1, 1)]),
++            ([(1.5, -1.5), (2.5, 3.2), (0.4, 0.4)], [(0.2, 0.6), (5.5, 1), (2, 2)]),
++        ],
++    )
++    def test_optimize_rounds_inputs(self, deltas, coords):
++        def rounded(points):
++            return [(iup.otRound(x), iup.otRound(y)) for x, y in points]
++
++        expected = iup.iup_contour_optimize(rounded(deltas), rounded(coords))
++
++        assert iup.iup_contour_optimize(deltas, coords) == expected
++        assert iup.iup_delta_optimize(
++            deltas + [(0, 0)] * 4, coords + [(0, 0)] * 4, [len(coords) - 1]
++        ) == expected + [None] * 4
++        for d in expected:
++            if d is not None:
++                assert all(isinstance(v, int) for v in d)
++
+ 
+ if __name__ == "__main__":
+     sys.exit(pytest.main(sys.argv))
