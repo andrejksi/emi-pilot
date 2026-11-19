@@ -1,0 +1,4 @@
+A1 written: kind is fix: BgzfWriter must not raise struct.error or RuntimeError on incompressible data (e.g. random bytes); writing random.Random(42).randbytes(65536) then close() must succeed.
+A2 written: writing randbytes(65500) of random data then close() must succeed instead of raising struct.error.
+A3 written: block sizes of about 65,491 to 65,536 bytes of random data currently fail and must be written without error.
+A4 written: whether the fix uses a smaller fixed block size or a retry approach doesn't matter.

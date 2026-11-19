@@ -1,0 +1,1 @@
+src/smolagents/models.py::get_clean_message_list: the issue only asks that the consecutive system messages be accepted without error and both instructions reach the model; how (or whether) they are merged is not stated, so passing them through unchanged is acceptable for this task

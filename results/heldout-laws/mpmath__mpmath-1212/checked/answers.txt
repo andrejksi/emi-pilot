@@ -1,0 +1,3 @@
+A1 written: kind is fix: fp.besselyzero(2, 1) raises ZeroDivisionError but must return the 1st positive zero of Y_2, matching mp.besselyzero(2, 1) = 3.3842417671495935.
+A2 written: mp.besselyzero(2, 1) returns mpf('3.3842417671495935') and must keep doing so.
+A3 written: anything else (other orders, zeros, precision) doesn't matter.

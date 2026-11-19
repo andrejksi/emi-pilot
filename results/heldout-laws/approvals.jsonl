@@ -1,0 +1,28 @@
+{"approver": "primary", "decision": "approve_all", "dropped_files": [], "kept_files": ["ANSWERS", "answers.txt", "test_incompressible.py"], "minutes": 2.3, "task": "biopython__biopython-5404"}
+{"approver": "primary", "decision": "approve_all", "dropped_files": [], "kept_files": ["ANSWERS", "answers.txt", "test_no_tzdata_import.py"], "minutes": 2.3, "task": "celery__kombu-2843"}
+{"approver": "primary", "decision": "approve_all", "dropped_files": [], "kept_files": ["ANSWERS", "answers.txt", "test_both_launchers.py"], "minutes": 2.3, "task": "conan-io__conan-19649"}
+{"approver": "primary", "decision": "approve_all", "dropped_files": [], "kept_files": ["ANSWERS", "NOT-THIS-FEATURE", "answers.txt", "test_extract_complete.py"], "minutes": 2.3, "task": "cs-si__eodag-2395"}
+{"approver": "primary", "decision": "approve_all", "dropped_files": [], "kept_files": ["ANSWERS", "answers.txt", "test_date_validity.py"], "minutes": 2.3, "task": "cs-si__eodag-2435"}
+{"approver": "primary", "decision": "approve_all", "dropped_files": [], "kept_files": ["ANSWERS", "answers.txt", "conftest.py", "test_mpc_filter_date.py"], "minutes": 2.3, "task": "cs-si__eodag-2441"}
+{"approver": "primary", "decision": "approve_all", "dropped_files": [], "kept_files": ["ANSWERS", "answers.txt", "test_stat_guards_test.py", "test_stat_v10_names_test.py"], "minutes": 2.3, "task": "fonttools__fonttools-4371"}
+{"approver": "primary", "decision": "approve_all", "dropped_files": [], "kept_files": ["ANSWERS", "NOT-THIS-FEATURE", "answers.txt", "test_iup_int_equality_test.py", "test_iup_int_guard_test.py"], "minutes": 2.3, "task": "fonttools__fonttools-4382"}
+{"approver": "primary", "decision": "approve_all", "dropped_files": [], "kept_files": ["ANSWERS", "NOT-THIS-FEATURE", "answers.txt", "test_cff2_ttx_glyphset_test.py"], "minutes": 2.3, "task": "fonttools__fonttools-4388"}
+{"approver": "primary", "decision": "approve_all", "dropped_files": [], "kept_files": ["ANSWERS", "answers.txt", "test_bucket_copy_move.py"], "minutes": 2.3, "task": "huggingface__huggingface_hub-5080"}
+{"approver": "primary", "decision": "approve_all", "dropped_files": [], "kept_files": ["ANSWERS", "NOT-THIS-FEATURE", "answers.txt", "test_stream_file_write_modes.py"], "minutes": 2.3, "task": "huggingface__huggingface_hub-5287"}
+{"approver": "primary", "decision": "approve_all", "dropped_files": [], "kept_files": ["ANSWERS", "NOT-THIS-FEATURE", "answers.txt", "test_consecutive_system_messages.py"], "minutes": 2.3, "task": "huggingface__smolagents-2356"}
+{"approver": "primary", "decision": "approve_all", "dropped_files": [], "kept_files": ["ANSWERS", "answers.txt", "tests/test_cnpj_guards.py", "tests/test_numeric_root_repeats.py"], "minutes": 2.3, "task": "joke2k__faker-2446"}
+{"approver": "primary", "decision": "approve_all", "dropped_files": [], "kept_files": ["ANSWERS", "answers.txt", "test_gammainc_negative_upper.py"], "minutes": 2.3, "task": "mpmath__mpmath-1210"}
+{"approver": "primary", "decision": "approve_all", "dropped_files": [], "kept_files": ["ANSWERS", "answers.txt", "test_fp_besselyzero.py"], "minutes": 2.3, "task": "mpmath__mpmath-1212"}
+{"approver": "primary", "decision": "approve_all", "dropped_files": [], "kept_files": ["ANSWERS", "answers.txt", "test_zeta_far_right_imag.py"], "minutes": 2.3, "task": "mpmath__mpmath-1217"}
+{"approver": "primary", "decision": "approve_all", "dropped_files": [], "kept_files": ["ANSWERS", "answers.txt", "test_capacity_scaling_unfeasible.py"], "minutes": 2.3, "task": "networkx__networkx-8936"}
+{"approver": "primary", "decision": "approve_all", "dropped_files": [], "kept_files": ["ANSWERS", "answers.txt", "test_wl_directed_edge_labels.py"], "minutes": 2.3, "task": "networkx__networkx-8946"}
+{"approver": "primary", "decision": "approve_all", "dropped_files": [], "kept_files": ["ANSWERS", "answers.txt", "test_int_label_values.py"], "minutes": 2.3, "task": "prometheus__client_python-1221"}
+{"approver": "primary", "decision": "approve_all", "dropped_files": [], "kept_files": ["ANSWERS", "answers.txt", "test_heading_comment_prefix.py"], "minutes": 2.3, "task": "pycqa__isort-2789"}
+{"approver": "primary", "decision": "approve_all", "dropped_files": [], "kept_files": ["ANSWERS", "answers.txt", "test_nested_dict_json_decode.py"], "minutes": 2.3, "task": "pydantic__pydantic-settings-1109"}
+{"approver": "primary", "decision": "approve_all", "dropped_files": [], "kept_files": ["ANSWERS", "NOT-THIS-FEATURE", "answers.txt", "test_arbitrary_equality_requirement.py"], "minutes": 2.3, "task": "pypa__packaging-1531"}
+{"approver": "primary", "decision": "reject_all", "dropped_files": ["ANSWERS", "answers.txt", "test_sqlite_int_division_to_duckdb.py"], "kept_files": [], "minutes": 2.3, "task": "tobymao__sqlglot-9180"}
+{"approver": "primary", "decision": "approve_all", "dropped_files": [], "kept_files": ["ANSWERS", "_duck_eval.py", "answers.txt", "test_sqlite_length_nul.py"], "minutes": 2.3, "task": "tobymao__sqlglot-9182"}
+{"approver": "primary", "decision": "approve_all", "dropped_files": [], "kept_files": ["ANSWERS", "answers.txt", "test_sqlite_negative_limit.py"], "minutes": 2.3, "task": "tobymao__sqlglot-9207"}
+{"approver": "primary", "decision": "reject_all", "dropped_files": ["ANSWERS", "answers.txt", "test_circlerefs_stderr.py"], "kept_files": [], "minutes": 2.3, "task": "tornadoweb__tornado-3880"}
+{"approver": "primary", "decision": "approve_all", "dropped_files": [], "kept_files": ["ANSWERS", "answers.txt", "test_temp_load_closes_file.py"], "minutes": 2.3, "task": "uqfoundation__dill-850"}
+{"approver": "primary", "decision": "approve_all", "dropped_files": [], "kept_files": ["ANSWERS", "answers.txt", "test_temp_dump_failure_closes.py"], "minutes": 2.3, "task": "uqfoundation__dill-852"}

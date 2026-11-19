@@ -1,0 +1,2 @@
+src/huggingface_hub/hf_file_system.py::_tokenize: instance caching/tokenization of HfFileSystem is not this task's concern; the issue only concerns which modes the streaming file accepts
+src/huggingface_hub/hf_file_system.py::__del__: file cleanup on garbage collection is not this task's concern; the issue only concerns which modes the streaming file accepts

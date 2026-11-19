@@ -1,0 +1,3 @@
+A1 written: kind is fix: zeta(50+5j) returns imaginary part 2.8288190741413715e-16 but the correct value (Mathematica) is 2.82881957300551842714082e-16; zeta must be accurate in the imaginary part in the far right half-plane.
+A2 written: direct summation 1+1/2**x+1/3**x+1/4**x+1/5**x at x=50+5j gives (0.9999999999999991+2.8288195730055187e-16j), which zeta(x) should agree with.
+A3 written: anything else (other points, precisions, speed) doesn't matter.

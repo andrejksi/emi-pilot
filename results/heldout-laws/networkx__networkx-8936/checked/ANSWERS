@@ -1,0 +1,4 @@
+A1 written: kind is fix: capacity_scaling on a DiGraph with node 0 demand 1, node 1 demand -1 and edge 1->0 capacity 0 weight 1 returns (0, {0: {}, 1: {0: 0}}) but must raise NetworkXUnfeasible, as network_simplex and min_cost_flow already do.
+A2 written: a graph with the same two demands and no edges at all must also raise NetworkXUnfeasible from capacity_scaling.
+A3 written: network_simplex and min_cost_flow raise NetworkXUnfeasible on the first graph (correct) and must keep doing so.
+A4 written: anything else doesn't matter.

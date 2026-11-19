@@ -1,0 +1,3 @@
+A1 written: kind is fix: passing ints as label values to GaugeMetricFamily.add_metric / CounterMetricFamily.add_metric makes export (generate_latest) fail with AttributeError: 'int' object has no attribute 'replace'; the values must be coerced to strings, as was done for #18, so export works as if str() had been wrapped around them.
+A2 written: wrapping str() around the label values already works and must keep working.
+A3 written: anything else (other metric families, error type for unconvertible values) doesn't matter.

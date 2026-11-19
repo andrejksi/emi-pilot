@@ -1,0 +1,1 @@
+Lib/fontTools/varLib/iup.py::_iup_contour_bound_forced_set: the issue is about rounding for equality decisions, not about the forced-set speed-up, which is internal and already covered by Tests/varLib/iup_test.py

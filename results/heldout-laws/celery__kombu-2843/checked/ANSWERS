@@ -1,0 +1,3 @@
+A1 written: kind is fix: `import kombu.asynchronous` must succeed on a host with no OS time zone data and no tzdata package (simulated with PYTHONTZPATH pointing at an empty dir), as it did in kombu 5.6.2; today it raises ZoneInfoNotFoundError 'No time zone found with key UTC'.
+A2 written: proposed fix: remove the need for a timezone database in kombu/asynchronous/timer.py by using datetime.timezone.utc, i.e. EPOCH = datetime.fromtimestamp(0, timezone.utc) and to_timestamp(d, default_timezone=timezone.utc, time=monotonic); naive datetimes keep being treated as UTC by default.
+A3 written: anything else (refusals, other edges) is not stated: doesn't matter.

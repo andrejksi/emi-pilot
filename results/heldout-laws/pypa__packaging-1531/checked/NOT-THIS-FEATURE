@@ -1,0 +1,3 @@
+src/packaging/specifiers.py::_get_spec_version: internal version-caching helper of Specifier; the issue is about requirement-string tokenizing, not specifier version handling.
+src/packaging/specifiers.py::_require_spec_version: internal version-validation helper of Specifier; not touched by the requirement tokenizer fix.
+src/packaging/specifiers.py::__hash__: Specifier hashing is not this task's concern; the issue is about Requirement parsing.

@@ -1,0 +1,2 @@
+A1 written: kind is fix: weisfeiler_lehman_graph_hash on a directed graph with edge_attr must keep the successor/predecessor distinction, so the outward star DiGraph([(0, 1), (0, 2)]) and the inward star DiGraph([(1, 0), (2, 0)]), with every edge label "e", must get different hashes.
+A2 written: anything else (exact hash strings, other functions) doesn't matter.

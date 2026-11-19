@@ -81,22 +81,26 @@ def resolve_law_dirs(
     elif approved_laws is not None and not has_law_files(approved_laws):
         approved_laws = None
 
-    if unapproved_primary is None and task_root:
-        cand = task_root / "first"
-        unapproved_primary = cand if has_law_files(cand) else None
-    elif unapproved_primary is not None and not has_law_files(unapproved_primary):
-        unapproved_primary = None
-
-    if unapproved_secondary is None and task_root:
-        cand = task_root / "secondary"
-        unapproved_secondary = cand if has_law_files(cand) else None
-    elif unapproved_secondary is not None and not has_law_files(unapproved_secondary):
-        unapproved_secondary = None
-
     checked_draft = None
     if task_root:
         cand = task_root / "checked_draft"
         checked_draft = cand if has_law_files(cand) else None
+
+    if unapproved_primary is None and task_root:
+        if checked_draft is not None:
+            unapproved_primary = checked_draft
+        else:
+            cand = task_root / "first"
+            unapproved_primary = cand if has_law_files(cand) else None
+    elif unapproved_primary is not None and not has_law_files(unapproved_primary):
+        unapproved_primary = None
+
+    if unapproved_secondary is None and task_root:
+        sec_checked = task_root / "secondary_checked"
+        cand = sec_checked if has_law_files(sec_checked) else (task_root / "secondary")
+        unapproved_secondary = cand if has_law_files(cand) else None
+    elif unapproved_secondary is not None and not has_law_files(unapproved_secondary):
+        unapproved_secondary = None
 
     return {
         "approved": approved_laws,
