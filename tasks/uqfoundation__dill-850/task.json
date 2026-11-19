@@ -1,0 +1,38 @@
+{
+  "base_commit": "9eb74cbd2e43ed57d1289a755dd9e39697c8618a",
+  "created_at": "2026-11-14T21:00:03Z",
+  "install": [
+    "pip install -q -e .",
+    "pip install -q pytest"
+  ],
+  "install_from": "default",
+  "issue": 849,
+  "kind": "git",
+  "license": null,
+  "oracle": {
+    "fail_to_pass": [
+      "dill/tests/test_temp.py::test_load_closes_internal_file"
+    ],
+    "pass_to_pass": [
+      "dill/tests/test_temp.py::test_buffer_pickle_protocol",
+      "dill/tests/test_temp.py::test_buffer_unpickle_encoding",
+      "dill/tests/test_temp.py::test_buffer_unpickle_errors",
+      "dill/tests/test_temp.py::test_code_to_stream",
+      "dill/tests/test_temp.py::test_code_to_tempfile",
+      "dill/tests/test_temp.py::test_invalid_source_marker",
+      "dill/tests/test_temp.py::test_one_arg_functions",
+      "dill/tests/test_temp.py::test_pickle_to_stream",
+      "dill/tests/test_temp.py::test_pickle_to_tempfile",
+      "dill/tests/test_temp.py::test_two_arg_functions",
+      "dill/tests/test_temp.py::test_unicode_source_aliases"
+    ]
+  },
+  "prompt": "temp.load retains file descriptors after failed loads\n\n`dill.temp.load` opens its own input file and passes it to `dill.load` without closing it. If deserialization fails and the exception is retained, the traceback retains that input file and its descriptor. Repeated failed loads in a worker can exhaust the descriptor limit.\n\nReproduced on current master with CPython 3.14.6 on Linux. This creates 20 additional open descriptors while keeping the exceptions.\n\n```python\nfrom pathlib import Path\nimport dill.temp\n\npath = Path(\"invalid.pkl\")\npath.write_bytes(b\"not a pickle\")\nerrors = []\nbefore = len(list(Path(\"/proc/self/fd\").iterdir()))\nfor _ in range(20):\n    try:\n        dill.temp.load(str(path))\n    except Exception as error:\n        errors.append(error)\nprint(len(list(Path(\"/proc/self/fd\").iterdir())) - before)\n```\n\nThe output is `20`. The helper should close the file it opens on both success and failure while preserving the original loading exception. This concerns the helper-owned file, rather than files supplied directly to `dill.load`.",
+  "pull": 850,
+  "python": "3.11",
+  "repo": "uqfoundation/dill",
+  "source": "github-pr",
+  "test_files": [
+    "dill/tests/test_temp.py"
+  ]
+}
