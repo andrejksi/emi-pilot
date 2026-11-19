@@ -1,0 +1,49 @@
+diff --git a/src/huggingface_hub/hf_file_system.py b/src/huggingface_hub/hf_file_system.py
+index ca64a61..06876a3 100644
+--- a/src/huggingface_hub/hf_file_system.py
++++ b/src/huggingface_hub/hf_file_system.py
+@@ -1662,7 +1662,10 @@ class HfFileSystemStreamFile(fsspec.spec.AbstractBufferedFile):
+             raise ValueError(f"HfFileSystemStreamFile only supports block_size=0 but got {block_size}")
+         if cache_type != "none":
+             raise ValueError(f"HfFileSystemStreamFile only supports cache_type='none' but got {cache_type}")
+-        if "w" in mode:
++        # Only plain reading is supported: fsspec normalizes "r"/"rt" to "rb" before `_open`, and any
++        # writable mode ("wb", "xb", ...) would otherwise accept writes and silently drop them, since
++        # this class inherits fsspec's no-op upload methods.
++        if mode != "rb":
+             raise ValueError(f"HfFileSystemStreamFile only supports reading but got mode='{mode}'")
+         # Let a missing repo/revision/file surface as FileNotFoundError (as the buffered
+         # `HfFileSystemFile` does) instead of an AttributeError on `self.resolved_path` below.
+diff --git a/tests/test_hf_file_system.py b/tests/test_hf_file_system.py
+index c87f8ec..9eaffd1 100644
+--- a/tests/test_hf_file_system.py
++++ b/tests/test_hf_file_system.py
+@@ -894,6 +894,28 @@ def test_stream_file_open_if_not_found():
+             HfFileSystemStreamFile(fs, "hf://missing/repo/not_existing_file.txt")
+ 
+ 
++@pytest.mark.parametrize("mode", ["w", "wb", "x", "xb", "r+b", "w+b"])
++@pytest.mark.parametrize("instance_block_size", [False, True])
++@pytest.mark.parametrize("path", ["username/my_model/file.txt", "buckets/username/my_bucket/file.txt"])
++def test_stream_file_rejects_write_modes(mode: str, instance_block_size: bool, path: str):
++    # Regression test: streaming files (block_size=0) are read-only. Writable modes, including
++    # exclusive-create ("x"/"xb"), must raise instead of silently dropping the written data.
++    fs = HfFileSystem(block_size=0) if instance_block_size else HfFileSystem()
++    open_kwargs = {} if instance_block_size else {"block_size": 0}
++    with (
++        mock_repo_info(fs),
++        mock_bucket_info(fs),
++        patch.object(fs, "resolve_path") as mock_resolve_path,
++        patch.object(fs._api, "upload_file") as mock_upload_file,
++        patch.object(fs._api, "batch_bucket_files") as mock_batch_bucket_files,
++    ):
++        with pytest.raises(ValueError, match="only supports reading"):
++            fs.open(path, mode, **open_kwargs)
++    mock_resolve_path.assert_not_called()
++    mock_upload_file.assert_not_called()
++    mock_batch_bucket_files.assert_not_called()
++
++
+ def test_repo_operations_in_transaction_not_supported():
+     # Repo writes, deletes and copies must not create commits inside a transaction
+     fs = HfFileSystem()

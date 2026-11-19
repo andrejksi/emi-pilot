@@ -1,0 +1,16 @@
+diff --git a/tornado/test/circlerefs_test.py b/tornado/test/circlerefs_test.py
+index fad8136..44ddbe4 100644
+--- a/tornado/test/circlerefs_test.py
++++ b/tornado/test/circlerefs_test.py
+@@ -173,6 +173,11 @@ class CircleRefsTest(TestCase):
+             await client.fetch(f"http://127.0.0.1:{port}/", **fetch_kwargs)
+         client.close()
+         server.stop()
++        # Clients (notably curl_httpclient) may keep connections alive after
++        # the fetch completes. Close the server side of those connections
++        # explicitly so their sockets are not left to be cleaned up by the
++        # garbage collector (which emits a ResourceWarning).
++        await server.close_all_connections()
+         socket.close()
+ 
+     def test_sync_handler(self):

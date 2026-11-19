@@ -1,0 +1,54 @@
+diff --git a/mpmath/functions/bessel.py b/mpmath/functions/bessel.py
+index f6c3da5..63ce5ff 100644
+--- a/mpmath/functions/bessel.py
++++ b/mpmath/functions/bessel.py
+@@ -153,9 +153,24 @@ def bessely(ctx, n, z, derivative=0, *, eliminate=True, eliminate_all=False,
+             return ctx.inf + (n+z)
+         else:
+             return ctx.ninf + (n+z)
++    m, d = ctx.nint_distance(n)
++    if d < 0 and ctx._fixed_precision:
++        # The formula below cancels catastrophically for (nearly) integer
++        # orders and needs extra working precision to recover; a
++        # fixed-precision context cannot provide it (for an exact integer
++        # order sin(pi*n) is even exactly zero), so evaluate with
++        # arbitrary precision and convert back.
++        mp = ctx._mp
++        with mp.workprec(ctx.prec):
++            v = mp.bessely(n, z, derivative, eliminate=eliminate,
++                           eliminate_all=eliminate_all,
++                           force_series=force_series, asymp_tol=asymp_tol,
++                           maxprec=maxprec, maxterms=maxterms,
++                           zeroprec=zeroprec, infprec=infprec,
++                           verbose=verbose)
++        return ctx.convert(v)
+     # XXX: use hypercomb
+     ctx.prec += 10
+-    m, d = ctx.nint_distance(n)
+     if d < -ctx.prec:
+         h = +ctx.eps
+         ctx.prec *= 2
+diff --git a/mpmath/tests/test_functions2.py b/mpmath/tests/test_functions2.py
+index c88993b..9edf51e 100644
+--- a/mpmath/tests/test_functions2.py
++++ b/mpmath/tests/test_functions2.py
+@@ -129,6 +129,19 @@ def test_bessel_zeros():
+     assert besselyzero(0.5,3).ae(7.8539816339744830962)
+     assert besselyzero(2,1,1).ae(5.0025829314460639452)
+ 
++def test_bessely_fp_integer_order():
++    def ae(x, y, tol=1e-12):
++        return abs(x-y) <= abs(y)*tol
++    # integer and nearly integer orders used to divide by sin(pi*n) == 0
++    # or lose all accuracy to cancellation at fixed precision
++    for n in [0, 1, 2, 3, -2, 2+1e-10]:
++        for z in [1.0, 2.5, 10.0, 2+1j]:
++            assert ae(fp.bessely(n, z), complex(mp.bessely(n, z)))
++    assert ae(fp.bessely(2, 1.5, 1), float(mp.bessely(2, 1.5, 1)))
++    assert ae(fp.besselyzero(2, 1), 3.3842417671495934727)
++    assert ae(fp.besselyzero(0, 1), 0.89357696627916752158)
++    assert ae(fp.besselyzero(2, 1, 1), 5.0025829314460639452)
++
+ def test_hankel():
+     assert hankel1(0,0.5).ae(0.93846980724081290423-0.44451873350670655715j)
+     assert hankel1(1,0.5).ae(0.2422684576748738864-1.4714723926702430692j)

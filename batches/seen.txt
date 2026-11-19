@@ -1,3 +1,6 @@
 # Pull requests read while building or testing the miner: never held out.
 more-itertools__more-itertools-1345
 matthewwithanm__python-markdownify-287
+# Held-out tasks whose fix was seen during blind candidate writing (claude-opus-5-5 control run).
+pycqa__isort-2747
+celery__celery-10938

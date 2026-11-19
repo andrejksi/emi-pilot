@@ -1,0 +1,32 @@
+diff --git a/faker/providers/company/pt_BR/__init__.py b/faker/providers/company/pt_BR/__init__.py
+index 5532b34..643ac82 100644
+--- a/faker/providers/company/pt_BR/__init__.py
++++ b/faker/providers/company/pt_BR/__init__.py
+@@ -107,8 +107,10 @@ class Provider(CompanyProvider):
+     def _company_id_base(self, use_alphanumeric: bool) -> str:
+         if use_alphanumeric:
+             return "".join(self.random_choices(COMPANY_ID_ALPHABET, length=12))
+-        digits = self.random_sample(range(10), 8)
+-        return "".join(str(d) for d in digits) + "0001"
++        # Each root digit is drawn independently: sampling without replacement
++        # would forbid repeated digits, which real CNPJ roots can have.
++        digits = self.random_choices("0123456789", length=8)
++        return "".join(digits) + "0001"
+ 
+     def company_id(self, use_alphanumeric: bool = False) -> str:
+         base = self._company_id_base(use_alphanumeric)
+diff --git a/tests/providers/test_company.py b/tests/providers/test_company.py
+index 34496b1..cc78ef2 100644
+--- a/tests/providers/test_company.py
++++ b/tests/providers/test_company.py
+@@ -484,6 +484,10 @@ class TestPtBr:
+             values = [ord(c) - 48 for c in company_id[:12]]
+             assert company_id[12:] == "".join(str(d) for d in company_id_checksum(values))
+ 
++    def test_company_id_root_allows_repeated_digits(self, faker):
++        roots = [faker.company_id()[:8] for _ in range(200)]
++        assert any(len(set(root)) < 8 for root in roots)
++
+     def test_company_id_alphanumeric(self, faker, num_samples):
+         for _ in range(num_samples):
+             company_id = faker.company_id(use_alphanumeric=True)

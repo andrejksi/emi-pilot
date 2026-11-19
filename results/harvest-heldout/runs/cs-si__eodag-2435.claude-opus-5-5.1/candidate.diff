@@ -1,0 +1,127 @@
+diff --git a/eodag/api/core.py b/eodag/api/core.py
+index 3b502f4..307cc6c 100644
+--- a/eodag/api/core.py
++++ b/eodag/api/core.py
+@@ -73,7 +73,12 @@ from eodag.utils import (
+     string_to_jsonpath,
+     uri_to_path,
+ )
+-from eodag.utils.dates import get_datetime, rfc3339_str_to_datetime
++from eodag.utils.dates import (
++    ensure_utc,
++    get_datetime,
++    parse_to_utc,
++    rfc3339_str_to_datetime,
++)
+ from eodag.utils.exceptions import (
+     AuthenticationError,
+     NoMatchingCollection,
+@@ -1586,6 +1591,46 @@ class EODataAccessGateway:
+         collection_config = plugin.discover_collections(**kwargs)
+         self.update_collections_list({provider: collection_config})
+ 
++    @staticmethod
++    def _check_dates_validity(start: Any = None, end: Any = None) -> None:
++        """Check that the given search dates can be parsed and are consistent.
++
++        Invalid dates (e.g. ``"2023-11-31"``) are rejected before being sent to the
++        provider, which may otherwise answer with an unexplicit server error.
++
++        :param start: (optional) Start date of the search
++        :param end: (optional) End date of the search
++        :raises ValidationError: If a date cannot be parsed, or if start is after end
++        """
++        parsed: dict[str, dt.datetime] = {}
++        for name, value in (("start", start), ("end", end)):
++            if value is None or value == "":
++                continue
++            if isinstance(value, dt.datetime):
++                parsed[name] = ensure_utc(value)
++                continue
++            if isinstance(value, dt.date):
++                parsed[name] = ensure_utc(
++                    dt.datetime.combine(value, dt.datetime.min.time())
++                )
++                continue
++            if not isinstance(value, str):
++                raise ValidationError(
++                    f"Invalid {name} date: {value!r} (expected an ISO 8601 string)",
++                    {name},
++                )
++            try:
++                parsed[name] = parse_to_utc(value)
++            except (ValidationError, OverflowError) as e:
++                raise ValidationError(
++                    f"Invalid {name} date: {value!r}", {name}
++                ) from e
++        if "start" in parsed and "end" in parsed and parsed["start"] > parsed["end"]:
++            raise ValidationError(
++                f"Start date ({start}) must be before end date ({end})",
++                {"start", "end"},
++            )
++
+     def _prepare_search(
+         self,
+         start: str | None = None,
+@@ -1672,6 +1717,9 @@ class EODataAccessGateway:
+             datetimes = get_datetime(kwargs)
+             kwargs["start_datetime"] = datetimes[0]
+             kwargs["end_datetime"] = datetimes[1]
++        self._check_dates_validity(
++            kwargs.get("start_datetime"), kwargs.get("end_datetime")
++        )
+         if "sort_by" in kwargs:
+             new_sort_by = []
+             for param_tuple in kwargs["sort_by"]:
+diff --git a/tests/units/test_core.py b/tests/units/test_core.py
+index d0fdd4f..a99ce7a 100644
+--- a/tests/units/test_core.py
++++ b/tests/units/test_core.py
+@@ -3462,6 +3462,47 @@ class TestCoreSearch(TestCoreBase):
+         _, prepared_search = self.dag._prepare_search(**base)
+         self.assertListEqual([("start_datetime", "DESC")], prepared_search["sort_by"])
+ 
++    @mock.patch(
++        "eodag.api.core.EODataAccessGateway.fetch_collections_list", autospec=True
++    )
++    def test__prepare_search_invalid_dates(self, mock_fetch_collections_list):
++        """_prepare_search must reject invalid or inconsistent dates"""
++        # non-existing day
++        with self.assertRaisesRegex(ValidationError, "2023-11-31"):
++            self.dag._prepare_search(start="2020-01-01", end="2023-11-31")
++        with self.assertRaisesRegex(ValidationError, "2023-11-31"):
++            self.dag._prepare_search(start="2023-11-31")
++        # not a date at all
++        with self.assertRaisesRegex(ValidationError, "not-a-date"):
++            self.dag._prepare_search(end="not-a-date")
++        # start after end
++        with self.assertRaisesRegex(ValidationError, "before"):
++            self.dag._prepare_search(start="2021-01-01", end="2020-01-01")
++        with self.assertRaisesRegex(ValidationError, "before"):
++            self.dag._prepare_search(
++                datetime="2021-01-02T00:00:00Z/2021-01-01T00:00:00Z"
++            )
++        # same date for start and end, and offsets, are accepted
++        _, prepared_search = self.dag._prepare_search(
++            start="2020-01-01", end="2020-01-01"
++        )
++        self.assertEqual(prepared_search["start_datetime"], "2020-01-01")
++        self.dag._prepare_search(
++            start="2020-01-01T01:00:00+02:00", end="2020-01-01T00:00:00Z"
++        )
++
++    @mock.patch("eodag.api.core.EODataAccessGateway._do_search", autospec=True)
++    def test_search_invalid_dates_no_request(self, mock_do_search):
++        """search must raise a ValidationError before querying the provider"""
++        with self.assertRaises(ValidationError):
++            self.dag.search(
++                collection="S2_MSI_L1C",
++                provider="peps",
++                start="2020-01-01",
++                end="2023-11-31",
++            )
++        mock_do_search.assert_not_called()
++
+     @mock.patch(
+         "eodag.api.core.EODataAccessGateway.fetch_collections_list", autospec=True
+     )

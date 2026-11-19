@@ -1,0 +1,76 @@
+diff --git a/sqlglot/expressions/string.py b/sqlglot/expressions/string.py
+index e8c946f..5742aa6 100644
+--- a/sqlglot/expressions/string.py
++++ b/sqlglot/expressions/string.py
+@@ -70,7 +70,8 @@ class Left(Expression, Func):
+ 
+ 
+ class Length(Expression, Func):
+-    arg_types = {"this": True, "binary": False, "encoding": False}
++    # nul_terminated: text length stops at the first NUL character (e.g. SQLite)
++    arg_types = {"this": True, "binary": False, "encoding": False, "nul_terminated": False}
+     _sql_names = ["LENGTH", "LEN", "CHAR_LENGTH", "CHARACTER_LENGTH"]
+ 
+ 
+diff --git a/sqlglot/generators/duckdb.py b/sqlglot/generators/duckdb.py
+index 76c998b..20a68f3 100644
+--- a/sqlglot/generators/duckdb.py
++++ b/sqlglot/generators/duckdb.py
+@@ -3404,6 +3404,17 @@ class DuckDBGenerator(generator.Generator):
+     def length_sql(self, expression: exp.Length) -> str:
+         arg = expression.this
+ 
++        # SQLite's LENGTH stops counting text at the first NUL character
++        if expression.args.get("nul_terminated") and not arg.is_string:
++            if not arg.type:
++                from sqlglot.optimizer.annotate_types import annotate_types
++
++                arg = annotate_types(arg, dialect=self.dialect)
++
++            if arg.is_type(exp.DType.UNKNOWN, *exp.DataType.TEXT_TYPES):
++                arg = exp.func("SPLIT_PART", arg, exp.func("CHR", exp.Literal.number(0)), 1)
++                return self.func("LENGTH", arg)
++
+         # Dialects like BQ and Snowflake also accept binary values as args, so
+         # DDB will attempt to infer the type or resort to case/when resolution
+         if not expression.args.get("binary") or arg.is_string:
+diff --git a/sqlglot/parsers/sqlite.py b/sqlglot/parsers/sqlite.py
+index 9265222..0463e1c 100644
+--- a/sqlglot/parsers/sqlite.py
++++ b/sqlglot/parsers/sqlite.py
+@@ -110,6 +110,7 @@ class SQLiteParser(parser.Parser):
+         "EDITDIST3": exp.Levenshtein.from_arg_list,
+         "JSON_EXTRACT": _build_json_extract,
+         "JSON_GROUP_ARRAY": exp.JSONArrayAgg.from_arg_list,
++        "LENGTH": lambda args: exp.Length(this=seq_get(args, 0), nul_terminated=True),
+         "JSON_GROUP_OBJECT": lambda args: exp.JSONObjectAgg(expressions=args),
+         "MAX": _build_max,
+         "MIN": _build_min,
+diff --git a/tests/dialects/test_sqlite.py b/tests/dialects/test_sqlite.py
+index b60ef60..b7785be 100644
+--- a/tests/dialects/test_sqlite.py
++++ b/tests/dialects/test_sqlite.py
+@@ -10,6 +10,23 @@ from tests.dialects.test_dialect import Validator
+ class TestSQLite(Validator):
+     dialect = "sqlite"
+ 
++    def test_length_nul(self):
++        self.validate_all(
++            "SELECT LENGTH('a' || CHAR(0) || 'b')",
++            write={
++                "sqlite": "SELECT LENGTH('a' || CHAR(0) || 'b')",
++                "duckdb": "SELECT LENGTH(SPLIT_PART('a' || CHR(0) || 'b', CHR(0), 1))",
++            },
++        )
++        self.validate_all(
++            "SELECT LENGTH(x)",
++            write={"duckdb": "SELECT LENGTH(SPLIT_PART(x, CHR(0), 1))"},
++        )
++        self.validate_all("SELECT LENGTH('abc')", write={"duckdb": "SELECT LENGTH('abc')"})
++        self.validate_all(
++            "SELECT LENGTH(CAST(x AS BLOB))", write={"duckdb": "SELECT LENGTH(CAST(x AS BLOB))"}
++        )
++
+     def test_round(self):
+         for sql, duckdb_sql in (
+             ("ROUND(123.45)", "ROUND(123.45)"),

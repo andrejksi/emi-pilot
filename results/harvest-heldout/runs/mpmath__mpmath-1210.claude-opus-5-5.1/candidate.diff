@@ -1,0 +1,35 @@
+diff --git a/mpmath/functions/expintegrals.py b/mpmath/functions/expintegrals.py
+index d9d236f..7990b94 100644
+--- a/mpmath/functions/expintegrals.py
++++ b/mpmath/functions/expintegrals.py
+@@ -171,6 +171,11 @@ def gammainc(ctx, z, a=0, b=None, regularized=False):
+         return -ctx.gammainc(z, b, a, regularized)
+     # Generalized gamma
+     if upper_modified and lower_modified:
++        # An integral ending at zero is a (negated) lower gamma function.
++        # Passing it to _gamma3 would recurse forever: its fallback rewrites
++        # it as gammainc(z, 0, a), which standardizes back to this case.
++        if b == ctx.zero:
++            return -ctx.lower_gamma(z, a, regularized)
+         return +ctx._gamma3(z, a, b, regularized)
+     # Upper gamma
+     elif lower_modified:
+diff --git a/mpmath/tests/test_functions2.py b/mpmath/tests/test_functions2.py
+index d060e99..b347229 100644
+--- a/mpmath/tests/test_functions2.py
++++ b/mpmath/tests/test_functions2.py
+@@ -941,6 +941,14 @@ def test_gammainc():
+     assert upper_gamma(1000j,1000j, regularized=True).ae(0.49702647628921131761 + 0.00297355675013575341j)
+     # Generalized
+     assert gammainc(3,4,2) == -gammainc(3,2,4)
++    # An interval ending at zero, approached from a negative lower limit,
++    # used to recurse forever
++    for x in [-0.1, -0.2, -0.215, -1e-10, -0.1+0.2j]:
++        lower = 2 - exp(-x)*(x**2 + 2*x + 2)
++        assert gammainc(3, 0, x).ae(lower)
++        assert gammainc(3, x, 0).ae(-lower)
++        assert gammainc(3, 0, x, regularized=True).ae(lower/2)
++        assert gammainc(3, x, 0, regularized=True).ae(-lower/2)
+     assert gammainc(4, 2, 3).ae(1.2593494302978947396)
+     assert gammainc(4, 2, 3, regularized=True).ae(0.20989157171631578993)
+     assert gammainc(0, 2, 3).ae(0.035852129613864082155)

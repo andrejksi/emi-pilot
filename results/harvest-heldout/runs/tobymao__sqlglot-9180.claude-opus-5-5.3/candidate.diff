@@ -1,0 +1,13 @@
+diff --git a/sqlglot/generator.py b/sqlglot/generator.py
+index 573d3c1..8d013a3 100644
+--- a/sqlglot/generator.py
++++ b/sqlglot/generator.py
+@@ -4805,7 +4805,7 @@ class Generator:
+                 l.replace(exp.cast(l.copy(), to=exp.DType.DOUBLE))
+ 
+         elif not self.dialect.TYPED_DIVISION and expression.args.get("typed"):
+-            if l.is_type(*exp.DataType.INTEGER_TYPES) and r.is_type(*exp.DataType.INTEGER_TYPES):
++            if all(e.is_int or e.is_type(*exp.DataType.INTEGER_TYPES) for e in (l, r)):
+                 # Native integer division depends on the target's operand types, which may differ
+                 # from the source's (e.g. FLOOR(int) is DOUBLE in DuckDB), unless the operands are
+                 # integer literals or casts

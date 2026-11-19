@@ -1,0 +1,24 @@
+diff --git a/dill/temp.py b/dill/temp.py
+index 90b0754..15f7202 100644
+--- a/dill/temp.py
++++ b/dill/temp.py
+@@ -61,7 +61,8 @@ def load_source(file, **kwds):
+     if 'b' not in mode:
+         kwds.setdefault('encoding', 'utf-8')
+     fname = getattr(file, 'name', file) # fname=file.name or fname=file (if str)
+-    source = open(fname, mode=mode, **kwds).read()
++    with open(fname, mode=mode, **kwds) as f:
++        source = f.read()
+     if not alias:
+         tag = source.strip().splitlines()[-1].split()
+         if tag[0] not in ('#NAME:', b'#NAME:'):
+@@ -133,7 +134,8 @@ def load(file, **kwds):
+     import dill as pickle
+     mode = kwds.pop('mode', 'rb')
+     name = getattr(file, 'name', file) # name=file.name or name=file (if str)
+-    return pickle.load(open(name, mode=mode, **kwds))
++    with open(name, mode=mode, **kwds) as f:
++        return pickle.load(f)
+ 
+ def dump(object, **kwds):
+     """dill.dump of object to a NamedTemporaryFile.

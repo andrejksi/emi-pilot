@@ -1,0 +1,65 @@
+diff --git a/sqlglot/parsers/sqlite.py b/sqlglot/parsers/sqlite.py
+index 7ce5673..e8c4163 100644
+--- a/sqlglot/parsers/sqlite.py
++++ b/sqlglot/parsers/sqlite.py
+@@ -154,6 +154,22 @@ class SQLiteParser(parser.Parser):
+         TokenType.MATCH: binary_range_parser(exp.Match),
+     }
+ 
++    def _parse_limit(
++        self,
++        this: exp.Expr | None = None,
++        top: bool = False,
++        skip_limit_token: bool = False,
++    ) -> exp.Expr | None:
++        limit = super()._parse_limit(this=this, top=top, skip_limit_token=skip_limit_token)
++
++        # A negative LIMIT means "no upper bound": https://www.sqlite.org/lang_select.html#limitoffset
++        if isinstance(limit, exp.Limit):
++            expression = limit.args.get("expression")
++            if expression and expression.is_int and expression.to_py() < 0:
++                limit.set("expression", exp.var("ALL"))
++
++        return limit
++
+     def _parse_is(self, this: exp.Expr | None) -> exp.Expr | None:
+         """SQLite's IS / IS NOT is a null-safe equality against any expression.
+ 
+diff --git a/tests/dialects/test_sqlite.py b/tests/dialects/test_sqlite.py
+index 1188250..1e397de 100644
+--- a/tests/dialects/test_sqlite.py
++++ b/tests/dialects/test_sqlite.py
+@@ -518,6 +518,33 @@ class TestSQLite(Validator):
+             with self.subTest(source=source):
+                 self.validate_all(expected, read={"postgres": source})
+ 
++    def test_negative_limit(self):
++        # A negative LIMIT means "no limit" in SQLite
++        for sql in ("SELECT x FROM t LIMIT -1 OFFSET 5", "SELECT x FROM t LIMIT 5, -1"):
++            with self.subTest(sql=sql):
++                self.validate_all(
++                    "SELECT x FROM t LIMIT -1 OFFSET 5",
++                    read={"sqlite": sql},
++                    write={
++                        "sqlite": "SELECT x FROM t LIMIT -1 OFFSET 5",
++                        "duckdb": "SELECT x FROM t LIMIT ALL OFFSET 5",
++                        "postgres": "SELECT x FROM t LIMIT ALL OFFSET 5",
++                        "tsql": "SELECT x FROM t ORDER BY (SELECT NULL) OFFSET 5 ROWS",
++                    },
++                )
++
++        self.validate_all(
++            "SELECT x FROM t LIMIT -1",
++            write={
++                "duckdb": "SELECT x FROM t LIMIT ALL",
++                "postgres": "SELECT x FROM t LIMIT ALL",
++            },
++        )
++        self.validate_identity("SELECT x FROM t LIMIT 0")
++
++        limit = self.parse_one("SELECT x FROM t LIMIT -10 OFFSET 2").args["limit"]
++        self.assertTrue(limit.is_limit_all)
++
+     def test_subquery_modifier_conflicts(self):
+         for source, expected in (
+             (

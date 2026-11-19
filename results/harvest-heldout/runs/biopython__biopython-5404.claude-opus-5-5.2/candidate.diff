@@ -1,0 +1,236 @@
+diff --git a/Bio/bgzf.py b/Bio/bgzf.py
+index 8041dd5..ea35b7f 100755
+--- a/Bio/bgzf.py
++++ b/Bio/bgzf.py
+@@ -791,6 +791,22 @@ class BgzfReader:
+         self.close()
+ 
+ 
++# Uncompressed data per BGZF block when writing. Like bgzip, we fill blocks
++# with 65536 bytes, which gives the same blocks as older bgzip versions.
++_BGZF_BLOCK_SIZE = 65536
++
++# The block size (BSIZE, less one) is stored in an unsigned 16-bit field
++# and each block has 26 bytes of header and footer, so the compressed data
++# can be at most this many bytes:
++_BGZF_MAX_COMPRESSED = 0xFFFF - 25
++
++# Data which does not compress (e.g. random or already compressed data)
++# expands slightly under deflate, so 65536 such bytes do not fit in one
++# block. Blocks of at most this many bytes always fit (htslib also limits
++# blocks to 0xff00 bytes), so a block which does not fit is cut to this:
++_BGZF_SAFE_BLOCK_SIZE = 0xFF00
++
++
+ class BgzfWriter:
+     """Define a BGZFWriter object."""
+ 
+@@ -819,28 +835,40 @@ class BgzfWriter:
+         self._buffer = b""
+         self.compresslevel = compresslevel
+ 
+-    def _write_block(self, block):
+-        """Write provided data to file as a single BGZF compressed block (PRIVATE)."""
+-        # print("Saving %i bytes" % len(block))
+-        if len(block) > 65536:
+-            raise ValueError(f"{len(block)} Block length > 65536")
++    def _compress(self, block):
++        """Return the raw deflate compressed block (PRIVATE)."""
+         # Giving a negative window bits means no gzip/zlib headers,
+         # -15 used in samtools
+         c = zlib.compressobj(
+             self.compresslevel, zlib.DEFLATED, -15, zlib.DEF_MEM_LEVEL, 0
+         )
+-        compressed = c.compress(block) + c.flush()
+-        del c
+-        if len(compressed) > 65536:
+-            raise RuntimeError(
+-                "TODO - Didn't compress enough, try less data in this block"
+-            )
+-        crc = zlib.crc32(block)
+-        # Should cope with a mix of Python platforms...
+-        if crc < 0:
+-            crc = struct.pack("<i", crc)
+-        else:
+-            crc = struct.pack("<I", crc)
++        return c.compress(block) + c.flush()
++
++    def _write_block(self, block):
++        """Write provided data to file as a single BGZF compressed block (PRIVATE).
++
++        If the data does not compress enough to fit in a single BGZF block,
++        only the first part of it is written, and the remainder which was
++        not written is returned (otherwise an empty bytes string).
++        """
++        # print("Saving %i bytes" % len(block))
++        if len(block) > _BGZF_BLOCK_SIZE:
++            raise ValueError(f"{len(block)} Block length > {_BGZF_BLOCK_SIZE}")
++        compressed = self._compress(block)
++        rest = b""
++        if len(compressed) > _BGZF_MAX_COMPRESSED:
++            # Didn't compress enough, so write less data in this block.
++            # Cutting at _BGZF_SAFE_BLOCK_SIZE keeps any virtual offsets
++            # already given out by tell() valid (see tell).
++            rest = block[_BGZF_SAFE_BLOCK_SIZE:]
++            block = block[:_BGZF_SAFE_BLOCK_SIZE]
++            compressed = self._compress(block)
++            if len(compressed) > _BGZF_MAX_COMPRESSED:
++                # Should not be possible, deflate's worst case is smaller
++                raise RuntimeError(
++                    f"{len(block)} bytes compressed to {len(compressed)} "
++                    "bytes, too large for a BGZF block"
++                )
+         bsize = struct.pack("<H", len(compressed) + 25)  # includes -1
+         crc = struct.pack("<I", zlib.crc32(block) & 0xFFFFFFFF)
+         uncompressed_length = struct.pack("<I", len(block))
+@@ -854,6 +882,7 @@ class BgzfWriter:
+         # 8 bytes: crc (4), uncompressed data length (4)
+         data = _bgzf_header + bsize + compressed + crc + uncompressed_length
+         self._handle.write(data)
++        return rest
+ 
+     def write(self, data):
+         """Write method for the class."""
+@@ -865,25 +894,21 @@ class BgzfWriter:
+             # On output we could probably allow any encoding, as we
+             # don't care about splitting unicode characters between blocks
+             data = data.encode("latin-1")
+-        # block_size = 2**16 = 65536
+-        data_len = len(data)
+-        if len(self._buffer) + data_len < 65536:
+-            # print("Cached %r" % data)
+-            self._buffer += data
+-        else:
+-            # print("Got %r, writing out some data..." % data)
+-            self._buffer += data
+-            while len(self._buffer) >= 65536:
+-                self._write_block(self._buffer[:65536])
+-                self._buffer = self._buffer[65536:]
++        self._buffer += data
++        while len(self._buffer) >= _BGZF_BLOCK_SIZE:
++            self._write_buffered_block()
++
++    def _write_buffered_block(self):
++        """Write a block from the start of the buffer (PRIVATE)."""
++        rest = self._write_block(self._buffer[:_BGZF_BLOCK_SIZE])
++        self._buffer = rest + self._buffer[_BGZF_BLOCK_SIZE:]
+ 
+     def flush(self):
+         """Flush data explicitally."""
+-        while len(self._buffer) >= 65536:
+-            self._write_block(self._buffer[:65535])
+-            self._buffer = self._buffer[65535:]
+-        self._write_block(self._buffer)
+-        self._buffer = b""
++        # Always writes at least one block, even if empty
++        self._write_buffered_block()
++        while self._buffer:
++            self._write_buffered_block()
+         self._handle.flush()
+ 
+     def close(self):
+@@ -902,6 +927,13 @@ class BgzfWriter:
+ 
+     def tell(self):
+         """Return a BGZF 64-bit virtual offset."""
++        if len(self._buffer) >= _BGZF_SAFE_BLOCK_SIZE:
++            # If the buffered block turns out not to compress enough, it
++            # will be cut after _BGZF_SAFE_BLOCK_SIZE bytes, and an offset
++            # past that point would be invalid. Write those bytes out now
++            # as their own block, which always fits.
++            self._write_block(self._buffer[:_BGZF_SAFE_BLOCK_SIZE])
++            self._buffer = self._buffer[_BGZF_SAFE_BLOCK_SIZE:]
+         return make_virtual_offset(self._handle.tell(), len(self._buffer))
+ 
+     def seekable(self):
+diff --git a/Tests/test_bgzf.py b/Tests/test_bgzf.py
+index 7d62927..f37b9ee 100644
+--- a/Tests/test_bgzf.py
++++ b/Tests/test_bgzf.py
+@@ -13,6 +13,7 @@ import io
+ import os
+ import tempfile
+ import unittest
++import random
+ from random import shuffle
+ 
+ from Bio import bgzf
+@@ -517,6 +518,78 @@ class BgzfTests(unittest.TestCase):
+             bgzf.BgzfWriter(fileobj=handle)
+ 
+ 
++    def check_incompressible(self, size, write_sizes=None):
++        """Write random (incompressible) data and check it reads back."""
++        data = random.Random(size).randbytes(size)
++        with bgzf.BgzfWriter(self.temp_file, "wb") as writer:
++            if write_sizes is None:
++                writer.write(data)
++            else:
++                start = 0
++                for chunk in write_sizes:
++                    writer.write(data[start : start + chunk])
++                    start += chunk
++                writer.write(data[start:])
++        with open(self.temp_file, "rb") as handle:
++            blocks = list(bgzf.BgzfBlocks(handle))
++        for _, raw_length, _, data_length in blocks:
++            self.assertLessEqual(raw_length, 65536)
++            self.assertLessEqual(data_length, 65536)
++        self.assertEqual(sum(b[3] for b in blocks), size)
++        with bgzf.BgzfReader(self.temp_file, "rb") as reader:
++            self.assertEqual(reader.read(size + 1), data)
++        with gzip.open(self.temp_file, "rb") as handle:
++            self.assertEqual(handle.read(), data)
++
++    def test_incompressible_full_block(self):
++        """Random data filling a whole block must be written correctly."""
++        self.check_incompressible(65536)
++
++    def test_incompressible_near_full_block(self):
++        """Random data just under a block (BSIZE overflow) must be written."""
++        for size in (65491, 65500, 65510, 65516, 65517, 65535):
++            with self.subTest(size=size):
++                self.check_incompressible(size)
++
++    def test_incompressible_many_blocks(self):
++        """Several blocks of random data, written in pieces, must round trip."""
++        self.check_incompressible(300000, write_sizes=[1, 70000, 65535, 100])
++
++    def test_incompressible_all_levels(self):
++        """Random data must be written at every compression level."""
++        data = random.Random(0).randbytes(140000)
++        for level in range(10):
++            with self.subTest(compresslevel=level):
++                with bgzf.BgzfWriter(self.temp_file, "wb", compresslevel=level) as w:
++                    w.write(data)
++                with gzip.open(self.temp_file, "rb") as handle:
++                    self.assertEqual(handle.read(), data)
++
++    def test_incompressible_virtual_offsets(self):
++        """Virtual offsets from tell() must be usable with incompressible data."""
++        data = random.Random(1).randbytes(200000)
++        offsets = []
++        with bgzf.BgzfWriter(self.temp_file, "wb") as writer:
++            for i in range(0, len(data), 10000):
++                offsets.append((i, writer.tell()))
++                writer.write(data[i : i + 10000])
++        with bgzf.BgzfReader(self.temp_file, "rb") as reader:
++            for i, offset in offsets:
++                reader.seek(offset)
++                self.assertEqual(reader.read(100), data[i : i + 100])
++
++    def test_incompressible_tell_late_in_block(self):
++        """An offset from tell() late in a block must survive a block split."""
++        data = random.Random(2).randbytes(200000)
++        with bgzf.BgzfWriter(self.temp_file, "wb") as writer:
++            writer.write(data[:65400])
++            offset = writer.tell()
++            writer.write(data[65400:])
++        with bgzf.BgzfReader(self.temp_file, "rb") as reader:
++            reader.seek(offset)
++            self.assertEqual(reader.read(1000), data[65400:66400])
++
++
+ if __name__ == "__main__":
+     runner = unittest.TextTestRunner(verbosity=2)
+     unittest.main(testRunner=runner)

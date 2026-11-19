@@ -1,0 +1,54 @@
+diff --git a/Lib/fontTools/cffLib/__init__.py b/Lib/fontTools/cffLib/__init__.py
+index a1e1ece..c7dc2eb 100644
+--- a/Lib/fontTools/cffLib/__init__.py
++++ b/Lib/fontTools/cffLib/__init__.py
+@@ -294,6 +294,17 @@ class CFFFontSet(object):
+                     if hasattr(fontDict, "Private"):
+                         fontDict.Private.vstore = topDict.VarStore
+ 
++            # In XML, VarStore follows CharStrings, so the CharStrings object
++            # was built before the VarStore was read; attach it now.
++            varStore = getattr(topDict, "VarStore", None)
++            charStrings = getattr(topDict, "CharStrings", None)
++            if (
++                varStore is not None
++                and charStrings is not None
++                and getattr(charStrings, "varStore", None) is None
++            ):
++                charStrings.varStore = varStore
++
+         elif name == "GlobalSubrs":
+             subrCharStringClass = psCharStrings.T2CharString
+             if not hasattr(self, "GlobalSubrs"):
+diff --git a/Tests/ttLib/ttGlyphSet_test.py b/Tests/ttLib/ttGlyphSet_test.py
+index 906489f..831ea6e 100644
+--- a/Tests/ttLib/ttGlyphSet_test.py
++++ b/Tests/ttLib/ttGlyphSet_test.py
+@@ -511,6 +511,27 @@ class TTGlyphSetTest(object):
+         getattr(glyphset[glyph_name], draw)(pen)
+         assert pen.value == expected
+ 
++    @pytest.mark.parametrize("location", [{"wght": 1000}, {"wght": 300}])
++    def test_glyphset_cff2_from_ttx_varies(self, location):
++        fontFromOTF = TTFont(self.getpath("I.otf"))
++        stream = StringIO()
++        fontFromOTF.saveXML(stream)
++        stream.seek(0)
++        fontFromTTX = TTFont()
++        fontFromTTX.importXML(stream)
++
++        topDict = fontFromTTX["CFF2"].cff.topDictIndex[0]
++        assert topDict.CharStrings.varStore is topDict.VarStore
++
++        def draw(font, location):
++            pen = RecordingPen()
++            font.getGlyphSet(location=location)["I"].draw(pen)
++            return pen.value
++
++        expected = draw(fontFromOTF, location)
++        assert expected != draw(fontFromOTF, {})
++        assert draw(fontFromTTX, location) == expected
++
+     @pytest.mark.parametrize(
+         "fontfile", ["I.otf", "../../cffLib/data/varc-short-cff2.otf"]
+     )

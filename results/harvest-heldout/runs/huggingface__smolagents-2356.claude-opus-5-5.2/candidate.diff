@@ -1,0 +1,109 @@
+diff --git a/src/smolagents/models.py b/src/smolagents/models.py
+index d21ea6b..afcd748 100644
+--- a/src/smolagents/models.py
++++ b/src/smolagents/models.py
+@@ -329,6 +329,44 @@ def get_tool_json_schema(tool: Tool) -> dict:
+     }
+ 
+ 
++def _as_content_list(content: str | list[dict[str, Any]] | None) -> list[dict[str, Any]]:
++    """Returns message content as a list of content elements."""
++    if content is None:
++        return []
++    if isinstance(content, str):
++        return [{"type": "text", "text": content}]
++    return content
++
++
++def _merge_message_content(
++    previous_message: dict[str, Any],
++    content: str | list[dict[str, Any]] | None,
++    flatten_messages_as_text: bool,
++) -> None:
++    """Merges `content` into `previous_message`, which has the same role."""
++    if content is None or content == [] or content == "":
++        return
++    previous_content = previous_message["content"]
++    if flatten_messages_as_text:
++        new_text = content if isinstance(content, str) else content[0]["text"]
++        if previous_content is None or previous_content == "":
++            previous_message["content"] = new_text
++        else:
++            previous_message["content"] = previous_content + "\n" + new_text
++        return
++    if isinstance(previous_content, str) and isinstance(content, str):
++        previous_message["content"] = (previous_content + "\n" + content) if previous_content else content
++        return
++    merged = list(_as_content_list(previous_content))
++    for el in _as_content_list(content):
++        if el["type"] == "text" and merged and merged[-1]["type"] == "text":
++            # Merge consecutive text messages rather than creating new ones
++            merged[-1] = {**merged[-1], "text": merged[-1]["text"] + "\n" + el["text"]}
++        else:
++            merged.append(el)
++    previous_message["content"] = merged
++
++
+ def get_clean_message_list(
+     message_list: list[ChatMessage | dict],
+     role_conversions: dict[MessageRole, MessageRole] | dict[str, str] = {},
+@@ -373,18 +411,9 @@ def get_clean_message_list(
+                         element["image"] = encode_image_base64(element["image"])
+ 
+         if len(output_message_list) > 0 and message.role == output_message_list[-1]["role"]:
+-            assert isinstance(message.content, list), "Error: wrong content:" + str(message.content)
+-            if flatten_messages_as_text:
+-                output_message_list[-1]["content"] += "\n" + message.content[0]["text"]
+-            else:
+-                for el in message.content:
+-                    if el["type"] == "text" and output_message_list[-1]["content"][-1]["type"] == "text":
+-                        # Merge consecutive text messages rather than creating new ones
+-                        output_message_list[-1]["content"][-1]["text"] += "\n" + el["text"]
+-                    else:
+-                        output_message_list[-1]["content"].append(el)
++            _merge_message_content(output_message_list[-1], message.content, flatten_messages_as_text)
+         else:
+-            if flatten_messages_as_text:
++            if flatten_messages_as_text and isinstance(message.content, list):
+                 content = message.content[0]["text"]
+             else:
+                 content = message.content
+diff --git a/tests/test_models.py b/tests/test_models.py
+index 4264fad..0ab3506 100644
+--- a/tests/test_models.py
++++ b/tests/test_models.py
+@@ -845,6 +845,34 @@ def test_get_clean_message_list_role_conversions():
+     assert result[1]["content"][0]["text"] == "Tool response"
+ 
+ 
++@pytest.mark.parametrize("flatten_messages_as_text", [False, True])
++def test_get_clean_message_list_consecutive_string_messages(flatten_messages_as_text):
++    messages = [
++        {"role": "system", "content": "Start with 'FOO'"},
++        {"role": "system", "content": "End with 'BAR'"},
++        {"role": "user", "content": "Just say '.'"},
++    ]
++    result = get_clean_message_list(messages, flatten_messages_as_text=flatten_messages_as_text)
++    assert len(result) == 2
++    assert result[0]["role"] == "system"
++    assert result[0]["content"] == "Start with 'FOO'\nEnd with 'BAR'"
++    assert result[1] == {"role": "user", "content": "Just say '.'"}
++
++
++def test_get_clean_message_list_consecutive_mixed_content_messages():
++    messages = [
++        {"role": "system", "content": "First"},
++        {"role": "system", "content": [{"type": "text", "text": "Second"}]},
++        {"role": "user", "content": [{"type": "text", "text": "Hi"}]},
++        {"role": "user", "content": "There"},
++    ]
++    result = get_clean_message_list(messages)
++    assert result == [
++        {"role": "system", "content": [{"type": "text", "text": "First\nSecond"}]},
++        {"role": "user", "content": [{"type": "text", "text": "Hi\nThere"}]},
++    ]
++
++
+ def test_remove_content_after_stop_sequences():
+     content = "Hello<code>world!"
+     stop_sequences = ["<code>"]

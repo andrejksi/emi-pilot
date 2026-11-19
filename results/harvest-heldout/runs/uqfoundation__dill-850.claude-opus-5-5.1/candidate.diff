@@ -1,0 +1,84 @@
+diff --git a/dill/temp.py b/dill/temp.py
+index 90b0754..15f7202 100644
+--- a/dill/temp.py
++++ b/dill/temp.py
+@@ -61,7 +61,8 @@ def load_source(file, **kwds):
+     if 'b' not in mode:
+         kwds.setdefault('encoding', 'utf-8')
+     fname = getattr(file, 'name', file) # fname=file.name or fname=file (if str)
+-    source = open(fname, mode=mode, **kwds).read()
++    with open(fname, mode=mode, **kwds) as f:
++        source = f.read()
+     if not alias:
+         tag = source.strip().splitlines()[-1].split()
+         if tag[0] not in ('#NAME:', b'#NAME:'):
+@@ -133,7 +134,8 @@ def load(file, **kwds):
+     import dill as pickle
+     mode = kwds.pop('mode', 'rb')
+     name = getattr(file, 'name', file) # name=file.name or name=file (if str)
+-    return pickle.load(open(name, mode=mode, **kwds))
++    with open(name, mode=mode, **kwds) as f:
++        return pickle.load(f)
+ 
+ def dump(object, **kwds):
+     """dill.dump of object to a NamedTemporaryFile.
+diff --git a/dill/tests/test_temp.py b/dill/tests/test_temp.py
+index c773efb..3fa36ce 100644
+--- a/dill/tests/test_temp.py
++++ b/dill/tests/test_temp.py
+@@ -144,8 +144,55 @@ def test_the_rest():
+     _obj = loadIO_source(pyfile)
+     assert _obj.__name__ == obj.__name__
+ 
++def test_load_closes_file_on_failure():
++  import tempfile, os
++  with tempfile.NamedTemporaryFile(suffix='.pkl', delete=False) as f:
++    f.write(b'not a pickle')
++  try:
++    errors = []
++    opened = []
++    import builtins
++    real_open = builtins.open
++    def tracking_open(*args, **kwds):
++      fh = real_open(*args, **kwds)
++      opened.append(fh)
++      return fh
++    builtins.open = tracking_open
++    try:
++      for _ in range(5):
++        try:
++          dill.temp.load(f.name)
++        except Exception as error:
++          errors.append(error)
++    finally:
++      builtins.open = real_open
++    assert len(errors) == 5
++    # the original unpickling error is preserved, not replaced by an I/O error
++    assert all(isinstance(e, dill.UnpicklingError) for e in errors)
++    assert opened and all(fh.closed for fh in opened)
++  finally:
++    os.remove(f.name)
++
++def test_load_closes_file_on_success():
++  dumpfile = dill.temp.dump([1, 2, 3])
++  import builtins
++  opened = []
++  real_open = builtins.open
++  def tracking_open(*args, **kwds):
++    fh = real_open(*args, **kwds)
++    opened.append(fh)
++    return fh
++  builtins.open = tracking_open
++  try:
++    assert dill.temp.load(dumpfile) == [1, 2, 3]
++  finally:
++    builtins.open = real_open
++  assert opened and all(fh.closed for fh in opened)
++
+ 
+ if __name__ == '__main__':
++    test_load_closes_file_on_failure()
++    test_load_closes_file_on_success()
+     test_code_to_tempfile()
+     test_code_to_stream()
+     test_unicode_source_aliases()

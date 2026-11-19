@@ -1,0 +1,67 @@
+diff --git a/eodag/plugins/crunch/filter_date.py b/eodag/plugins/crunch/filter_date.py
+index e90750e..247727e 100644
+--- a/eodag/plugins/crunch/filter_date.py
++++ b/eodag/plugins/crunch/filter_date.py
+@@ -45,7 +45,9 @@ class FilterDate(Crunch):
+     @staticmethod
+     def sort_product_by_start_date(product: EOProduct) -> dt.datetime:
+         """Get product start date"""
+-        start_date = product.properties.get("start_datetime")
++        start_date = product.properties.get(
++            "start_datetime"
++        ) or product.properties.get("datetime")
+         if not start_date:
+             return dt.datetime(1970, 1, 1, tzinfo=dt.timezone.utc)
+         return parse_to_utc(start_date)
+@@ -96,6 +98,13 @@ class FilterDate(Crunch):
+             else:
+                 product_end = None
+ 
++            # products having only a nominal "datetime" (e.g. STAC items without
++            # start_datetime/end_datetime) are filtered using it as both bounds
++            if product_start is None and product_end is None:
++                product_datetime_str = product.properties.get("datetime")
++                if product_datetime_str:
++                    product_start = product_end = parse_to_utc(product_datetime_str)
++
+             if filter_start and product_start and product_start < filter_start:
+                 continue
+             if filter_end and product_end and product_end > filter_end:
+diff --git a/tests/units/test_crunch.py b/tests/units/test_crunch.py
+index 04d3391..1678091 100644
+--- a/tests/units/test_crunch.py
++++ b/tests/units/test_crunch.py
+@@ -188,6 +188,33 @@ class TestPluginCrunch(unittest.TestCase):
+         filtered_result = search_results.crunch(FilterDate(dict(end="2025-01-18")))
+         self.assertEqual(len(filtered_result), 5)
+ 
++    def test_crunch_filterdate_datetime_only(self):
++        """Crunch FilterDate on products having only a datetime property"""
++        search_results = self.__fake_search_result(
++            [
++                {"datetime": "2021-02-12T11:00:59Z"},
++                {"datetime": "2021-02-14T10:51:31Z"},
++            ]
++        )
++        self.assertEqual(len(search_results), 2)
++
++        filtered_result = search_results.crunch(
++            FilterDate(dict(start="2021-02-10T00:00:00", end="2021-02-12T23:59:59"))
++        )
++        self.assertEqual(len(filtered_result), 1)
++        self.assertEqual(
++            filtered_result[0].properties["datetime"], "2021-02-12T11:00:59Z"
++        )
++
++        filtered_result = search_results.crunch(FilterDate(dict(start="2021-02-13")))
++        self.assertEqual(len(filtered_result), 1)
++        self.assertEqual(
++            filtered_result[0].properties["datetime"], "2021-02-14T10:51:31Z"
++        )
++
++        filtered_result = search_results.crunch(FilterDate(dict(end="2021-02-13")))
++        self.assertEqual(len(filtered_result), 1)
++
+     def test_crunch_filterdate_sort(self):
+         """Crunch FilterDate.sort_product_by_start_date test"""
+ 

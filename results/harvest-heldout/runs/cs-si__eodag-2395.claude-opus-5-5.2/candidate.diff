@@ -1,0 +1,111 @@
+diff --git a/eodag/plugins/download/base.py b/eodag/plugins/download/base.py
+index fcd47da..6cde287 100644
+--- a/eodag/plugins/download/base.py
++++ b/eodag/plugins/download/base.py
+@@ -324,15 +324,28 @@ class Download(PluginTopic):
+         Handle depth levels in the product archive. For example, if the downloaded archive was
+         extracted to: ``/top_level/product_base_dir`` and ``archive_depth`` was configured to 2, the product
+         location will be ``/top_level/product_base_dir``.
+-        WARNING: A strong assumption is made here: there is only one subdirectory per level
++        A level is only skipped if it contains a single entry: if several entries are found
++        at a level (e.g. a metadata file next to the data file), the product is located at
++        this level, so that no extracted content is left behind.
+ 
+         :param product_path: The path to the extracted product
+         :returns: The path to the extracted product with the right depth
+         """
+         archive_depth = getattr(self.config, "archive_depth", 1)
+         count = 1
+-        while count < archive_depth:
+-            product_path = os.path.join(product_path, os.listdir(product_path)[0])
++        while count < archive_depth and os.path.isdir(product_path):
++            entries = os.listdir(product_path)
++            if len(entries) != 1:
++                if len(entries) > 1:
++                    logger.debug(
++                        "Found %s entries in %s, archive_depth %s not reached: "
++                        "keeping this level as product location",
++                        len(entries),
++                        product_path,
++                        archive_depth,
++                    )
++                break
++            product_path = os.path.join(product_path, entries[0])
+             count += 1
+         return product_path
+ 
+diff --git a/tests/units/test_download_plugins.py b/tests/units/test_download_plugins.py
+index 79dd6c4..06793ea 100644
+--- a/tests/units/test_download_plugins.py
++++ b/tests/units/test_download_plugins.py
+@@ -293,6 +293,70 @@ class TestDownloadPluginBase(BaseDownloadPluginTest):
+             self.assertFalse(arch_path.exists())
+             self.assertTrue(os.path.isfile(Path(output_dir) / "FOO" / "FOO.bar"))
+ 
++    def test_plugins_download_base_finalize_extract_archive_depth_multiple_entries(
++        self,
++    ):
++        """Download._finalize must keep every file when archive_depth level holds several entries."""
++        plugin = self.get_download_plugin(self.product)
++
++        for archive_depth in (1, 2, 3):
++            for extension in (".zip", ".tar"):
++                with (
++                    self.subTest(archive_depth=archive_depth, extension=extension),
++                    TemporaryDirectory() as output_dir,
++                ):
++                    arch_path = Path(output_dir) / f"FOO{extension}"
++                    members = {"EOPMetadata.xml": b"metadata", "data.nat": b"data"}
++                    if extension == ".zip":
++                        with zipfile.ZipFile(arch_path, "w") as archive:
++                            for name, content in members.items():
++                                archive.writestr(name, content)
++                    else:
++                        with tarfile.open(arch_path, "w") as archive:
++                            for name, content in members.items():
++                                member = tarfile.TarInfo(name)
++                                member.size = len(content)
++                                archive.addfile(member, io.BytesIO(content))
++
++                    with mock.patch.object(
++                        plugin.config, "archive_depth", archive_depth, create=True
++                    ):
++                        product_path = plugin._finalize(
++                            str(arch_path),
++                            output_dir=output_dir,
++                            extract=True,
++                            delete_archive=False,
++                        )
++
++                    self.assertEqual(product_path, str(Path(output_dir) / "FOO"))
++                    self.assertCountEqual(os.listdir(product_path), members.keys())
++                    for name, content in members.items():
++                        self.assertEqual(
++                            (Path(product_path) / name).read_bytes(), content
++                        )
++
++    def test_plugins_download_base_finalize_extract_archive_depth_single_dir(self):
++        """Download._finalize must skip a single top-level directory when archive_depth is 2."""
++        plugin = self.get_download_plugin(self.product)
++
++        with TemporaryDirectory() as output_dir:
++            arch_path = Path(output_dir) / "FOO.zip"
++            with zipfile.ZipFile(arch_path, "w") as archive:
++                archive.writestr("top/EOPMetadata.xml", "metadata")
++                archive.writestr("top/data.nat", "data")
++
++            with mock.patch.object(plugin.config, "archive_depth", 2, create=True):
++                product_path = plugin._finalize(
++                    str(arch_path),
++                    output_dir=output_dir,
++                    extract=True,
++                    delete_archive=False,
++                )
++
++            self.assertCountEqual(
++                os.listdir(product_path), ["EOPMetadata.xml", "data.nat"]
++            )
++
+ 
+ class TestDownloadPluginHttp(BaseDownloadPluginTest):
+     """Test cases for the HTTP download plugin."""

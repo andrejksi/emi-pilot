@@ -1,0 +1,17 @@
+diff --git a/tornado/test/circlerefs_test.py b/tornado/test/circlerefs_test.py
+index fad8136..4e735b8 100644
+--- a/tornado/test/circlerefs_test.py
++++ b/tornado/test/circlerefs_test.py
+@@ -173,6 +173,12 @@ class CircleRefsTest(TestCase):
+             await client.fetch(f"http://127.0.0.1:{port}/", **fetch_kwargs)
+         client.close()
+         server.stop()
++        # Close the server side of the connection explicitly. Otherwise it is
++        # only closed once the connection notices the client went away, which
++        # depending on the event loop (e.g. the proactor loop on Windows) may
++        # not happen before asyncio.run() returns, leaving the socket to be
++        # collected (with a ResourceWarning) during a later test.
++        await server.close_all_connections()
+         socket.close()
+ 
+     def test_sync_handler(self):

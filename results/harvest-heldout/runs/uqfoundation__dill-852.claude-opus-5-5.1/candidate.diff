@@ -1,0 +1,91 @@
+diff --git a/dill/temp.py b/dill/temp.py
+index f7fd696..8f59815 100644
+--- a/dill/temp.py
++++ b/dill/temp.py
+@@ -116,8 +116,12 @@ NOTE: Keep the return value for as long as you want your file to exist !
+     name = "\n#NAME: %s\n" % name
+     #XXX: assumes kwds['dir'] is writable and on $PYTHONPATH
+     file = tempfile.NamedTemporaryFile(suffix='.py', **kwds)
+-    file.write(b(''.join([importable(object, alias=alias),name])))
+-    file.flush()
++    try:
++        file.write(b(''.join([importable(object, alias=alias),name])))
++        file.flush()
++    except BaseException:
++        file.close()
++        raise
+     return file
+ 
+ def load(file, **kwds):
+@@ -164,8 +168,14 @@ NOTE: Keep the return value for as long as you want your file to exist !
+     import tempfile
+     kwds.setdefault('delete', True)
+     file = tempfile.NamedTemporaryFile(**kwds)
+-    pickle.dump(object, file)
+-    file.flush()
++    try:
++        pickle.dump(object, file)
++        file.flush()
++    except BaseException:
++        # close on failure, so the file is not kept open by the traceback
++        # and delete-on-close removes the partial file
++        file.close()
++        raise
+     return file
+ 
+ def loadIO(buffer, **kwds):
+diff --git a/dill/tests/test_temp.py b/dill/tests/test_temp.py
+index c9d7abf..cc58ed0 100644
+--- a/dill/tests/test_temp.py
++++ b/dill/tests/test_temp.py
+@@ -101,6 +101,42 @@ def test_load_closes_internal_file():
+             file.close()
+         os.remove(name)
+ 
++def test_dump_closes_internal_file_on_failure():
++    import os
++    import tempfile
++    from unittest.mock import patch
++
++    class CannotSerialize:
++        def __reduce__(self):
++            raise RuntimeError('cannot serialize')
++
++    opened = []
++    original = tempfile.NamedTemporaryFile
++    def tracked(*args, **kwds):
++        file = original(*args, **kwds)
++        opened.append(file)
++        return file
++    try:
++        errors = []
++        with patch('tempfile.NamedTemporaryFile', tracked):
++            try:
++                dump(CannotSerialize())
++            except RuntimeError as error:
++                errors.append(error)
++        assert len(errors) == 1
++        assert len(opened) == 1
++        assert opened[-1].closed
++        assert not os.path.exists(opened[-1].name)
++
++        with patch('tempfile.NamedTemporaryFile', tracked):
++            dumpfile = dump(x)
++        assert opened[-1] is dumpfile
++        assert not dumpfile.closed
++        assert load(dumpfile) == x
++    finally:
++        for file in opened:
++            file.close()
++
+ def test_buffer_pickle_protocol():
+     value = {'a': [1, 2, 3]}
+     for protocol in range(dill.HIGHEST_PROTOCOL + 1):
+@@ -183,6 +219,7 @@ if __name__ == '__main__':
+     test_pickle_to_tempfile()
+     test_pickle_to_stream()
+     test_load_closes_internal_file()
++    test_dump_closes_internal_file_on_failure()
+     test_buffer_pickle_protocol()
+     test_buffer_unpickle_encoding()
+     test_buffer_unpickle_errors()

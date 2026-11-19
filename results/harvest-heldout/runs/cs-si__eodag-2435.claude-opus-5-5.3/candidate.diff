@@ -1,0 +1,69 @@
+diff --git a/eodag/api/core.py b/eodag/api/core.py
+index 3b502f4..a2c43ee 100644
+--- a/eodag/api/core.py
++++ b/eodag/api/core.py
+@@ -73,7 +73,12 @@ from eodag.utils import (
+     string_to_jsonpath,
+     uri_to_path,
+ )
+-from eodag.utils.dates import get_datetime, rfc3339_str_to_datetime
++from eodag.utils.dates import (
++    ensure_utc,
++    get_datetime,
++    parse_to_utc,
++    rfc3339_str_to_datetime,
++)
+ from eodag.utils.exceptions import (
+     AuthenticationError,
+     NoMatchingCollection,
+@@ -1586,6 +1591,40 @@ class EODataAccessGateway:
+         collection_config = plugin.discover_collections(**kwargs)
+         self.update_collections_list({provider: collection_config})
+ 
++    @staticmethod
++    def _check_dates_validity(start: Any = None, end: Any = None) -> None:
++        """Check that the given start and end dates are valid dates and that start
++        is not after end.
++
++        :param start: start date
++        :param end: end date
++        :raises ValidationError: If a date is invalid or if start is after end
++        """
++        parsed: dict[str, dt.datetime] = {}
++        for name, value in (("start", start), ("end", end)):
++            if value is None or value == "":
++                continue
++            if isinstance(value, dt.datetime):
++                parsed[name] = ensure_utc(value)
++            elif isinstance(value, dt.date):
++                parsed[name] = dt.datetime(
++                    value.year, value.month, value.day, tzinfo=dt.timezone.utc
++                )
++            elif isinstance(value, str):
++                try:
++                    parsed[name] = parse_to_utc(value)
++                except (ValidationError, OverflowError) as e:
++                    raise ValidationError(
++                        f"Invalid {name} date: {value!r}", {name}
++                    ) from e
++            else:
++                raise ValidationError(f"Invalid {name} date: {value!r}", {name})
++        if "start" in parsed and "end" in parsed and parsed["start"] > parsed["end"]:
++            raise ValidationError(
++                f"Start date ({start}) must be before end date ({end})",
++                {"start", "end"},
++            )
++
+     def _prepare_search(
+         self,
+         start: str | None = None,
+@@ -1672,6 +1711,9 @@ class EODataAccessGateway:
+             datetimes = get_datetime(kwargs)
+             kwargs["start_datetime"] = datetimes[0]
+             kwargs["end_datetime"] = datetimes[1]
++        self._check_dates_validity(
++            kwargs.get("start_datetime"), kwargs.get("end_datetime")
++        )
+         if "sort_by" in kwargs:
+             new_sort_by = []
+             for param_tuple in kwargs["sort_by"]:

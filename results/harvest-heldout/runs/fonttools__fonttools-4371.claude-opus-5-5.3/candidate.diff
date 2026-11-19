@@ -1,0 +1,19 @@
+diff --git a/Lib/fontTools/varLib/instancer/names.py b/Lib/fontTools/varLib/instancer/names.py
+index f945468..3ae49a5 100644
+--- a/Lib/fontTools/varLib/instancer/names.py
++++ b/Lib/fontTools/varLib/instancer/names.py
+@@ -206,7 +206,13 @@ def _updateNameRecords(varfont, axisValues):
+     axisValueNameIDs = [a.ValueNameID for a in axisValues]
+     ribbiNameIDs = [n for n in axisValueNameIDs if _isRibbi(nametable, n)]
+     nonRibbiNameIDs = [n for n in axisValueNameIDs if n not in ribbiNameIDs]
+-    elidedNameID = stat.ElidedFallbackNameID
++    # STAT version 1.0 has no ElidedFallbackNameID; fall back to the font's
++    # subfamily name (nameID 2) in that case.
++    elidedNameID = None
++    if getattr(stat, "Version", 0x00010001) >= 0x00010001:
++        elidedNameID = getattr(stat, "ElidedFallbackNameID", None)
++    if elidedNameID is None:
++        elidedNameID = NameID.SUBFAMILY_NAME
+     elidedNameIsRibbi = _isRibbi(nametable, elidedNameID)
+ 
+     getName = nametable.getName

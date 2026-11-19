@@ -1,0 +1,143 @@
+diff --git a/prometheus_client/metrics_core.py b/prometheus_client/metrics_core.py
+index 27d1712..8d77dbc 100644
+--- a/prometheus_client/metrics_core.py
++++ b/prometheus_client/metrics_core.py
+@@ -92,7 +92,7 @@ class UnknownMetricFamily(Metric):
+         labels: A list of label values
+         value: The value of the metric.
+         """
+-        self.samples.append(Sample(self.name, dict(zip(self._labelnames, labels)), value, timestamp))
++        self.samples.append(Sample(self.name, dict(zip(self._labelnames, map(str, labels))), value, timestamp))
+ 
+ 
+ # For backward compatibility.
+@@ -140,9 +140,9 @@ class CounterMetricFamily(Metric):
+           value: The value of the metric
+           created: Optional unix timestamp the child was created at.
+         """
+-        self.samples.append(Sample(self.name + '_total', dict(zip(self._labelnames, labels)), value, timestamp, exemplar))
++        self.samples.append(Sample(self.name + '_total', dict(zip(self._labelnames, map(str, labels))), value, timestamp, exemplar))
+         if created is not None:
+-            self.samples.append(Sample(self.name + '_created', dict(zip(self._labelnames, labels)), created, timestamp))
++            self.samples.append(Sample(self.name + '_created', dict(zip(self._labelnames, map(str, labels))), created, timestamp))
+ 
+ 
+ class GaugeMetricFamily(Metric):
+@@ -174,7 +174,7 @@ class GaugeMetricFamily(Metric):
+           labels: A list of label values
+           value: A float
+         """
+-        self.samples.append(Sample(self.name, dict(zip(self._labelnames, labels)), value, timestamp))
++        self.samples.append(Sample(self.name, dict(zip(self._labelnames, map(str, labels))), value, timestamp))
+ 
+ 
+ class SummaryMetricFamily(Metric):
+@@ -217,8 +217,8 @@ class SummaryMetricFamily(Metric):
+           count_value: The count value of the metric.
+           sum_value: The sum value of the metric.
+         """
+-        self.samples.append(Sample(self.name + '_count', dict(zip(self._labelnames, labels)), count_value, timestamp))
+-        self.samples.append(Sample(self.name + '_sum', dict(zip(self._labelnames, labels)), sum_value, timestamp))
++        self.samples.append(Sample(self.name + '_count', dict(zip(self._labelnames, map(str, labels))), count_value, timestamp))
++        self.samples.append(Sample(self.name + '_sum', dict(zip(self._labelnames, map(str, labels))), sum_value, timestamp))
+ 
+ 
+ class HistogramMetricFamily(Metric):
+@@ -268,7 +268,7 @@ class HistogramMetricFamily(Metric):
+                 exemplar = b[2]  # type: ignore
+             self.samples.append(Sample(
+                 self.name + '_bucket',
+-                dict(list(zip(self._labelnames, labels)) + [('le', bucket)]),
++                dict(list(zip(self._labelnames, map(str, labels))) + [('le', bucket)]),
+                 value,
+                 timestamp,
+                 exemplar,
+@@ -277,9 +277,9 @@ class HistogramMetricFamily(Metric):
+         if float(buckets[0][0]) >= 0 and sum_value is not None:
+             # +Inf is last and provides the count value.
+             self.samples.append(
+-                Sample(self.name + '_count', dict(zip(self._labelnames, labels)), buckets[-1][1], timestamp))
++                Sample(self.name + '_count', dict(zip(self._labelnames, map(str, labels))), buckets[-1][1], timestamp))
+             self.samples.append(
+-                Sample(self.name + '_sum', dict(zip(self._labelnames, labels)), sum_value, timestamp))
++                Sample(self.name + '_sum', dict(zip(self._labelnames, map(str, labels))), sum_value, timestamp))
+ 
+ 
+ class GaugeHistogramMetricFamily(Metric):
+@@ -322,13 +322,13 @@ class GaugeHistogramMetricFamily(Metric):
+         for bucket, value in buckets:
+             self.samples.append(Sample(
+                 self.name + '_bucket',
+-                dict(list(zip(self._labelnames, labels)) + [('le', bucket)]),
++                dict(list(zip(self._labelnames, map(str, labels))) + [('le', bucket)]),
+                 value, timestamp))
+         # +Inf is last and provides the count value.
+         self.samples.extend([
+-            Sample(self.name + '_gcount', dict(zip(self._labelnames, labels)), buckets[-1][1], timestamp),
++            Sample(self.name + '_gcount', dict(zip(self._labelnames, map(str, labels))), buckets[-1][1], timestamp),
+             # TODO: Handle None gsum_value correctly. Currently a None will fail exposition but is allowed here.
+-            Sample(self.name + '_gsum', dict(zip(self._labelnames, labels)), gsum_value, timestamp),  # type: ignore
++            Sample(self.name + '_gsum', dict(zip(self._labelnames, map(str, labels))), gsum_value, timestamp),  # type: ignore
+         ])
+ 
+ 
+@@ -366,7 +366,7 @@ class InfoMetricFamily(Metric):
+         """
+         self.samples.append(Sample(
+             self.name + '_info',
+-            dict(dict(zip(self._labelnames, labels)), **value),
++            dict(dict(zip(self._labelnames, map(str, labels))), **value),
+             1,
+             timestamp,
+         ))
+@@ -404,7 +404,7 @@ class StateSetMetricFamily(Metric):
+           labels: A list of label values
+           value: A dict of string state names to booleans
+         """
+-        labels = tuple(labels)
++        labels = tuple(str(label) for label in labels)
+         for state, enabled in sorted(value.items()):
+             v = (1 if enabled else 0)
+             self.samples.append(Sample(
+diff --git a/tests/test_core.py b/tests/test_core.py
+index b883fbc..03acaac 100644
+--- a/tests/test_core.py
++++ b/tests/test_core.py
+@@ -14,6 +14,7 @@ from prometheus_client.core import (
+     StateSetMetricFamily, Summary, SummaryMetricFamily, UntypedMetricFamily,
+ )
+ from prometheus_client.decorator import getargspec
++from prometheus_client.exposition import generate_latest
+ from prometheus_client.metrics import _get_use_created
+ from prometheus_client.validation import (
+     disable_legacy_validation, enable_legacy_validation,
+@@ -920,6 +921,29 @@ class TestMetricFamilies(unittest.TestCase):
+         self.custom_collector(cmf)
+         self.assertEqual(2, self.registry.get_sample_value('g', {'a': 'b'}))
+ 
++    def test_non_string_label_values_are_coerced(self):
++        families = [
++            GaugeMetricFamily('g', 'help', labels=['a']),
++            CounterMetricFamily('c', 'help', labels=['a']),
++            UntypedMetricFamily('u', 'help', labels=['a']),
++        ]
++        for f in families:
++            f.add_metric([1], 2)
++        s = SummaryMetricFamily('s', 'help', labels=['a'])
++        s.add_metric([1], count_value=1, sum_value=2)
++        h = HistogramMetricFamily('h', 'help', labels=['a'])
++        h.add_metric([1], buckets=[('+Inf', 1)], sum_value=2)
++        i = InfoMetricFamily('i', 'help', labels=['a'])
++        i.add_metric([1], {'b': 'c'})
++        ss = StateSetMetricFamily('ss', 'help', labels=['a'])
++        ss.add_metric([1], {'x': True})
++        for f in families + [s, h, i, ss]:
++            for sample in f.samples:
++                self.assertEqual('1', sample.labels['a'])
++        self.custom_collector(families[0])
++        self.assertEqual(2, self.registry.get_sample_value('g', {'a': '1'}))
++        self.assertIn(b'g{a="1"} 2.0', generate_latest(self.registry))
++
+     def test_summary(self):
+         self.custom_collector(SummaryMetricFamily('s', 'help', count_value=1, sum_value=2))
+         self.assertEqual(1, self.registry.get_sample_value('s_count', {}))

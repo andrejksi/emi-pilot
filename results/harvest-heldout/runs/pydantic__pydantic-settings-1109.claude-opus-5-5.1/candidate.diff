@@ -1,0 +1,57 @@
+diff --git a/pydantic_settings/sources/providers/env.py b/pydantic_settings/sources/providers/env.py
+index a3c9644..e6bf1f3 100644
+--- a/pydantic_settings/sources/providers/env.py
++++ b/pydantic_settings/sources/providers/env.py
+@@ -274,14 +274,16 @@ class EnvSettingsSource(PydanticBaseEnvSettingsSource):
+             return None
+ 
+         annotation = field.annotation if isinstance(field, FieldInfo) else field
++        if _lenient_issubclass(get_origin(annotation), dict):
++            # get value type if it's a dict. This has to be checked before recursing into the type
++            # arguments, otherwise a dict nested in the value type (e.g. `dict[str, list[dict[str, str]]]`)
++            # would be matched instead of the value type itself.
++            args = get_args(annotation)
++            return args[-1] if args else None
+         for type_ in get_args(annotation):
+             type_has_key = self.next_field(type_, key, case_sensitive)
+             if type_has_key:
+                 return type_has_key
+-        if _lenient_issubclass(get_origin(annotation), dict):
+-            # get value type if it's a dict
+-            args = get_args(annotation)
+-            return args[-1] if args else None
+         if is_model_class(annotation) or is_pydantic_dataclass(annotation):  # type: ignore[arg-type]
+             fields = _get_model_fields(annotation)
+             model_config = _get_model_config(annotation)
+diff --git a/tests/test_settings.py b/tests/test_settings.py
+index b9e0d4e..ee6a9a9 100644
+--- a/tests/test_settings.py
++++ b/tests/test_settings.py
+@@ -4437,6 +4437,27 @@ def test_env_nested_dict_complex_value_type(env):
+     assert s.model_dump() == {'nested_field': {'key': ['a', 'b']}}
+ 
+ 
++def test_env_nested_dict_value_type_containing_dict(env):
++    """The value type of a dict field is used even when a dict is nested inside it."""
++
++    class Settings(BaseSettings):
++        a: dict[str, list[str]] = {}
++        b: dict[str, list[dict[str, str]]] = {}
++        c: dict[str, tuple[dict[str, int], str]] = {}
++
++        model_config = SettingsConfigDict(env_prefix='APP_', env_nested_delimiter='__')
++
++    env.set('APP_A__X', '["v"]')
++    env.set('APP_B__X', '[{"k": "v"}]')
++    env.set('APP_C__X', '[{"k": 1}, "s"]')
++    s = Settings()
++    assert s.model_dump() == {
++        'a': {'x': ['v']},
++        'b': {'x': [{'k': 'v'}]},
++        'c': {'x': ({'k': 1}, 's')},
++    }
++
++
+ ListOrStr = TypeAliasType('ListOrStr', list[str] | str)
+ 
+ 

@@ -1,0 +1,262 @@
+diff --git a/src/huggingface_hub/hf_file_system.py b/src/huggingface_hub/hf_file_system.py
+index 0443cc1..d4dd4e0 100644
+--- a/src/huggingface_hub/hf_file_system.py
++++ b/src/huggingface_hub/hf_file_system.py
+@@ -1114,10 +1114,13 @@ class HfFileSystem(fsspec.AbstractFileSystem, metaclass=_Cached):  # ty: ignore[
+ 
+     def cp_file(self, path1: str, path2: str, revision: str | None = None, **kwargs) -> None:
+         """
+-        Copy a file within or between repositories.
++        Copy a file within or between repositories and buckets.
++
++        When the destination is a bucket, the copy is done server-side by Xet hash whenever possible (no data is
++        downloaded or re-uploaded). Otherwise, the file content is downloaded and re-uploaded.
+ 
+         > [!WARNING]
+-        > Note: When possible, use `HfApi.upload_file()` for better performance.
++        > Note: When possible, use `HfApi.upload_file()` (or `HfApi.copy_files()` for buckets) for better performance.
+ 
+         Args:
+             path1 (`str`):
+@@ -1130,11 +1133,88 @@ class HfFileSystem(fsspec.AbstractFileSystem, metaclass=_Cached):  # ty: ignore[
+         """
+         resolved_path1 = self.resolve_path(path1, revision=revision)
+         resolved_path2 = self.resolve_path(path2, revision=revision)
+-        if isinstance(resolved_path1, HfFileSystemResolvedBucketPath) or isinstance(
+-            resolved_path2, HfFileSystemResolvedBucketPath
+-        ):
+-            raise NotImplementedError("Copy from/to buckets is not available yet")
+ 
++        if isinstance(resolved_path2, HfFileSystemResolvedBucketPath):
++            self._cp_file_to_bucket(path1, resolved_path1, resolved_path2)
++        elif isinstance(resolved_path1, HfFileSystemResolvedBucketPath):
++            # Bucket to repository: no server-side copy is possible => download and re-upload the content
++            with self.open(path1, "rb") as f:
++                content = f.read()
++            commit_message = f"Copy {path1} to {path2}"
++            self._api.upload_file(
++                path_or_fileobj=content,
++                path_in_repo=resolved_path2.path_in_repo,
++                repo_id=resolved_path2.repo_id,
++                token=self.token,
++                repo_type=resolved_path2.repo_type,
++                revision=resolved_path2.revision,
++                commit_message=kwargs.get("commit_message", commit_message),
++                commit_description=kwargs.get("commit_description"),
++            )
++        else:
++            self._cp_file_between_repositories(path1, path2, resolved_path1, resolved_path2, **kwargs)
++        self.invalidate_cache(path=resolved_path1.unresolve())
++        self.invalidate_cache(path=resolved_path2.unresolve())
++
++    def _cp_file_to_bucket(
++        self,
++        path1: str,
++        resolved_path1: HfFileSystemResolvedPath,
++        resolved_path2: HfFileSystemResolvedBucketPath,
++    ) -> None:
++        """Copy a single file (from a bucket or a repository) to a bucket, server-side by Xet hash when possible."""
++        if not resolved_path2.path:
++            raise IsADirectoryError(f"Cannot copy '{path1}' to the root of bucket '{resolved_path2.bucket_id}'.")
++
++        source_repo_type: str
++        source_repo_id: str
++        xet_hash: str | None
++        if isinstance(resolved_path1, HfFileSystemResolvedBucketPath):
++            # Ask the Hub directly (not the cache): the source may have just been written, e.g. in write-then-rename
++            bucket_files = list(self._api.get_bucket_paths_info(resolved_path1.bucket_id, [resolved_path1.path]))
++            bucket_file = next((f for f in bucket_files if f.path == resolved_path1.path), None)
++            if bucket_file is None:
++                raise FileNotFoundError(path1)
++            source_repo_type, source_repo_id, xet_hash = "bucket", resolved_path1.bucket_id, bucket_file.xet_hash
++        elif isinstance(resolved_path1, HfFileSystemResolvedRepositoryPath):
++            paths_info = self._api.get_paths_info(
++                resolved_path1.repo_id,
++                [resolved_path1.path_in_repo],
++                revision=resolved_path1.revision,
++                repo_type=resolved_path1.repo_type,
++            )
++            repo_file = next(
++                (f for f in paths_info if isinstance(f, RepoFile) and f.path == resolved_path1.path_in_repo), None
++            )
++            if repo_file is None:
++                raise FileNotFoundError(path1)
++            source_repo_type, source_repo_id, xet_hash = (
++                resolved_path1.repo_type,
++                resolved_path1.repo_id,
++                repo_file.xet_hash,
++            )
++        else:
++            raise NotImplementedError(f"Cannot copy '{path1}' to a bucket.")
++
++        if xet_hash is not None:
++            self._api.batch_bucket_files(
++                resolved_path2.bucket_id,
++                copy=[(source_repo_type, source_repo_id, xet_hash, resolved_path2.path)],
++            )
++        else:
++            # Not stored on Xet (e.g. a small git-tracked file in a repository): download and re-upload the content
++            with self.open(resolved_path1.unresolve(), "rb") as f:
++                content = f.read()
++            self._api.batch_bucket_files(resolved_path2.bucket_id, add=[(content, resolved_path2.path)])
++
++    def _cp_file_between_repositories(
++        self,
++        path1: str,
++        path2: str,
++        resolved_path1: HfFileSystemResolvedRepositoryPath,
++        resolved_path2: HfFileSystemResolvedRepositoryPath,
++        **kwargs,
++    ) -> None:
+         same_repo = (
+             resolved_path1.repo_type == resolved_path2.repo_type and resolved_path1.repo_id == resolved_path2.repo_id
+         )
+@@ -1169,8 +1249,6 @@ class HfFileSystem(fsspec.AbstractFileSystem, metaclass=_Cached):  # ty: ignore[
+                 commit_message=kwargs.get("commit_message", commit_message),
+                 commit_description=kwargs.get("commit_description"),
+             )
+-        self.invalidate_cache(path=resolved_path1.unresolve())
+-        self.invalidate_cache(path=resolved_path2.unresolve())
+ 
+     def modified(self, path: str, **kwargs) -> datetime:
+         """
+diff --git a/tests/test_buckets_hf_file_system.py b/tests/test_buckets_hf_file_system.py
+index 0aae7b7..6880d79 100644
+--- a/tests/test_buckets_hf_file_system.py
++++ b/tests/test_buckets_hf_file_system.py
+@@ -104,9 +104,14 @@ class TestHfFileSystemBucketRW(_HfFileSystemBucketChecks, _HfFileSystemBaseRWTes
+         yield
+         self.api.delete_bucket(self.bucket_id)
+ 
+-    @pytest.mark.skip("Not implemented yet")
+-    def test_copy_file(self):
+-        pass
++    def test_move_file(self):
++        # Write-then-rename pattern used by e.g. `torch.distributed.checkpoint` and `datasets`
++        with self.hffs.open(self.hf_path + "/data/new.tmp", "wb") as f:
++            f.write(b"new data")
++        self.hffs.mv(self.hf_path + "/data/new.tmp", self.hf_path + "/data/new.bin")
++        assert not self.hffs.exists(self.hf_path + "/data/new.tmp")
++        with self.hffs.open(self.hf_path + "/data/new.bin", "rb") as f:
++            assert f.read() == b"new data"
+ 
+ 
+ class TestHfFileSystemBucketLiveFollow:
+diff --git a/tests/test_hf_file_system.py b/tests/test_hf_file_system.py
+index cbae67f..70ce967 100644
+--- a/tests/test_hf_file_system.py
++++ b/tests/test_hf_file_system.py
+@@ -10,12 +10,13 @@ import threading
+ import time
+ from pathlib import Path
+ from typing import Iterable, Optional, Type
+-from unittest.mock import Mock, patch
++from unittest.mock import Mock, call, patch
+ 
+ import fsspec
+ import pytest
+ 
+ from huggingface_hub import HfApi, constants, hf_file_system
++from huggingface_hub._buckets import BucketFile
+ from huggingface_hub.errors import BucketNotFoundError, RepositoryNotFoundError, RevisionNotFoundError
+ from huggingface_hub.hf_api import RepoFile, RepoFolder
+ from huggingface_hub.hf_file_system import (
+@@ -879,6 +880,98 @@ def mock_bucket_info(fs: HfFileSystem):
+     return patch.object(fs._api, "bucket_info", _inner)
+ 
+ 
++def _bucket_file(path: str, xet_hash: str) -> BucketFile:
++    return BucketFile(
++        type="file", path=path, size=4, xetHash=xet_hash, mtime=None, uploadedAt="2026-01-01T00:00:00.000Z"
++    )
++
++
++@pytest.fixture
++def bucket_fs():
++    """`HfFileSystem` with a mocked Hub serving `username/my_bucket` (with `data/a.tmp`) and `username/other_bucket`."""
++    fs = HfFileSystem(skip_instance_cache=True)
++    files = {"username/my_bucket": [_bucket_file("data/a.tmp", "hash_a")], "username/other_bucket": []}
++
++    def _bucket_info(bucket_id: str, *_, **kwargs):
++        if bucket_id not in files:
++            raise BucketNotFoundError(bucket_id, response=Mock())
++
++    def _get_bucket_paths_info(bucket_id: str, paths, **kwargs):
++        return [f for f in files[bucket_id] if f.path in paths]
++
++    def _list_bucket_tree(bucket_id: str, prefix=None, recursive=False, **kwargs):
++        return [f for f in files[bucket_id] if not prefix or f.path == prefix or f.path.startswith(prefix + "/")]
++
++    with (
++        patch.object(fs._api, "bucket_info", _bucket_info),
++        patch.object(fs._api, "get_bucket_paths_info", _get_bucket_paths_info),
++        patch.object(fs._api, "list_bucket_tree", _list_bucket_tree),
++        patch.object(fs._api, "batch_bucket_files") as batch_bucket_files,
++    ):
++        fs._api.batch_bucket_files = batch_bucket_files
++        yield fs
++
++
++def test_cp_file_within_bucket_copies_by_xet_hash(bucket_fs: HfFileSystem):
++    bucket_fs.cp_file("hf://buckets/username/my_bucket/data/a.tmp", "hf://buckets/username/my_bucket/data/a.txt")
++    bucket_fs._api.batch_bucket_files.assert_called_once_with(
++        "username/my_bucket", copy=[("bucket", "username/my_bucket", "hash_a", "data/a.txt")]
++    )
++
++
++def test_cp_file_between_buckets_copies_by_xet_hash(bucket_fs: HfFileSystem):
++    bucket_fs.cp_file("buckets/username/my_bucket/data/a.tmp", "buckets/username/other_bucket/b.txt")
++    bucket_fs._api.batch_bucket_files.assert_called_once_with(
++        "username/other_bucket", copy=[("bucket", "username/my_bucket", "hash_a", "b.txt")]
++    )
++
++
++def test_cp_file_from_missing_bucket_file(bucket_fs: HfFileSystem):
++    with pytest.raises(FileNotFoundError):
++        bucket_fs.cp_file("buckets/username/my_bucket/data/missing.txt", "buckets/username/my_bucket/data/b.txt")
++    bucket_fs._api.batch_bucket_files.assert_not_called()
++
++
++def test_mv_within_bucket(bucket_fs: HfFileSystem):
++    # Write-then-rename pattern (e.g. `torch.distributed.checkpoint`, `datasets`): copy, then delete the source
++    bucket_fs.mv("hf://buckets/username/my_bucket/data/a.tmp", "hf://buckets/username/my_bucket/data/a")
++    assert bucket_fs._api.batch_bucket_files.call_args_list == [
++        call("username/my_bucket", copy=[("bucket", "username/my_bucket", "hash_a", "data/a")]),
++        call("username/my_bucket", delete=["data/a.tmp"]),
++    ]
++
++
++@pytest.mark.parametrize("xet_hash", ["hash_repo", None])
++def test_cp_file_from_repository_to_bucket(bucket_fs: HfFileSystem, xet_hash: Optional[str]):
++    repo_file = RepoFile(path="config.json", size=4, oid="blob", xetHash=xet_hash)
++    with (
++        mock_repo_info(bucket_fs),
++        patch.object(bucket_fs._api, "get_paths_info", return_value=[repo_file]) as get_paths_info,
++        patch.object(bucket_fs, "open", return_value=io.BytesIO(b"data")),
++    ):
++        bucket_fs.cp_file("hf://username/my_model/config.json", "hf://buckets/username/my_bucket/config.json")
++    get_paths_info.assert_called_once_with("username/my_model", ["config.json"], revision="main", repo_type="model")
++    if xet_hash is not None:  # server-side copy
++        bucket_fs._api.batch_bucket_files.assert_called_once_with(
++            "username/my_bucket", copy=[("model", "username/my_model", "hash_repo", "config.json")]
++        )
++    else:  # not on Xet: re-upload the content
++        bucket_fs._api.batch_bucket_files.assert_called_once_with("username/my_bucket", add=[(b"data", "config.json")])
++
++
++def test_cp_file_from_bucket_to_repository(bucket_fs: HfFileSystem):
++    with (
++        mock_repo_info(bucket_fs),
++        patch.object(bucket_fs._api, "upload_file") as upload_file,
++        patch.object(bucket_fs, "open", return_value=io.BytesIO(b"data")),
++    ):
++        bucket_fs.cp_file("hf://buckets/username/my_bucket/data/a.tmp", "hf://username/my_model/a.txt")
++    upload_file.assert_called_once()
++    assert upload_file.call_args.kwargs["path_or_fileobj"] == b"data"
++    assert upload_file.call_args.kwargs["path_in_repo"] == "a.txt"
++    assert upload_file.call_args.kwargs["repo_id"] == "username/my_model"
++
++
+ def test_resolve_path_with_non_matching_revisions():
+     fs = HfFileSystem()
+     with pytest.raises(ValueError):

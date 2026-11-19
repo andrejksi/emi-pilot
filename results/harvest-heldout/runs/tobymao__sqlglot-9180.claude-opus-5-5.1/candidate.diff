@@ -1,0 +1,50 @@
+diff --git a/sqlglot/generator.py b/sqlglot/generator.py
+index 573d3c1..118c2bb 100644
+--- a/sqlglot/generator.py
++++ b/sqlglot/generator.py
+@@ -4805,12 +4805,17 @@ class Generator:
+                 l.replace(exp.cast(l.copy(), to=exp.DType.DOUBLE))
+ 
+         elif not self.dialect.TYPED_DIVISION and expression.args.get("typed"):
+-            if l.is_type(*exp.DataType.INTEGER_TYPES) and r.is_type(*exp.DataType.INTEGER_TYPES):
++            # Integer literals are integers even when the expression hasn't been annotated
++            if all(e.is_int or e.is_type(*exp.DataType.INTEGER_TYPES) for e in (l, r)):
+                 # Native integer division depends on the target's operand types, which may differ
+                 # from the source's (e.g. FLOOR(int) is DOUBLE in DuckDB), unless the operands are
+-                # integer literals or casts
+-                if all(e.is_int or isinstance(e, exp.Cast) for e in (l, r)) and (
+-                    expression.args.get("safe") or not self.SAFE_INT_DIVISION
++                # integer literals or casts. Typed division truncates towards zero, whereas
++                # native integer division may floor, so negative literal operands are truncated
++                # explicitly.
++                if (
++                    all(e.is_int or isinstance(e, exp.Cast) for e in (l, r))
++                    and not any(e.is_int and e.to_py() < 0 for e in (l, r))
++                    and (expression.args.get("safe") or not self.SAFE_INT_DIVISION)
+                 ):
+                     return self.sql(exp.IntDiv(this=l, expression=expression.right))
+                 return self._truncated_div_sql(l, expression.right)
+diff --git a/tests/dialects/test_sqlite.py b/tests/dialects/test_sqlite.py
+index ec546ac..153faee 100644
+--- a/tests/dialects/test_sqlite.py
++++ b/tests/dialects/test_sqlite.py
+@@ -309,6 +309,19 @@ class TestSQLite(Validator):
+                 with self.subTest(sql=sql, dialect=dialect):
+                     self.assertEqual(expression.sql(dialect), output)
+ 
++        # Integer literals divide as integers without type annotation
++        for sql, duckdb_sql in (
++            ("SELECT 5 / 2", "SELECT 5 // NULLIF(2, 0)"),
++            ("SELECT 7 / 0", "SELECT 7 // NULLIF(0, 0)"),
++            ("SELECT -5 / 2", "SELECT CAST(TRUNC(-5 / NULLIF(2, 0)) AS BIGINT)"),
++            ("SELECT 5 / -2", "SELECT CAST(TRUNC(5 / NULLIF(-2, 0)) AS BIGINT)"),
++            ("SELECT 5.0 / 2", "SELECT 5.0 / NULLIF(2, 0)"),
++            ("SELECT 5 / 2.0", "SELECT 5 / NULLIF(2.0, 0)"),
++            ("SELECT a / 2 FROM t", "SELECT a / NULLIF(2, 0) FROM t"),
++        ):
++            with self.subTest(sql=sql):
++                self.assertEqual(self.parse_one(sql).sql("duckdb"), duckdb_sql)
++
+     def test_subquery_modifiers(self):
+         for source, expected in (
+             (

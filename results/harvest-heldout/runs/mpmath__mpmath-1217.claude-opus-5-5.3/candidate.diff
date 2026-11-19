@@ -1,0 +1,16 @@
+diff --git a/mpmath/libmp/gammazeta.py b/mpmath/libmp/gammazeta.py
+index 6d44228..2596e82 100644
+--- a/mpmath/libmp/gammazeta.py
++++ b/mpmath/libmp/gammazeta.py
+@@ -1084,6 +1084,11 @@ def mpc_zeta(s, prec, rnd=round_down, alt=0, force=False):
+         pi2 = (mpf_shift(pi, 1), fzero)
+         d = mpc_div_mpf(mpc_pow(pi2, s, wp2), pi, wp2)
+         return mpc_mul(a,mpc_mul(b,mpc_mul(c,d,wp),wp),prec,rnd)
++    # For large re(s), zeta(s) - 1 ~ 2^(-s) is tiny, so the imaginary
++    # part is of order 2^(-re(s)) and needs extra working precision to be
++    # accurate in a relative sense
++    if mpf_gt(re, fone):
++        wp += to_int(re)
+     n = int(wp/2.54 + 5)
+     n += int(0.9*abs(to_int(im)))
+     d = borwein_coefficients(n)

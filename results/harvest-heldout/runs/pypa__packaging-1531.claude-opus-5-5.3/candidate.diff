@@ -1,0 +1,61 @@
+diff --git a/src/packaging/_tokenizer.py b/src/packaging/_tokenizer.py
+index 7fbc14a..14b64a4 100644
+--- a/src/packaging/_tokenizer.py
++++ b/src/packaging/_tokenizer.py
+@@ -77,8 +77,10 @@ DEFAULT_RULES: dict[str, re.Pattern[str]] = {
+         """,
+         re.VERBOSE,
+     ),
++    # In a requirement string the comma separates specifiers, so the
++    # arbitrary-equality (``===``) version must not consume it.
+     "SPECIFIER": re.compile(
+-        Specifier._specifier_regex_str,
++        Specifier._specifier_regex_str.replace(r"[^\s;)]+", r"[^\s;),]+", 1),
+         re.VERBOSE | re.IGNORECASE,
+     ),
+     "AT": re.compile(r"\@"),
+diff --git a/tests/test_requirements.py b/tests/test_requirements.py
+index 03d97f9..02c321f 100644
+--- a/tests/test_requirements.py
++++ b/tests/test_requirements.py
+@@ -360,9 +360,39 @@ class TestRequirementParsing:
+         to_parse = "demo===x,y"
+ 
+         # WHEN
+-        with pytest.raises(InvalidRequirement, match="Invalid specifier: 'y'"):
++        with pytest.raises(InvalidRequirement) as ctx:
+             Requirement(to_parse)
+ 
++        # THEN
++        # In a requirement string the comma separates specifiers, so ``y`` is
++        # rejected just as it would be after any other specifier.
++        assert ctx.exconly() == (
++            "packaging.requirements.InvalidRequirement: "
++            "Expected comma (within version specifier), "
++            "semicolon (after version specifier) or end\n"
++            "    demo===x,y\n"
++            "        ~~~~~^"
++        )
++
++    @pytest.mark.parametrize(
++        ("to_parse", "expected"),
++        [
++            ("x===0,>= 0", {"===0", ">=0"}),
++            ("x===0, >=0", {"===0", ">=0"}),
++            ("x===0 , >= 0", {"===0", ">=0"}),
++            ("x===0,!= 1.0", {"===0", "!=1.0"}),
++            ("x (===0,>= 0)", {"===0", ">=0"}),
++            ("x===0,>=0", {"===0", ">=0"}),
++            ("x>=1, ===0", {">=1", "===0"}),
++            ("x===0,>= 0; python_version > '3'", {"===0", ">=0"}),
++        ],
++    )
++    def test_arbitrary_equality_followed_by_spaced_specifier(
++        self, to_parse: str, expected: set[str]
++    ) -> None:
++        req = Requirement(to_parse)
++        assert {str(s) for s in req.specifier} == expected
++
+     def test_error_when_empty_string(self) -> None:
+         # GIVEN
+         to_parse = ""

@@ -1,0 +1,25 @@
+diff --git a/Lib/fontTools/varLib/iup.py b/Lib/fontTools/varLib/iup.py
+index a53de40..67f46ab 100644
+--- a/Lib/fontTools/varLib/iup.py
++++ b/Lib/fontTools/varLib/iup.py
+@@ -12,6 +12,8 @@ from typing import (
+ )
+ from numbers import Integral, Real
+ 
++from fontTools.misc.roundTools import otRound
++
+ _Point = Tuple[Real, Real]
+ _Delta = Tuple[Real, Real]
+ _PointSegment = Sequence[_Point]
+@@ -371,6 +373,11 @@ def iup_contour_optimize(
+ 
+     n = len(deltas)
+ 
++    # Points and deltas are always rounded to integers at render time, so the
++    # equality/tolerance comparisons must be done on rounded values too.
++    deltas = [(otRound(x), otRound(y)) for x, y in deltas]
++    coords = [(otRound(x), otRound(y)) for x, y in coords]
++
+     # Get the easy cases out of the way:
+ 
+     # If all are within tolerance distance of 0, encode nothing:

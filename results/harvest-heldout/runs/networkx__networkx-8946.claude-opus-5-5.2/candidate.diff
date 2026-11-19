@@ -1,0 +1,46 @@
+diff --git a/networkx/algorithms/graph_hashing.py b/networkx/algorithms/graph_hashing.py
+index d8f3086..6e0240f 100644
+--- a/networkx/algorithms/graph_hashing.py
++++ b/networkx/algorithms/graph_hashing.py
+@@ -54,12 +54,12 @@ def _neighborhood_aggregate_directed(G, node, node_labels, edge_attr=None):
+     """
+     successor_labels = []
+     for nbr in G.successors(node):
+-        prefix = "s_" + "" if edge_attr is None else str(G[node][nbr][edge_attr])
++        prefix = "s_" + ("" if edge_attr is None else str(G[node][nbr][edge_attr]))
+         successor_labels.append(prefix + node_labels[nbr])
+ 
+     predecessor_labels = []
+     for nbr in G.predecessors(node):
+-        prefix = "p_" + "" if edge_attr is None else str(G[nbr][node][edge_attr])
++        prefix = "p_" + ("" if edge_attr is None else str(G[nbr][node][edge_attr]))
+         predecessor_labels.append(prefix + node_labels[nbr])
+     return (
+         node_labels[node]
+diff --git a/networkx/algorithms/tests/test_graph_hashing.py b/networkx/algorithms/tests/test_graph_hashing.py
+index 6c90c8f..cbbf351 100644
+--- a/networkx/algorithms/tests/test_graph_hashing.py
++++ b/networkx/algorithms/tests/test_graph_hashing.py
+@@ -870,3 +870,22 @@ def test_initial_node_labels_subgraph_hash():
+             with_initial_label[u][1:], without_initial_label[u], strict=True
+         ):
+             assert a == b
++
++
++def test_directed_edge_attr_distinguishes_direction():
++    """
++    Edge labels on directed graphs must keep the successor/predecessor
++    distinction, so in- and out-stars with equal edge labels hash differently.
++    """
++    out_star = nx.DiGraph([(0, 1), (0, 2)])
++    in_star = nx.DiGraph([(1, 0), (2, 0)])
++    for G in (out_star, in_star):
++        nx.set_edge_attributes(G, "e", "label")
++
++    assert nx.weisfeiler_lehman_graph_hash(
++        out_star, edge_attr="label"
++    ) != nx.weisfeiler_lehman_graph_hash(in_star, edge_attr="label")
++
++    out_sub = nx.weisfeiler_lehman_subgraph_hashes(out_star, edge_attr="label")
++    in_sub = nx.weisfeiler_lehman_subgraph_hashes(in_star, edge_attr="label")
++    assert out_sub[0] != in_sub[0]

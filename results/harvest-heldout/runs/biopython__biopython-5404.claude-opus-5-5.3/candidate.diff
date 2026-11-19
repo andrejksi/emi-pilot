@@ -1,0 +1,72 @@
+diff --git a/Bio/bgzf.py b/Bio/bgzf.py
+index 8041dd5..3a7543d 100755
+--- a/Bio/bgzf.py
++++ b/Bio/bgzf.py
+@@ -831,16 +831,14 @@ class BgzfWriter:
+         )
+         compressed = c.compress(block) + c.flush()
+         del c
+-        if len(compressed) > 65536:
+-            raise RuntimeError(
+-                "TODO - Didn't compress enough, try less data in this block"
+-            )
+-        crc = zlib.crc32(block)
+-        # Should cope with a mix of Python platforms...
+-        if crc < 0:
+-            crc = struct.pack("<i", crc)
+-        else:
+-            crc = struct.pack("<I", crc)
++        if len(compressed) + 25 > 65535:
++            # Didn't compress enough to fit the 16-bit BSIZE field (e.g.
++            # random or already compressed data), so split the data into
++            # two smaller blocks and try again.
++            mid = len(block) // 2
++            self._write_block(block[:mid])
++            self._write_block(block[mid:])
++            return
+         bsize = struct.pack("<H", len(compressed) + 25)  # includes -1
+         crc = struct.pack("<I", zlib.crc32(block) & 0xFFFFFFFF)
+         uncompressed_length = struct.pack("<I", len(block))
+@@ -880,8 +878,8 @@ class BgzfWriter:
+     def flush(self):
+         """Flush data explicitally."""
+         while len(self._buffer) >= 65536:
+-            self._write_block(self._buffer[:65535])
+-            self._buffer = self._buffer[65535:]
++            self._write_block(self._buffer[:65536])
++            self._buffer = self._buffer[65536:]
+         self._write_block(self._buffer)
+         self._buffer = b""
+         self._handle.flush()
+diff --git a/Tests/test_bgzf.py b/Tests/test_bgzf.py
+index 7d62927..00c2c97 100644
+--- a/Tests/test_bgzf.py
++++ b/Tests/test_bgzf.py
+@@ -516,6 +516,27 @@ class BgzfTests(unittest.TestCase):
+         with open(self.temp_file, "wb") as handle:
+             bgzf.BgzfWriter(fileobj=handle)
+ 
++    def test_writer_incompressible_data(self):
++        """A BgzfWriter must cope with data which does not compress."""
++        import random
++
++        rng = random.Random(42)
++        for size in (65490, 65500, 65516, 65520, 65536, 3 * 65536 + 7):
++            data = bytes(rng.getrandbits(8) for _ in range(size))
++            handle = io.BytesIO()
++            writer = bgzf.BgzfWriter(fileobj=handle, mode="wb")
++            writer.write(data)
++            writer.flush()
++            raw = handle.getvalue()
++            writer.close()
++            self.assertEqual(gzip.decompress(raw), data)
++            reader = bgzf.BgzfReader(fileobj=io.BytesIO(raw), mode="rb")
++            self.assertEqual(reader.read(size), data)
++            reader.close()
++            for _, raw_len, _, data_len in bgzf.BgzfBlocks(io.BytesIO(raw)):
++                self.assertLessEqual(raw_len, 65536)
++                self.assertLessEqual(data_len, 65536)
++
+ 
+ if __name__ == "__main__":
+     runner = unittest.TextTestRunner(verbosity=2)

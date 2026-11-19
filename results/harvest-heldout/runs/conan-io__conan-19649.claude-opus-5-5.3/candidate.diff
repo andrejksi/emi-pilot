@@ -1,0 +1,101 @@
+diff --git a/conan/internal/model/conf.py b/conan/internal/model/conf.py
+index 936b716..f22f244 100644
+--- a/conan/internal/model/conf.py
++++ b/conan/internal/model/conf.py
+@@ -161,6 +161,7 @@ BUILT_IN_CONFS = {
+     "tools.apple:enable_arc": "(boolean) Enable/Disable ARC Apple Clang flags",
+     "tools.apple:enable_visibility": "(boolean) Enable/Disable Visibility Apple Clang flags",
+     "tools.env.virtualenv:powershell": "If specified, it generates PowerShell launchers (.ps1). Use this configuration setting the PowerShell executable you want to use (e.g., 'powershell.exe' or 'pwsh')",
++    "tools.env.virtualenv:bat": "(boolean) If True and 'tools.env.virtualenv:powershell' is defined, it generates both the PowerShell (.ps1) and the .bat launchers",
+     "tools.env:dotenv": "(Experimental) Generate dotenv environment files",
+     "tools.env:deactivation_mode": "(Experimental) If 'function', generate a deactivate function instead of a script to unset the environment variables",
+     # Compilers/Flags configurations
+diff --git a/conan/tools/env/environment.py b/conan/tools/env/environment.py
+index 1d5fb03..568b696 100644
+--- a/conan/tools/env/environment.py
++++ b/conan/tools/env/environment.py
+@@ -23,6 +23,8 @@ def environment_wrap_command(conanfile, env_filenames, env_folder, cmd, subsyste
+     bats, shs, ps1s = [], [], []
+ 
+     accept = accepted_extensions or ("ps1", "bat", "sh")
++    both_ps1_bat = (conanfile.conf.get("tools.env.virtualenv:powershell", check_type=str) and
++                    conanfile.conf.get("tools.env.virtualenv:bat", check_type=bool))
+     # TODO: This implemantation is dirty, improve it
+     for f in filenames:
+         f = f if os.path.isabs(f) else os.path.join(env_folder, f)
+@@ -40,9 +42,14 @@ def environment_wrap_command(conanfile, env_filenames, env_folder, cmd, subsyste
+             path_bat = "{}.bat".format(f)
+             path_sh = "{}.sh".format(f)
+             path_ps1 = "{}.ps1".format(f)
+-            if os.path.isfile(path_bat) and "bat" in accept:
++            has_bat = os.path.isfile(path_bat) and "bat" in accept
++            has_ps1 = os.path.isfile(path_ps1) and "ps1" in accept
++            if has_bat and has_ps1 and both_ps1_bat:
++                # Both launchers were generated, use only the PowerShell one
++                has_bat = False
++            if has_bat:
+                 bats.append(path_bat)
+-            if os.path.isfile(path_ps1) and "ps1" in accept:
++            if has_ps1:
+                 ps1s.append(path_ps1)
+             if os.path.isfile(path_sh) and "sh" in accept:
+                 path_sh = subsystem_path(subsystem, path_sh)
+@@ -573,7 +580,8 @@ class EnvVars:
+         Saves a script file (bat, sh, ps1) with a launcher to set the environment.
+         If the conf "tools.env.virtualenv:powershell" is not an empty string
+         it will generate powershell
+-        launchers if Windows.
++        launchers if Windows. If also "tools.env.virtualenv:bat" is True, it will generate
++        both the .ps1 and the .bat launchers.
+ 
+         :param filename: Name of the file to generate. If the extension is provided, it will generate
+                          the launcher script for that extension, otherwise the format will be deduced
+@@ -583,22 +591,27 @@ class EnvVars:
+         if ext:
+             is_bat = ext == ".bat"
+             is_ps1 = ext == ".ps1"
++            filenames = [filename]
+         else:  # Need to deduce it automatically
+             is_bat = self._subsystem == WINDOWS
+             is_ps1 = self._conanfile.conf.get("tools.env.virtualenv:powershell", check_type=str)
+             if is_ps1:
+-                filename = filename + ".ps1"
+-                is_bat = False
++                filenames = [filename + ".ps1"]
++                if self._conanfile.conf.get("tools.env.virtualenv:bat", check_type=bool):
++                    filenames.append(filename + ".bat")
+             else:
+-                filename = filename + (".bat" if is_bat else ".sh")
+-
+-        path = os.path.join(self._conanfile.generators_folder, filename)
+-        if is_bat:
+-            self.save_bat(path)
+-        elif is_ps1:
+-            self.save_ps1(path)
+-        else:
+-            self.save_sh(path)
++                filenames = [filename + (".bat" if is_bat else ".sh")]
++
++        paths = []
++        for f in filenames:
++            path = os.path.join(self._conanfile.generators_folder, f)
++            if f.endswith(".bat"):
++                self.save_bat(path)
++            elif f.endswith(".ps1"):
++                self.save_ps1(path)
++            else:
++                self.save_sh(path)
++            paths.append(path)
+ 
+         if self._conanfile.conf.get("tools.env:dotenv", check_type=bool):
+             bt = self._conanfile.settings.get_safe("build_type")
+@@ -612,7 +625,8 @@ class EnvVars:
+             self.save_dotenv(f"{name}.env")
+ 
+         if self._scope:
+-            register_env_script(self._conanfile, path, self._scope)
++            for path in paths:
++                register_env_script(self._conanfile, path, self._scope)
+ 
+ 
+ def _deactivate_func_name(filename):

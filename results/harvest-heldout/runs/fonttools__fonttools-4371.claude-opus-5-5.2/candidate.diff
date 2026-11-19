@@ -1,0 +1,53 @@
+diff --git a/Lib/fontTools/varLib/instancer/names.py b/Lib/fontTools/varLib/instancer/names.py
+index f945468..cb14128 100644
+--- a/Lib/fontTools/varLib/instancer/names.py
++++ b/Lib/fontTools/varLib/instancer/names.py
+@@ -206,7 +206,11 @@ def _updateNameRecords(varfont, axisValues):
+     axisValueNameIDs = [a.ValueNameID for a in axisValues]
+     ribbiNameIDs = [n for n in axisValueNameIDs if _isRibbi(nametable, n)]
+     nonRibbiNameIDs = [n for n in axisValueNameIDs if n not in ribbiNameIDs]
+-    elidedNameID = stat.ElidedFallbackNameID
++    # STAT version 1.0 has no ElidedFallbackNameID; fall back to the font's
++    # subfamily name (nameID 2), as the OpenType spec suggests.
++    elidedNameID = getattr(stat, "ElidedFallbackNameID", None)
++    if elidedNameID is None:
++        elidedNameID = 2
+     elidedNameIsRibbi = _isRibbi(nametable, elidedNameID)
+ 
+     getName = nametable.getName
+diff --git a/Tests/varLib/instancer/names_test.py b/Tests/varLib/instancer/names_test.py
+index 0d7ef1a..cbe69d2 100644
+--- a/Tests/varLib/instancer/names_test.py
++++ b/Tests/varLib/instancer/names_test.py
+@@ -324,6 +324,31 @@ def test_updateNameTable_elided_axisValues(varfont):
+     _test_name_records(varfont, expected, isNonRIBBI=True)
+ 
+ 
++def test_updateNameTable_STAT_v1_0_without_elided_fallback_name(varfont):
++    # STAT version 1.0 has no ElidedFallbackNameID; nameID 2 is used instead.
++    stat = varfont["STAT"].table
++    stat.Version = 0x00010000
++    if hasattr(stat, "ElidedFallbackNameID"):
++        del stat.ElidedFallbackNameID
++    for axisValue in stat.AxisValueArray.AxisValue:
++        axisValue.Flags |= instancer.names.ELIDABLE_AXIS_VALUE_NAME
++
++    instancer.names.updateNameTable(varfont, {"wght": 400})
++    expected = {(1, 3, 1, 0x409): "Test Variable Font", (2, 3, 1, 0x409): "Regular"}
++    _test_name_records(varfont, expected, isNonRIBBI=False)
++
++
++def test_updateNameTable_STAT_v1_0_non_elided(varfont):
++    stat = varfont["STAT"].table
++    stat.Version = 0x00010000
++    if hasattr(stat, "ElidedFallbackNameID"):
++        del stat.ElidedFallbackNameID
++
++    instancer.names.updateNameTable(varfont, {"wght": 100})
++    expected = {(2, 3, 1, 0x409): "Regular", (17, 3, 1, 0x409): "Thin"}
++    _test_name_records(varfont, expected, isNonRIBBI=True)
++
++
+ def test_updateNameTable_existing_subfamily_name_is_not_regular(varfont):
+     # Check the subFamily name will be set to Regular when we update a name
+     # table to a non-RIBBI style and the current subFamily name is a RIBBI

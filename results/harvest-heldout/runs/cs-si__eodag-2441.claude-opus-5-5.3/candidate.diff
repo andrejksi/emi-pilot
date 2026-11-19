@@ -1,0 +1,39 @@
+diff --git a/eodag/plugins/crunch/filter_date.py b/eodag/plugins/crunch/filter_date.py
+index e90750e..a77b435 100644
+--- a/eodag/plugins/crunch/filter_date.py
++++ b/eodag/plugins/crunch/filter_date.py
+@@ -45,7 +45,9 @@ class FilterDate(Crunch):
+     @staticmethod
+     def sort_product_by_start_date(product: EOProduct) -> dt.datetime:
+         """Get product start date"""
+-        start_date = product.properties.get("start_datetime")
++        start_date = product.properties.get(
++            "start_datetime"
++        ) or product.properties.get("datetime")
+         if not start_date:
+             return dt.datetime(1970, 1, 1, tzinfo=dt.timezone.utc)
+         return parse_to_utc(start_date)
+@@ -82,15 +84,21 @@ class FilterDate(Crunch):
+         filtered: list[EOProduct] = []
+         for product in products:
+ 
+-            # product start date
+             product_start_str = product.properties.get("start_datetime")
++            product_end_str = product.properties.get("end_datetime")
++            # instantaneous products may only have a ``datetime`` property
++            if not product_start_str and not product_end_str:
++                product_start_str = product_end_str = product.properties.get(
++                    "datetime"
++                )
++
++            # product start date
+             if product_start_str:
+                 product_start = parse_to_utc(product_start_str)
+             else:
+                 product_start = None
+ 
+             # product end date
+-            product_end_str = product.properties.get("end_datetime")
+             if product_end_str:
+                 product_end = parse_to_utc(product_end_str)
+             else:
