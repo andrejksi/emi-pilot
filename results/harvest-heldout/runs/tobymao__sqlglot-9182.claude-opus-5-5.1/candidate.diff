@@ -1,0 +1,99 @@
+diff --git a/sqlglot/expressions/string.py b/sqlglot/expressions/string.py
+index e8c946f..40aef79 100644
+--- a/sqlglot/expressions/string.py
++++ b/sqlglot/expressions/string.py
+@@ -70,7 +70,8 @@ class Left(Expression, Func):
+ 
+ 
+ class Length(Expression, Func):
+-    arg_types = {"this": True, "binary": False, "encoding": False}
++    # nul_terminated: text length stops at the first NUL character (SQLite)
++    arg_types = {"this": True, "binary": False, "encoding": False, "nul_terminated": False}
+     _sql_names = ["LENGTH", "LEN", "CHAR_LENGTH", "CHARACTER_LENGTH"]
+ 
+ 
+diff --git a/sqlglot/generators/duckdb.py b/sqlglot/generators/duckdb.py
+index 76c998b..dd4c545 100644
+--- a/sqlglot/generators/duckdb.py
++++ b/sqlglot/generators/duckdb.py
+@@ -3404,6 +3404,11 @@ class DuckDBGenerator(generator.Generator):
+     def length_sql(self, expression: exp.Length) -> str:
+         arg = expression.this
+ 
++        if expression.args.get("nul_terminated") and not arg.is_string:
++            nul_terminated = self._nul_terminated_length_sql(arg)
++            if nul_terminated:
++                return nul_terminated
++
+         # Dialects like BQ and Snowflake also accept binary values as args, so
+         # DDB will attempt to infer the type or resort to case/when resolution
+         if not expression.args.get("binary") or arg.is_string:
+@@ -3428,6 +3433,22 @@ class DuckDBGenerator(generator.Generator):
+         )
+         return self.sql(case)
+ 
++    def _nul_terminated_length_sql(self, arg: exp.Expr) -> str | None:
++        # SQLite stops counting text at the first NUL, whereas DuckDB counts the whole
++        # string, so only the part before the first NUL is measured. Values known not
++        # to be text (BLOBs count every byte, numbers have no NUL) keep plain LENGTH.
++        if not arg.type:
++            from sqlglot.optimizer.annotate_types import annotate_types
++
++            arg = annotate_types(arg, dialect=self.dialect)
++
++        if arg.type and not arg.is_type(exp.DType.UNKNOWN, *exp.DataType.TEXT_TYPES):
++            return None
++
++        nul = exp.Chr(expressions=[exp.Literal.number(0)])
++        prefix = exp.SplitPart(this=arg, delimiter=nul, part_index=exp.Literal.number(1))
++        return self.func("LENGTH", prefix)
++
+     def bitlength_sql(self, expression: exp.BitLength) -> str:
+         if not _is_binary(arg := expression.this):
+             return self.func("BIT_LENGTH", arg)
+diff --git a/sqlglot/parsers/sqlite.py b/sqlglot/parsers/sqlite.py
+index 9265222..fe74bbb 100644
+--- a/sqlglot/parsers/sqlite.py
++++ b/sqlglot/parsers/sqlite.py
+@@ -111,6 +111,9 @@ class SQLiteParser(parser.Parser):
+         "JSON_EXTRACT": _build_json_extract,
+         "JSON_GROUP_ARRAY": exp.JSONArrayAgg.from_arg_list,
+         "JSON_GROUP_OBJECT": lambda args: exp.JSONObjectAgg(expressions=args),
++        # For text, SQLite counts characters up to the first NUL; BLOBs count all bytes.
++        # https://www.sqlite.org/lang_corefunc.html#length
++        "LENGTH": lambda args: exp.Length(this=seq_get(args, 0), nul_terminated=True),
+         "MAX": _build_max,
+         "MIN": _build_min,
+         "RANDOM": lambda args: exp.Rand(
+diff --git a/tests/dialects/test_sqlite.py b/tests/dialects/test_sqlite.py
+index b60ef60..b0ed3d0 100644
+--- a/tests/dialects/test_sqlite.py
++++ b/tests/dialects/test_sqlite.py
+@@ -693,6 +693,27 @@ class TestSQLite(Validator):
+             read={"duckdb": "SELECT * FROM RANGE(5, 1, -1)"},
+         )
+         self.validate_identity("SELECT INSTR(haystack, needle)")
++        # SQLite's LENGTH stops counting text at the first NUL; BLOBs count every byte
++        self.validate_all(
++            "SELECT LENGTH('a' || CHAR(0) || 'b')",
++            write={
++                "sqlite": "SELECT LENGTH('a' || CHAR(0) || 'b')",
++                "duckdb": "SELECT LENGTH(SPLIT_PART('a' || CHR(0) || 'b', CHR(0), 1))",
++            },
++        )
++        self.validate_all(
++            "SELECT LENGTH(x) FROM t",
++            write={
++                "sqlite": "SELECT LENGTH(x) FROM t",
++                "duckdb": "SELECT LENGTH(SPLIT_PART(x, CHR(0), 1)) FROM t",
++            },
++        )
++        self.validate_all("SELECT LENGTH('abc')", write={"duckdb": "SELECT LENGTH('abc')"})
++        self.validate_all("SELECT LENGTH(123)", write={"duckdb": "SELECT LENGTH(123)"})
++        self.validate_all(
++            "SELECT LENGTH(CAST(x AS BLOB))",
++            write={"duckdb": "SELECT LENGTH(CAST(x AS BLOB))"},
++        )
+         self.validate_identity(
+             "SELECT a, SUM(b) OVER (ORDER BY a ROWS BETWEEN -1 PRECEDING AND 1 FOLLOWING) FROM t1 ORDER BY 1"
+         )
