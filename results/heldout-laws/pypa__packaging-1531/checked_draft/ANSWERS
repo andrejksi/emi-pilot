@@ -1,0 +1,4 @@
+A1 written: kind is fix: Requirement must accept valid PEP 508 strings where a === specifier is followed by another specifier containing a space: "x===0,>= 0", "x===0, >=0", "x===0,!= 1.0" and "x (===0,>= 0)" must parse, giving the same specifiers SpecifierSet accepts for the same list (e.g. SpecifierSet("===0,>= 0") is '===0,>=0').
+A2 written: the no-space form "x===0,>=0" already parses and must keep parsing.
+A3 written: Specifier("===a,b") at the API level intentionally allows commas in arbitrary versions (tests/test_ranges.py::TestToSpecifierSet::test_arbitrary_literal_with_comma_none) and must keep doing so; in a requirement string the comma is the specifier separator.
+A4 written: anything else doesn't matter.

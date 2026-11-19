@@ -1,0 +1,53 @@
+Rules check: repair. Not checked: none.
+
+.emi/laws/test_arbitrary_equality_requirement.py
+  Example, new behaviour: Requirement("x===0,>= 0") has exactly the specifiers ===0 and >=0 (A1).
+      assert set(Requirement("x===0,>= 0").specifier) == {Specifier("===0"), Specifier(">=0")}
+      -> fails on the current code: packaging.requirements.InvalidRequirement: Expected comma (within version specifier), semicolon (after version specifier) or end
+x===0,>= 0
+~~~~~~~~^
+  Example, new behaviour: Requirement("x===0,>= 0"), "x===0, >=0", "x===0,!= 1.0" and "x (===0,>= 0)" parse with the same specifiers as SpecifierSet gives for that list (A1).
+      assert (r.name, r.specifier) == ("x", SpecifierSet(spec))
+      -> fails on the current code: packaging.requirements.InvalidRequirement: Expected matching RIGHT_PARENTHESIS for LEFT_PARENTHESIS, after version specifier
+x (===0,>= 0)
+~~~~~~~~~^
+  Example, new behaviour: Requirement("x===0,>= 0"), "x===0, >=0", "x===0,!= 1.0" and "x (===0,>= 0)" parse with the same specifiers as SpecifierSet gives for that list (A1).
+      assert (r.name, r.specifier) == ("x", SpecifierSet(spec))
+      -> fails on the current code: packaging.requirements.InvalidRequirement: Expected comma (within version specifier), semicolon (after version specifier) or end
+x===0, >=0
+~~~~~~^
+  Example, new behaviour: Requirement("x===0,>= 0"), "x===0, >=0", "x===0,!= 1.0" and "x (===0,>= 0)" parse with the same specifiers as SpecifierSet gives for that list (A1).
+      assert (r.name, r.specifier) == ("x", SpecifierSet(spec))
+      -> fails on the current code: packaging.requirements.InvalidRequirement: Expected comma (within version specifier), semicolon (after version specifier) or end
+x===0,!= 1.0
+~~~~~~~~^
+  Example, new behaviour: Requirement("x===0,>= 0"), "x===0, >=0", "x===0,!= 1.0" and "x (===0,>= 0)" parse with the same specifiers as SpecifierSet gives for that list (A1).
+      assert (r.name, r.specifier) == ("x", SpecifierSet(spec))
+      -> fails on the current code: packaging.requirements.InvalidRequirement: Expected comma (within version specifier), semicolon (after version specifier) or end
+x===0,>= 0
+~~~~~~~~^
+  Example, guard: Requirement("x===0,>=0") still parses with specifier '===0,>=0' (A2).
+      assert str(Requirement("x===0,>=0").specifier) == "===0,>=0"
+      -> holds on the current code
+  Example, guard: Specifier("===a,b") is still accepted with version "a,b" (A3).
+      assert Specifier("===a,b").version == "a,b"
+      -> holds on the current code
+  Example, guard: SpecifierSet("===0,>= 0") still gives '===0,>=0' (A1).
+      assert str(SpecifierSet("===0,>= 0")) == "===0,>=0"
+      -> holds on the current code
+
+Answers (proposed: approving the rules agrees to them):
+  - A1 (written by the person): kind is fix: Requirement must accept valid PEP 508 strings where a === specifier is followed by another specifier containing a space: "x===0,>= 0", "x===0, >=0", "x===0,!= 1.0" and "x (===0,>= 0)" must parse, giving the same specifiers SpecifierSet accepts for the same list (e.g. SpecifierSet("===0,>= 0") is '===0,>=0').
+  - A2 (written by the person): the no-space form "x===0,>=0" already parses and must keep parsing.
+  - A3 (written by the person): Specifier("===a,b") at the API level intentionally allows commas in arbitrary versions (tests/test_ranges.py::TestToSpecifierSet::test_arbitrary_literal_with_comma_none) and must keep doing so; in a requirement string the comma is the specifier separator.
+  - A4 (written by the person): anything else doesn't matter.
+
+Also proposed:
+  - .emi/laws/answers.txt (not a rule file)
+
+Send back (fix these, then run `emi rules check` again):
+  - .emi/laws/test_arbitrary_equality_requirement.py still passes when src/packaging/specifiers.py::_get_spec_version returns its first argument (`version`) unchanged; src/packaging/specifiers.py::_require_spec_version returns its first argument (`version`) unchanged; src/packaging/specifiers.py::__hash__ returns `0`: trivial code satisfies every rule in it, or every guard in it, so it pins nothing down. Add a case that such code fails.
+
+Noted (blocks nothing):
+  - .emi/laws/test_arbitrary_equality_requirement.py: 19 function(s) the rules run outside their area were given no stand-ins (`--scope all` tries them; `laws.area` widens the area): src/packaging/_parser.py (8), src/packaging/_ranges.py (1), src/packaging/_tokenizer.py (6), src/packaging/utils.py (1), src/packaging/version.py (3)
+  - .emi/laws/test_arbitrary_equality_requirement.py: old tests import what its new rules are about: tests/property/strategies.py, tests/property/test_ranges_overlapping_literals.py, tests/property/test_ranges_set_algebra.py, tests/property/test_ranges_set_relations.py, tests/property/test_ranges_to_specifier_set.py and 11 more. If the task changes how they behave, the person lists them as expected changes
