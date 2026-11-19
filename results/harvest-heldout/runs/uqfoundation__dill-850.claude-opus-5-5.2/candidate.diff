@@ -1,0 +1,14 @@
+diff --git a/dill/temp.py b/dill/temp.py
+index 90b0754..7c13929 100644
+--- a/dill/temp.py
++++ b/dill/temp.py
+@@ -133,7 +133,8 @@ def load(file, **kwds):
+     import dill as pickle
+     mode = kwds.pop('mode', 'rb')
+     name = getattr(file, 'name', file) # name=file.name or name=file (if str)
+-    return pickle.load(open(name, mode=mode, **kwds))
++    with open(name, mode=mode, **kwds) as f:
++        return pickle.load(f)
+ 
+ def dump(object, **kwds):
+     """dill.dump of object to a NamedTemporaryFile.
