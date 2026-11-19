@@ -1,0 +1,55 @@
+diff --git a/src/smolagents/models.py b/src/smolagents/models.py
+index d21ea6b..5b8cd16 100644
+--- a/src/smolagents/models.py
++++ b/src/smolagents/models.py
+@@ -329,6 +329,15 @@ def get_tool_json_schema(tool: Tool) -> dict:
+     }
+ 
+ 
++def _get_text_content(content: str | list[dict[str, Any]] | None) -> str:
++    """Returns the text of a message content, whether it is a string or a list of content elements."""
++    if content is None:
++        return ""
++    if isinstance(content, str):
++        return content
++    return content[0]["text"]
++
++
+ def get_clean_message_list(
+     message_list: list[ChatMessage | dict],
+     role_conversions: dict[MessageRole, MessageRole] | dict[str, str] = {},
+@@ -373,19 +382,27 @@ def get_clean_message_list(
+                         element["image"] = encode_image_base64(element["image"])
+ 
+         if len(output_message_list) > 0 and message.role == output_message_list[-1]["role"]:
+-            assert isinstance(message.content, list), "Error: wrong content:" + str(message.content)
+             if flatten_messages_as_text:
+-                output_message_list[-1]["content"] += "\n" + message.content[0]["text"]
++                output_message_list[-1]["content"] += "\n" + _get_text_content(message.content)
+             else:
+-                for el in message.content:
+-                    if el["type"] == "text" and output_message_list[-1]["content"][-1]["type"] == "text":
++                previous_content = output_message_list[-1]["content"]
++                if isinstance(previous_content, str):
++                    previous_content = [{"type": "text", "text": previous_content}]
++                    output_message_list[-1]["content"] = previous_content
++                new_content = message.content
++                if isinstance(new_content, str):
++                    new_content = [{"type": "text", "text": new_content}]
++                elif new_content is None:
++                    new_content = []
++                for el in new_content:
++                    if el["type"] == "text" and previous_content and previous_content[-1]["type"] == "text":
+                         # Merge consecutive text messages rather than creating new ones
+-                        output_message_list[-1]["content"][-1]["text"] += "\n" + el["text"]
++                        previous_content[-1]["text"] += "\n" + el["text"]
+                     else:
+-                        output_message_list[-1]["content"].append(el)
++                        previous_content.append(el)
+         else:
+             if flatten_messages_as_text:
+-                content = message.content[0]["text"]
++                content = _get_text_content(message.content)
+             else:
+                 content = message.content
+             output_message_list.append(
