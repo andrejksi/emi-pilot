@@ -1,0 +1,1 @@
+A1 written: Check dates validity before search. Searching for S2_MSI_L1C with startDate=2020-01-01 and completionDate=2023-11-31 produced a 500 Internal Server Error from PEPS.

@@ -1,0 +1,20 @@
+Rules check: stop. Not checked: none.
+
+.emi/laws/test_planetary_computer_date.py
+  Example, new behaviour: Date filtering removes the `20210214T105131` product from the reported Microsoft Planetary Computer window. (A1, A2)
+      assert {product.properties["id"] for product in results} == {first_id, second_id}
+      assert first_id not in { product.properties["id"] for product in results.filter_date("2021-02-10T00:00:00", "2021-02-12T00:00:00") }
+      assert { product.properties["id"] for product in results.filter_date("2021-02-10T00:00:00", "2021-02-15T00:00:00") } == {first_id, second_id}
+      -> fails on the current code: AssertionError: assert 'S2A_MSIL2A_20210214T105131_R051_T30TXP_20210215T051748' not in {'S2A_MSIL2A_20210214T105131_R051_T30TXP_20210215T051748', 'S2B_MSIL2A_20210212T110059_R094_T30TXP_20210213T073201'}
+
+Answers (proposed: approving the rules agrees to them):
+  - A1 (written by the person): Microsoft Planetary Computer results without start_datetime or end_datetime should be filterable by date.
+  - A2 (written by the person): The first product 20210214T105131 should be filtered out when filtering the reported Sentinel-2 results from 2021-02-10T00:00:00 through 2021-02-12T00:00:00.
+
+Also proposed:
+  - .emi/laws/answers.txt (not a rule file)
+
+Noted (blocks nothing):
+  - .emi/laws/test_planetary_computer_date.py: old tests import what its new rules are about: tests/context.py, tests/integration/test_core_search.py, tests/test_cli.py, tests/test_config.py, tests/test_requirements.py and 4 more. If the task changes how they behave, the person lists them as expected changes
+
+Ready for a person: show them the rules above; `emi rules approve` approves and commits them.

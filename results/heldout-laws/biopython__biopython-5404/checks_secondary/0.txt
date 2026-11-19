@@ -1,0 +1,21 @@
+Rules check: stop. Not checked: none.
+
+.emi/laws/test_incompressible_bgzf.py
+  Example, new behaviour: already-compressed input writes and closes as BGZF and reads back byte for byte (A1).
+      assert round_trip_bgzf(tmp_path / "already-compressed.bgz", data) == data
+      -> fails on the current code: RuntimeError: TODO - Didn't compress enough, try less data in this block
+  Example, new behaviour: the 65,500-byte random sample writes and closes as BGZF and reads back byte for byte (A1).
+      assert round_trip_bgzf(tmp_path / "buffered.bgz", data) == data
+      -> fails on the current code: struct.error: ushort format requires 0 <= number <= 65535
+  Example, new behaviour: the 65,536-byte random sample writes and closes as BGZF and reads back byte for byte (A1).
+      assert round_trip_bgzf(tmp_path / "full-block.bgz", data) == data
+      -> fails on the current code: RuntimeError: TODO - Didn't compress enough, try less data in this block
+
+Answers (proposed: approving the rules agrees to them):
+  - A1 (written by the person): This is a bug fix for BgzfWriter failing on incompressible input. The given 65,500-byte and 65,536-byte samples from random.Random(42).randbytes, and already-compressed data, should write and close successfully as valid BGZF that preserves the input bytes.
+  - A2 (written by the person): The choice between smaller fixed blocks and retrying with less data doesn't matter.
+
+Also proposed:
+  - .emi/laws/answers.txt (not a rule file)
+
+Ready for a person: show them the rules above; `emi rules approve` approves and commits them.

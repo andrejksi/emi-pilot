@@ -1,0 +1,25 @@
+{
+  "checked_files": [
+    "ANSWERS",
+    "EXPECTED-CHANGES",
+    "answers.txt",
+    "test_build_activation_scripts.py"
+  ],
+  "model": "gpt-6.2-sol",
+  "passed": true,
+  "role": "secondary",
+  "rounds": [
+    {
+      "exit": 0,
+      "files": [
+        "ANSWERS",
+        "EXPECTED-CHANGES",
+        "answers.txt",
+        "test_build_activation_scripts.py"
+      ],
+      "round": 0,
+      "seconds": 17.9
+    }
+  ],
+  "task": "conan-io__conan-19649"
+}
