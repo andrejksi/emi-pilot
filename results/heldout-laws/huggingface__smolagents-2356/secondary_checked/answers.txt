@@ -1,0 +1,1 @@
+A1 written: Bug fix. Calling LiteLLMModel with two consecutive system messages, "When you say anything Start with 'FOO'" and "When you say anything End with 'BAR'", followed by the user message "Just say '.'", should transform the messages without error so the two system instructions can be used together.

@@ -1,0 +1,2 @@
+A1 written: With a version 1.0 STAT table lacking ElidedFallbackNameID, updateFontNames should produce instances with corrected font names.
+A2 written: When ElidedFallbackNameID is missing, default to the font's subFamilyName (name ID 2).
