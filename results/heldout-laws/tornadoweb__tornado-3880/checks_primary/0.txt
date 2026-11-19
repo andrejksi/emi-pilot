@@ -1,0 +1,24 @@
+Rules check: repair. Not checked: none.
+
+.emi/laws/test_circlerefs_stderr.py
+  Example, guard: running tornado.test.circlerefs_test through tornado.test.runtests passes and logs no bytes to stderr (A1, A2).
+      assert proc.returncode == 0, proc.stderr[-2000:]
+      assert "bytes to stderr" not in proc.stderr
+      -> holds on the current code
+  Example, new behaviour: when an unclosed socket from an earlier test is still uncollected garbage, entering assert_no_cycle_garbage writes nothing to stderr (A1, A3).
+      assert err.getvalue() == ""
+      -> holds on the current code
+
+Answers (proposed: approving the rules agrees to them):
+  - A1 (written by the person): kind is fix: since 6.6.1 the Tornado test suite fails on Windows Python < 3.13 because "Exception ignored ... ResourceWarning: unclosed <socket.socket ...>" is written to stderr from gc.collect() at circlerefs_test.py line 75 (the gc.collect() at the start of assert_no_cycle_garbage) during test_curl_httpclient_streaming_callback; runtests then reports "logged 0 infos, 0 warnings, 0 errors, and 454 bytes to stderr". The test suite must not write that to stderr.
+  - A2 (written by the person): 6.6.0 passes, and 6.6.1 passes on Python 3.13+; those must keep passing.
+  - A3 (written by the person): how it is fixed (test-side or library-side) doesn't matter.
+
+Also proposed:
+  - .emi/laws/answers.txt (not a rule file)
+
+Send back (fix these, then run `emi rules check` again):
+  - .emi/laws/test_circlerefs_stderr.py::test_leftover_unclosed_socket_garbage_is_not_written_to_stderr is marked "New:" but already holds on the current code, so it does not show the behaviour the task adds. If it must already hold, mark it "Guard:"; otherwise make it test what the task adds.
+
+Noted (blocks nothing):
+  - .emi/laws/test_circlerefs_stderr.py: 12 function(s) the rules run outside their area were given no stand-ins (`--scope all` tries them; `laws.area` widens the area): tornado/__init__.py (1), tornado/concurrent.py (4), tornado/escape.py (1), tornado/gen.py (4), tornado/ioloop.py (1), tornado/platform/asyncio.py (1)

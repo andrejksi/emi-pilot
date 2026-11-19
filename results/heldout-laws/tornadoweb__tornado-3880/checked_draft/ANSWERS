@@ -1,0 +1,3 @@
+A1 written: kind is fix: since 6.6.1 the Tornado test suite fails on Windows Python < 3.13 because "Exception ignored ... ResourceWarning: unclosed <socket.socket ...>" is written to stderr from gc.collect() at circlerefs_test.py line 75 (the gc.collect() at the start of assert_no_cycle_garbage) during test_curl_httpclient_streaming_callback; runtests then reports "logged 0 infos, 0 warnings, 0 errors, and 454 bytes to stderr". The test suite must not write that to stderr.
+A2 written: 6.6.0 passes, and 6.6.1 passes on Python 3.13+; those must keep passing.
+A3 written: how it is fixed (test-side or library-side) doesn't matter.
