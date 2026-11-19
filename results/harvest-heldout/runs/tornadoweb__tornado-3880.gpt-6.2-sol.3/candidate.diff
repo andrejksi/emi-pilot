@@ -1,0 +1,39 @@
+diff --git a/tornado/test/circlerefs_test.py b/tornado/test/circlerefs_test.py
+index fad8136..8e8f137 100644
+--- a/tornado/test/circlerefs_test.py
++++ b/tornado/test/circlerefs_test.py
+@@ -156,7 +156,7 @@ class CircleRefsTest(TestCase):
+             ]
+         )
+         socket, port = tornado.testing.bind_unused_port()
+-        server = tornado.httpserver.HTTPServer(app)
++        server = tornado.httpserver.HTTPServer(app, no_keep_alive=True)
+         server.add_socket(socket)
+ 
+         # The client must be constructed here rather than by the caller: it
+@@ -164,16 +164,15 @@ class CircleRefsTest(TestCase):
+         if client_factory is None:
+             client_factory = httpclient.AsyncHTTPClient
+         client = client_factory()
+-        with assert_no_cycle_garbage():
+-            # Only the fetch (and the corresponding server-side handler)
+-            # are being tested for cycles. In particular, the Application
+-            # object has internal cycles (as of this writing) which we don't
+-            # care to fix since in real world usage the Application object
+-            # is effectively a global singleton.
+-            await client.fetch(f"http://127.0.0.1:{port}/", **fetch_kwargs)
+-        client.close()
+-        server.stop()
+-        socket.close()
++        try:
++            with assert_no_cycle_garbage():
++                await client.fetch(f"http://127.0.0.1:{port}/", **fetch_kwargs)
++                # The server may still own the accepted socket after fetch().
++                await server.close_all_connections()
++        finally:
++            server.stop()
++            client.close()
++
+ 
+     def test_sync_handler(self):
+         class Handler(web.RequestHandler):

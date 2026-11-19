@@ -1,0 +1,40 @@
+diff --git a/eodag/plugins/crunch/filter_date.py b/eodag/plugins/crunch/filter_date.py
+index e90750e..e73d3dc 100644
+--- a/eodag/plugins/crunch/filter_date.py
++++ b/eodag/plugins/crunch/filter_date.py
+@@ -96,6 +96,15 @@ class FilterDate(Crunch):
+             else:
+                 product_end = None
+ 
++            if product_start is None and product_end is None:
++                instant = product.properties.get("datetime")
++                if instant:
++                    observed_date = parse_to_utc(instant)
++                    if filter_start and observed_date < filter_start:
++                        continue
++                    if filter_end and observed_date > filter_end:
++                        continue
++
+             if filter_start and product_start and product_start < filter_start:
+                 continue
+             if filter_end and product_end and product_end > filter_end:
+diff --git a/tests/units/test_search_result.py b/tests/units/test_search_result.py
+index 895d54c..100859e 100644
+--- a/tests/units/test_search_result.py
++++ b/tests/units/test_search_result.py
+@@ -169,3 +169,15 @@ class TestSearchResult(unittest.TestCase):
+         self.search_result.errors.append(["bar", Exception("2nd exception")])
+         self.assertEqual(len(self.search_result.errors), 2)
+         self.assertEqual(SearchResult([]).errors, [])
++
++
++def test_filter_date_uses_stac_instant():
++    from types import SimpleNamespace
++
++    from eodag.plugins.crunch.filter_date import FilterDate
++
++    outside = SimpleNamespace(properties={"datetime": "2021-02-13T00:00:00Z"})
++    inside = SimpleNamespace(properties={"datetime": "2021-02-11T00:00:00Z"})
++    crunch = FilterDate({"start": "2021-02-10", "end": "2021-02-12"})
++
++    assert crunch.proceed([outside, inside]) == [inside]

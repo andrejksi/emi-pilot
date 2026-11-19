@@ -1,0 +1,45 @@
+diff --git a/eodag/api/core.py b/eodag/api/core.py
+index 3b502f4..6c40126 100644
+--- a/eodag/api/core.py
++++ b/eodag/api/core.py
+@@ -73,7 +73,7 @@ from eodag.utils import (
+     string_to_jsonpath,
+     uri_to_path,
+ )
+-from eodag.utils.dates import get_datetime, rfc3339_str_to_datetime
++from eodag.utils.dates import get_datetime, get_timestamp, rfc3339_str_to_datetime
+ from eodag.utils.exceptions import (
+     AuthenticationError,
+     NoMatchingCollection,
+@@ -1672,6 +1672,16 @@ class EODataAccessGateway:
+             datetimes = get_datetime(kwargs)
+             kwargs["start_datetime"] = datetimes[0]
+             kwargs["end_datetime"] = datetimes[1]
++        for parameter in ("start_datetime", "end_datetime"):
++            date_value = kwargs.get(parameter)
++            if date_value:
++                try:
++                    get_timestamp(date_value)
++                except (TypeError, ValueError, OverflowError) as exc:
++                    raise ValidationError(
++                        f"Invalid ISO 8601 date for {parameter}: {date_value!r}",
++                        {parameter},
++                    ) from exc
+         if "sort_by" in kwargs:
+             new_sort_by = []
+             for param_tuple in kwargs["sort_by"]:
+diff --git a/tests/units/test_core.py b/tests/units/test_core.py
+index d0fdd4f..9449fd4 100644
+--- a/tests/units/test_core.py
++++ b/tests/units/test_core.py
+@@ -5523,3 +5523,10 @@ class TestCoreStrictMode(TestCoreBase):
+         collections = dag.list_collections(fetch_providers=False)
+         ids = [col.id for col in collections]
+         self.assertIn("TEST_PRODUCT_2", ids)
++
++
++def test_invalid_search_date_is_rejected_before_query():
++    from eodag.utils.exceptions import ValidationError
++
++    with pytest.raises(ValidationError, match="2023-11-31"):
++        EODataAccessGateway().search(collection="S2_MSI_L1C", end="2023-11-31")

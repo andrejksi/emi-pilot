@@ -1,0 +1,50 @@
+diff --git a/eodag/plugins/crunch/filter_date.py b/eodag/plugins/crunch/filter_date.py
+index e90750e..f1b03d5 100644
+--- a/eodag/plugins/crunch/filter_date.py
++++ b/eodag/plugins/crunch/filter_date.py
+@@ -46,6 +46,8 @@ class FilterDate(Crunch):
+     def sort_product_by_start_date(product: EOProduct) -> dt.datetime:
+         """Get product start date"""
+         start_date = product.properties.get("start_datetime")
++        if not start_date and not product.properties.get("end_datetime"):
++            start_date = product.properties.get("datetime")
+         if not start_date:
+             return dt.datetime(1970, 1, 1, tzinfo=dt.timezone.utc)
+         return parse_to_utc(start_date)
+@@ -84,13 +86,15 @@ class FilterDate(Crunch):
+ 
+             # product start date
+             product_start_str = product.properties.get("start_datetime")
++            product_end_str = product.properties.get("end_datetime")
++            if not product_start_str and not product_end_str:
++                product_start_str = product_end_str = product.properties.get("datetime")
+             if product_start_str:
+                 product_start = parse_to_utc(product_start_str)
+             else:
+                 product_start = None
+ 
+             # product end date
+-            product_end_str = product.properties.get("end_datetime")
+             if product_end_str:
+                 product_end = parse_to_utc(product_end_str)
+             else:
+diff --git a/tests/units/test_search_result.py b/tests/units/test_search_result.py
+index 895d54c..100859e 100644
+--- a/tests/units/test_search_result.py
++++ b/tests/units/test_search_result.py
+@@ -169,3 +169,15 @@ class TestSearchResult(unittest.TestCase):
+         self.search_result.errors.append(["bar", Exception("2nd exception")])
+         self.assertEqual(len(self.search_result.errors), 2)
+         self.assertEqual(SearchResult([]).errors, [])
++
++
++def test_filter_date_uses_stac_instant():
++    from types import SimpleNamespace
++
++    from eodag.plugins.crunch.filter_date import FilterDate
++
++    outside = SimpleNamespace(properties={"datetime": "2021-02-13T00:00:00Z"})
++    inside = SimpleNamespace(properties={"datetime": "2021-02-11T00:00:00Z"})
++    crunch = FilterDate({"start": "2021-02-10", "end": "2021-02-12"})
++
++    assert crunch.proceed([outside, inside]) == [inside]

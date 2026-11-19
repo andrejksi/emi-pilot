@@ -1,0 +1,60 @@
+diff --git a/eodag/plugins/download/base.py b/eodag/plugins/download/base.py
+index fcd47da..c174b93 100644
+--- a/eodag/plugins/download/base.py
++++ b/eodag/plugins/download/base.py
+@@ -324,15 +324,18 @@ class Download(PluginTopic):
+         Handle depth levels in the product archive. For example, if the downloaded archive was
+         extracted to: ``/top_level/product_base_dir`` and ``archive_depth`` was configured to 2, the product
+         location will be ``/top_level/product_base_dir``.
+-        WARNING: A strong assumption is made here: there is only one subdirectory per level
++        Keep the current level if descending would leave sibling entries behind.
+ 
+         :param product_path: The path to the extracted product
+         :returns: The path to the extracted product with the right depth
+         """
+         archive_depth = getattr(self.config, "archive_depth", 1)
+         count = 1
+-        while count < archive_depth:
+-            product_path = os.path.join(product_path, os.listdir(product_path)[0])
++        while count < archive_depth and os.path.isdir(product_path):
++            entries = list(Path(product_path).iterdir())
++            if len(entries) != 1 or not entries[0].is_dir():
++                break
++            product_path = str(entries[0])
+             count += 1
+         return product_path
+ 
+diff --git a/tests/units/test_download_plugins.py b/tests/units/test_download_plugins.py
+index 79dd6c4..99e877c 100644
+--- a/tests/units/test_download_plugins.py
++++ b/tests/units/test_download_plugins.py
+@@ -3122,3 +3122,29 @@ class TestDownloadPluginCreodiasS3(BaseDownloadPluginTest):
+         self.assertEqual(mock_finalize_s2_safe_product.call_count, 0)
+         self.assertEqual(mock_check_manifest_file_list.call_count, 0)
+         self.assertEqual(mock_flatten_top_directories.call_count, 1)
++
++
++def test_archive_depth_keeps_sibling_files(tmp_path):
++    import zipfile
++    from types import SimpleNamespace
++
++    from eodag.plugins.download.base import Download
++    from eodag.utils import ProgressCallback
++
++    archive = tmp_path / "product.zip"
++    with zipfile.ZipFile(archive, "w") as stream:
++        stream.writestr("metadata.xml", "<product/>")
++        stream.writestr("image.nat", "pixels")
++
++    class Downloader:
++        config = SimpleNamespace(archive_depth=2, output_dir=str(tmp_path))
++        _resolve_archive_depth = Download._resolve_archive_depth
++
++    with ProgressCallback(disable=True) as progress:
++        output = Path(
++            Download._finalize(
++                Downloader(), str(archive), progress, delete_archive=False
++            )
++        )
++    assert (output / "metadata.xml").read_text() == "<product/>"
++    assert (output / "image.nat").read_text() == "pixels"

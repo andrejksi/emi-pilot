@@ -1,0 +1,86 @@
+diff --git a/conan/internal/model/conf.py b/conan/internal/model/conf.py
+index 936b716..a50b950 100644
+--- a/conan/internal/model/conf.py
++++ b/conan/internal/model/conf.py
+@@ -160,6 +160,7 @@ BUILT_IN_CONFS = {
+     "tools.apple:enable_bitcode": "(boolean) Enable/Disable Bitcode Apple Clang flags",
+     "tools.apple:enable_arc": "(boolean) Enable/Disable ARC Apple Clang flags",
+     "tools.apple:enable_visibility": "(boolean) Enable/Disable Visibility Apple Clang flags",
++    "tools.env.virtualenv:generate_bat": "Also generate batch activation scripts on native Windows when PowerShell generation is enabled",
+     "tools.env.virtualenv:powershell": "If specified, it generates PowerShell launchers (.ps1). Use this configuration setting the PowerShell executable you want to use (e.g., 'powershell.exe' or 'pwsh')",
+     "tools.env:dotenv": "(Experimental) Generate dotenv environment files",
+     "tools.env:deactivation_mode": "(Experimental) If 'function', generate a deactivate function instead of a script to unset the environment variables",
+diff --git a/conan/tools/env/environment.py b/conan/tools/env/environment.py
+index 1d5fb03..c375f6c 100644
+--- a/conan/tools/env/environment.py
++++ b/conan/tools/env/environment.py
+@@ -40,10 +40,10 @@ def environment_wrap_command(conanfile, env_filenames, env_folder, cmd, subsyste
+             path_bat = "{}.bat".format(f)
+             path_sh = "{}.sh".format(f)
+             path_ps1 = "{}.ps1".format(f)
+-            if os.path.isfile(path_bat) and "bat" in accept:
+-                bats.append(path_bat)
+             if os.path.isfile(path_ps1) and "ps1" in accept:
+                 ps1s.append(path_ps1)
++            elif os.path.isfile(path_bat) and "bat" in accept:
++                bats.append(path_bat)
+             if os.path.isfile(path_sh) and "sh" in accept:
+                 path_sh = subsystem_path(subsystem, path_sh)
+                 shs.append(path_sh)
+@@ -580,6 +580,7 @@ class EnvVars:
+                          checking if we are running inside Windows (checking also the subsystem) or not.
+         """
+         name, ext = os.path.splitext(filename)
++        also_bat = False
+         if ext:
+             is_bat = ext == ".bat"
+             is_ps1 = ext == ".ps1"
+@@ -587,6 +588,9 @@ class EnvVars:
+             is_bat = self._subsystem == WINDOWS
+             is_ps1 = self._conanfile.conf.get("tools.env.virtualenv:powershell", check_type=str)
+             if is_ps1:
++                also_bat = is_bat and self._conanfile.conf.get(
++                    "tools.env.virtualenv:generate_bat", check_type=bool
++                )
+                 filename = filename + ".ps1"
+                 is_bat = False
+             else:
+@@ -613,6 +617,11 @@ class EnvVars:
+ 
+         if self._scope:
+             register_env_script(self._conanfile, path, self._scope)
++        if also_bat:
++            batch_path = os.path.join(self._conanfile.generators_folder, name + ".bat")
++            self.save_bat(batch_path)
++            if self._scope:
++                register_env_script(self._conanfile, batch_path, self._scope)
+ 
+ 
+ def _deactivate_func_name(filename):
+diff --git a/test/unittests/tools/env/test_env.py b/test/unittests/tools/env/test_env.py
+index 282a5f4..a61e3fb 100644
+--- a/test/unittests/tools/env/test_env.py
++++ b/test/unittests/tools/env/test_env.py
+@@ -531,3 +531,22 @@ class TestProfileSeparators:
+         with pytest.raises(ConanException) as e:
+             ProfileEnvironment.loads(myprofile)
+         assert "Cannot use (sep) and (path) qualifiers simultaneously" in str(e.value)
++
++
++def test_generate_batch_and_powershell_virtualenv(tmp_path, monkeypatch):
++    from conan.tools.env import environment
++
++    monkeypatch.setattr(environment, "deduce_subsystem", lambda *_: WINDOWS)
++    conanfile = ConanFileMock()
++    conanfile.folders.set_base_generators(str(tmp_path))
++    conanfile.conf.define("tools.env.virtualenv:powershell", "pwsh")
++    conanfile.conf.define("tools.env.virtualenv:generate_bat", True)
++    env = Environment()
++    env.define("BUILD_MODE", "debug")
++
++    env.vars(conanfile, scope="build").save_script("build-settings")
++    environment.generate_aggregated_env(conanfile)
++
++    for extension in ["bat", "ps1"]:
++        assert (tmp_path / f"conanbuild.{extension}").is_file()
++        assert (tmp_path / f"build-settings.{extension}").is_file()

@@ -1,0 +1,82 @@
+diff --git a/src/huggingface_hub/hf_file_system.py b/src/huggingface_hub/hf_file_system.py
+index 0443cc1..f82e31b 100644
+--- a/src/huggingface_hub/hf_file_system.py
++++ b/src/huggingface_hub/hf_file_system.py
+@@ -1114,7 +1114,7 @@ class HfFileSystem(fsspec.AbstractFileSystem, metaclass=_Cached):  # ty: ignore[
+ 
+     def cp_file(self, path1: str, path2: str, revision: str | None = None, **kwargs) -> None:
+         """
+-        Copy a file within or between repositories.
++        Copy a file within or between repositories, or within a bucket.
+ 
+         > [!WARNING]
+         > Note: When possible, use `HfApi.upload_file()` for better performance.
+@@ -1130,6 +1130,13 @@ class HfFileSystem(fsspec.AbstractFileSystem, metaclass=_Cached):  # ty: ignore[
+         """
+         resolved_path1 = self.resolve_path(path1, revision=revision)
+         resolved_path2 = self.resolve_path(path2, revision=revision)
++        if isinstance(resolved_path1, HfFileSystemResolvedBucketPath) and isinstance(
++            resolved_path2, HfFileSystemResolvedBucketPath
++        ):
++            if resolved_path1.bucket_id != resolved_path2.bucket_id:
++                raise NotImplementedError("Copy between different buckets is not supported")
++            self._copy_bucket_file(resolved_path1, resolved_path2)
++            return
+         if isinstance(resolved_path1, HfFileSystemResolvedBucketPath) or isinstance(
+             resolved_path2, HfFileSystemResolvedBucketPath
+         ):
+@@ -1172,6 +1179,27 @@ class HfFileSystem(fsspec.AbstractFileSystem, metaclass=_Cached):  # ty: ignore[
+         self.invalidate_cache(path=resolved_path1.unresolve())
+         self.invalidate_cache(path=resolved_path2.unresolve())
+ 
++    def _copy_bucket_file(
++        self, source: HfFileSystemResolvedBucketPath, destination: HfFileSystemResolvedBucketPath
++    ) -> None:
++        if self._intrans:
++            raise NotImplementedError("Bucket copies inside a transaction are not supported")
++        if not destination.path:
++            raise IsADirectoryError(destination.unresolve())
++        source_info = self.info(source.unresolve())
++        if source_info["type"] != "file":
++            raise IsADirectoryError(source.unresolve())
++        xet_hash = source_info.get("xet_hash")
++        if xet_hash is None:
++            raise NotImplementedError("Bucket file copies require a source Xet hash")
++        if source.unresolve() == destination.unresolve():
++            return
++        self._api.batch_bucket_files(
++            destination.bucket_id,
++            copy=[("bucket", source.bucket_id, xet_hash, destination.path)],
++        )
++        self.invalidate_cache(path=destination.unresolve())
++
+     def modified(self, path: str, **kwargs) -> datetime:
+         """
+         Get the last modified time of a file.
+diff --git a/tests/test_hf_file_system.py b/tests/test_hf_file_system.py
+index cbae67f..56c4348 100644
+--- a/tests/test_hf_file_system.py
++++ b/tests/test_hf_file_system.py
+@@ -1187,3 +1187,22 @@ def test_find_propagates_errors():
+     fs, api = _fake_fs(files, max_workers=4, error_paths=["dir_03"])
+     with pytest.raises(RuntimeError):
+         fs.find(_FAKE_REPO)
++
++
++def test_copy_bucket_file_uses_server_side_copy():
++    fs = HfFileSystem()
++    source = "buckets/username/my_bucket/folder/upload.tmp"
++    destination = "buckets/username/my_bucket/folder/upload"
++    fs.dircache["buckets/username/my_bucket/folder"] = []
++    with (
++        mock_bucket_info(fs),
++        patch.object(fs, "info", return_value={"type": "file", "xet_hash": "source-hash"}),
++        patch.object(fs._api, "batch_bucket_files") as batch,
++    ):
++        fs.cp_file(source, destination)
++
++    batch.assert_called_once_with(
++        "username/my_bucket",
++        copy=[("bucket", "username/my_bucket", "source-hash", "folder/upload")],
++    )
++    assert "buckets/username/my_bucket/folder" not in fs.dircache

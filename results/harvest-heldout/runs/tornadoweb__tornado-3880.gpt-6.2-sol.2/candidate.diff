@@ -1,0 +1,27 @@
+diff --git a/tornado/test/circlerefs_test.py b/tornado/test/circlerefs_test.py
+index fad8136..6669726 100644
+--- a/tornado/test/circlerefs_test.py
++++ b/tornado/test/circlerefs_test.py
+@@ -165,15 +165,13 @@ class CircleRefsTest(TestCase):
+             client_factory = httpclient.AsyncHTTPClient
+         client = client_factory()
+         with assert_no_cycle_garbage():
+-            # Only the fetch (and the corresponding server-side handler)
+-            # are being tested for cycles. In particular, the Application
+-            # object has internal cycles (as of this writing) which we don't
+-            # care to fix since in real world usage the Application object
+-            # is effectively a global singleton.
+-            await client.fetch(f"http://127.0.0.1:{port}/", **fetch_kwargs)
+-        client.close()
+-        server.stop()
+-        socket.close()
++            try:
++                await client.fetch(f"http://127.0.0.1:{port}/", **fetch_kwargs)
++            finally:
++                client.close()
++                server.stop()
++                await server.close_all_connections()
++
+ 
+     def test_sync_handler(self):
+         class Handler(web.RequestHandler):

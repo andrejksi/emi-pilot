@@ -1,0 +1,47 @@
+diff --git a/eodag/api/core.py b/eodag/api/core.py
+index 3b502f4..f58183c 100644
+--- a/eodag/api/core.py
++++ b/eodag/api/core.py
+@@ -73,7 +73,7 @@ from eodag.utils import (
+     string_to_jsonpath,
+     uri_to_path,
+ )
+-from eodag.utils.dates import get_datetime, rfc3339_str_to_datetime
++from eodag.utils.dates import get_date, get_datetime, rfc3339_str_to_datetime
+ from eodag.utils.exceptions import (
+     AuthenticationError,
+     NoMatchingCollection,
+@@ -1625,6 +1625,18 @@ class EODataAccessGateway:
+                        * other criteria compatible with the provider
+         :returns: Search plugins list and the prepared kwargs to make a query.
+         """
++        # Check the user-facing bounds before discovering or querying a provider.
++        for parameter, value in (
++            ("start", start if start is not None else kwargs.get("start_datetime")),
++            ("end", end if end is not None else kwargs.get("end_datetime")),
++        ):
++            try:
++                get_date(value)
++            except ValidationError as exc:
++                raise ValidationError(
++                    f"Invalid search {parameter} date: {value!r}", {parameter}
++                ) from exc
++
+         collection: str | None = kwargs.get("collection")
+         if collection is None:
+             try:
+diff --git a/tests/units/test_core.py b/tests/units/test_core.py
+index d0fdd4f..9449fd4 100644
+--- a/tests/units/test_core.py
++++ b/tests/units/test_core.py
+@@ -5523,3 +5523,10 @@ class TestCoreStrictMode(TestCoreBase):
+         collections = dag.list_collections(fetch_providers=False)
+         ids = [col.id for col in collections]
+         self.assertIn("TEST_PRODUCT_2", ids)
++
++
++def test_invalid_search_date_is_rejected_before_query():
++    from eodag.utils.exceptions import ValidationError
++
++    with pytest.raises(ValidationError, match="2023-11-31"):
++        EODataAccessGateway().search(collection="S2_MSI_L1C", end="2023-11-31")
