@@ -1,0 +1,13 @@
+diff --git a/markdownify/__init__.py b/markdownify/__init__.py
+index 95eee9e..149eaf2 100644
+--- a/markdownify/__init__.py
++++ b/markdownify/__init__.py
+@@ -74,7 +74,7 @@ def strip1_pre(text):
+ def strip_pre(text):
+     """Strip all leading and trailing newlines from a <pre> string."""
+     text = re_pre_lstrip.sub('', text)
+-    text = re_pre_rstrip.sub('', text)
++    text = text.rstrip(' \n')
+     return text
+ 
+ 
