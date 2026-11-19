@@ -130,11 +130,17 @@ def classify_emi_cause(receipt: dict[str, Any] | None, record: dict[str, Any]) -
                     return "incomplete:not_verified"
         return "incomplete"
     if receipt:
-        laws = receipt.get("laws") or {}
+        laws = receipt.get("laws")
         if isinstance(laws, dict):
             if laws.get("broken"):
                 return "laws_broken"
             if laws.get("unmet") or laws.get("failed"):
+                return "laws_unmet"
+        elif isinstance(laws, list):
+            statuses = {item.get("status") for item in laws if isinstance(item, dict)}
+            if "broken" in statuses or "stopped" in statuses:
+                return "laws_broken"
+            if "unmet" in statuses:
                 return "laws_unmet"
         rule = receipt.get("rule")
         if rule and rule != "none":

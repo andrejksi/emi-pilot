@@ -40,6 +40,20 @@ class TestReplayGate(unittest.TestCase):
         )
         self.assertEqual(
             replay_gate.classify_emi_cause(
+                {"action": "repair", "rule": "shows_nothing", "laws": [{"id": "t", "status": "unmet"}]},
+                {"action": "repair"},
+            ),
+            "laws_unmet",
+        )
+        self.assertEqual(
+            replay_gate.classify_emi_cause(
+                {"action": "repair", "rule": "broken", "laws": [{"id": "t", "status": "broken"}]},
+                {"action": "repair"},
+            ),
+            "laws_broken",
+        )
+        self.assertEqual(
+            replay_gate.classify_emi_cause(
                 {"action": "incomplete", "not_verified": [{"kind": "sandbox_unavailable"}]},
                 {"action": "incomplete"},
             ),
