@@ -58,7 +58,7 @@ cost of false blocks and approval time that people accept?
 
 The version used is tagged before the held-out replay and recorded here.
 Before the tag, EMI changes only to remove causes of `incomplete` on the
-tuning set's right changes. Tag: _(filled in at the tag)_.
+tuning set's right changes. Tag: `study-gate-v1` (`3e5fe2f1a7ea3765e758ce4e9cf00e5950e778be`).
 
 ## Conditions
 
