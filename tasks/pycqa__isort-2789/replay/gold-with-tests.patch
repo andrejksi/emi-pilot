@@ -1,0 +1,256 @@
+diff --git a/isort/output.py b/isort/output.py
+index 0b0729b6..47784685 100644
+--- a/isort/output.py
++++ b/isort/output.py
+@@ -9,7 +9,7 @@ from . import _parse_utils, parse, sorting, wrap, wrap_modes
+ from .comments import add_to_line as with_comments
+ from .identify import STATEMENT_DECLARATIONS
+ from .place import module_with_reason
+-from .settings import DEFAULT_CONFIG, Config
++from .settings import DEFAULT_CONFIG, Config, format_section_comment
+ 
+ _WRAP_CHARS_TRANSLATION = str.maketrans("", "", "(),\\")
+ 
+@@ -92,7 +92,7 @@ def sorted_imports(
+             if section_title and section_title not in seen_headings:
+                 if config.dedup_headings:
+                     seen_headings.add(section_title)
+-                section_comment = f"# {section_title}"
++                section_comment = format_section_comment(config.comment_prefix, section_title)
+                 if section_comment not in parsed.lines_without_imports[0:1]:  # pragma: no branch
+                     section_output.insert(0, section_comment)
+ 
+@@ -100,7 +100,7 @@ def sorted_imports(
+             if section_footer and section_footer not in seen_headings:
+                 if config.dedup_headings:
+                     seen_headings.add(section_footer)
+-                section_comment_end = f"# {section_footer}"
++                section_comment_end = format_section_comment(config.comment_prefix, section_footer)
+                 if (
+                     section_comment_end not in parsed.lines_without_imports[-1:]
+                 ):  # pragma: no branch
+diff --git a/isort/settings.py b/isort/settings.py
+index b5cdb8bf..b4dcfab5 100644
+--- a/isort/settings.py
++++ b/isort/settings.py
+@@ -647,7 +647,11 @@ class Config(_Config):
+         if self._section_comments is not None:
+             return self._section_comments
+ 
+-        self._section_comments = tuple(f"# {heading}" for heading in self.import_headings.values())
++        self._section_comments = tuple(
++            format_section_comment(self.comment_prefix, heading)
++            for heading in self.import_headings.values()
++            if heading.strip()
++        )
+         return self._section_comments
+ 
+     @property
+@@ -655,7 +659,11 @@ class Config(_Config):
+         if self._section_comments_end is not None:
+             return self._section_comments_end
+ 
+-        self._section_comments_end = tuple(f"# {footer}" for footer in self.import_footers.values())
++        self._section_comments_end = tuple(
++            format_section_comment(self.comment_prefix, footer)
++            for footer in self.import_footers.values()
++            if footer.strip()
++        )
+         return self._section_comments_end
+ 
+     @property
+@@ -910,6 +918,16 @@ def _get_config_data(file_path: str, sections: tuple[str, ...]) -> dict[str, obj
+     return settings
+ 
+ 
++def format_section_comment(comment_prefix: str, comment: str) -> str:
++    """Format a standalone section heading or footer using ``comment_prefix``."""
++    prefix = comment_prefix.lstrip()
++    if not prefix:
++        return comment
++    if prefix.endswith((" ", "\t")):
++        return f"{prefix}{comment}"
++    return f"{prefix} {comment}"
++
++
+ def _as_bool(value: object) -> bool:
+     """Given a string value that represents True or False, returns the Boolean equivalent.
+     Heavily inspired from distutils strtobool.
+diff --git a/tests/unit/test_isort.py b/tests/unit/test_isort.py
+index ae9f0569..4392925c 100644
+--- a/tests/unit/test_isort.py
++++ b/tests/unit/test_isort.py
+@@ -1559,6 +1559,128 @@ def test_titled_and_footered_imports() -> None:
+     )
+ 
+ 
++@pytest.mark.parametrize(
++    ("comment_prefix", "heading", "footer", "expected_heading", "expected_footer"),
++    [
++        (
++            "",
++            "#region Standard Library",
++            "#endregion Standard Library",
++            "#region Standard Library",
++            "#endregion Standard Library",
++        ),
++        (
++            "##",
++            "Standard Library",
++            "Standard Library End",
++            "## Standard Library",
++            "## Standard Library End",
++        ),
++        (
++            "# ",
++            "Standard Library",
++            "Standard Library End",
++            "# Standard Library",
++            "# Standard Library End",
++        ),
++        (
++            " #",
++            "Standard Library",
++            "Standard Library End",
++            "# Standard Library",
++            "# Standard Library End",
++        ),
++        (
++            "  #",
++            "Standard Library",
++            "Standard Library End",
++            "# Standard Library",
++            "# Standard Library End",
++        ),
++    ],
++)
++def test_titled_and_footered_imports_with_comment_prefix_issue_1922(
++    comment_prefix: str,
++    heading: str,
++    footer: str,
++    expected_heading: str,
++    expected_footer: str,
++) -> None:
++    """Section headings and footers should respect ``comment_prefix`` and remain idempotent."""
++    test_input = (
++        "# top comment\n"
++        "import django.settings\n"
++        "\n"
++        "import sys\n"
++        "\n"
++        "\n"
++        "def helper() -> None:\n"
++        "    import os\n"
++    )
++    first_output = isort.code(
++        code=test_input,
++        comment_prefix=comment_prefix,
++        import_heading_stdlib=heading,
++        import_footer_stdlib=footer,
++    )
++    assert first_output == (
++        "# top comment\n"
++        f"{expected_heading}\n"
++        "import sys\n"
++        "\n"
++        f"{expected_footer}\n"
++        "\n"
++        "import django.settings\n"
++        "\n"
++        "\n"
++        "def helper() -> None:\n"
++        f"    {expected_heading}\n"
++        "    import os\n"
++        "\n"
++        f"    {expected_footer}\n"
++    )
++    second_output = isort.code(
++        code=first_output,
++        comment_prefix=comment_prefix,
++        import_heading_stdlib=heading,
++        import_footer_stdlib=footer,
++    )
++    assert second_output == first_output
++    assert isort.check_code(
++        code=first_output,
++        show_diff=True,
++        comment_prefix=comment_prefix,
++        import_heading_stdlib=heading,
++        import_footer_stdlib=footer,
++    )
++
++
++def test_region_folding_comment_prefix_issue_1922() -> None:
++    """Empty ``comment_prefix`` allows region markers without adding a leading ``# ``."""
++    test_input = "import sys\nimport requests\n"
++    config = Config(
++        comment_prefix="",
++        import_heading_stdlib="#region Standard Library",
++        import_footer_stdlib="#endregion Standard Library",
++        import_heading_thirdparty="#region Third Party",
++        import_footer_thirdparty="#endregion Third Party",
++    )
++    first_output = isort.code(test_input, config=config)
++    assert first_output == (
++        "#region Standard Library\n"
++        "import sys\n"
++        "\n"
++        "#endregion Standard Library\n"
++        "\n"
++        "#region Third Party\n"
++        "import requests\n"
++        "\n"
++        "#endregion Third Party\n"
++    )
++    assert isort.code(first_output, config=config) == first_output
++    assert isort.check_code(first_output, config=config)
++
++
+ def test_balanced_wrapping() -> None:
+     """Tests balanced wrapping mode, where the length of individual lines maintain width."""
+     test_input = (
+diff --git a/tests/unit/test_settings.py b/tests/unit/test_settings.py
+index ac85b6e8..5d8cfeff 100644
+--- a/tests/unit/test_settings.py
++++ b/tests/unit/test_settings.py
+@@ -516,3 +516,40 @@ something = nothing
+ 
+     config_info_4 = config_trie.search(str(tmp_path / "file4.py"))
+     assert config_info_4[0] == "default"
++
++
++@pytest.mark.parametrize(
++    ("comment_prefix", "comment", "expected"),
++    [
++        ("", "#region Standard Library", "#region Standard Library"),
++        ("   ", "#region Standard Library", "#region Standard Library"),
++        ("  #", "Standard Library", "# Standard Library"),
++        (" #", "Standard Library", "# Standard Library"),
++        ("# ", "Standard Library", "# Standard Library"),
++        ("#\t", "Standard Library", "#\tStandard Library"),
++        ("##", "Standard Library", "## Standard Library"),
++        ("## ", "Standard Library", "## Standard Library"),
++    ],
++)
++def test_format_section_comment(comment_prefix: str, comment: str, expected: str) -> None:
++    assert settings.format_section_comment(comment_prefix, comment) == expected
++
++
++def test_section_comments_respect_comment_prefix() -> None:
++    config = Config(
++        comment_prefix="",
++        import_heading_stdlib="#region Standard Library",
++        import_heading_thirdparty="",
++        import_footer_stdlib="#endregion Standard Library",
++        import_footer_thirdparty="",
++    )
++    assert config.section_comments == ("#region Standard Library",)
++    assert config.section_comments_end == ("#endregion Standard Library",)
++
++    prefixed = Config(
++        comment_prefix="##",
++        import_heading_stdlib="Standard Library",
++        import_footer_stdlib="Standard Library End",
++    )
++    assert prefixed.section_comments == ("## Standard Library",)
++    assert prefixed.section_comments_end == ("## Standard Library End",)

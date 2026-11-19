@@ -1,0 +1,23 @@
+diff --git a/isort/wrap.py b/isort/wrap.py
+index 2d005132..7fdb5de3 100644
+--- a/isort/wrap.py
++++ b/isort/wrap.py
+@@ -68,7 +68,7 @@ def import_statement(
+                 remove_comments=config.ignore_comments,
+             )
+             lines = new_import_statement.split(line_separator)
+-    if statement.count(line_separator) == 0 and not _is_wrapped(statement):
++    if statement.count(line_separator) == 0:
+         return _wrap_line(statement, line_separator, config)
+     return statement
+ 
+@@ -84,6 +84,9 @@ def line(content: str, line_separator: str, config: Config = DEFAULT_CONFIG) ->
+             return f"{content}{config.comment_prefix} NOQA"
+         return content
+ 
++    if _is_wrapped(content):
++        return content
++
+     line_without_comment = content
+     comment = None
+     if "#" in content:

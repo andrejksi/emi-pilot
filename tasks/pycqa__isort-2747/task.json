@@ -1,0 +1,39 @@
+{
+  "base_commit": "78e9b26c7417e52fab1acad55940085594113a0a",
+  "created_at": "2026-11-15T15:10:19Z",
+  "install": [
+    "pip install -q -e .",
+    "pip install -q pytest"
+  ],
+  "install_from": "default",
+  "issue": 2746,
+  "kind": "git",
+  "license": null,
+  "oracle": {
+    "fail_to_pass": [
+      "tests/unit/test_wrap.py::test_line_already_wrapped_statement_is_left_alone[0]",
+      "tests/unit/test_wrap.py::test_line_already_wrapped_statement_is_left_alone[1]",
+      "tests/unit/test_wrap.py::test_line_already_wrapped_statement_is_left_alone[3]"
+    ],
+    "pass_to_pass": [
+      "tests/unit/test_wrap.py::test_import_statement",
+      "tests/unit/test_wrap.py::test_line__comment_with_brackets__expects_unchanged_comment[1-from",
+      "tests/unit/test_wrap.py::test_line__comment_with_brackets__expects_unchanged_comment[3-from",
+      "tests/unit/test_wrap.py::test_line_star_cimport_wrapped_with_backslash",
+      "tests/unit/test_wrap.py::test_line_star_import_in_noqa_mode_is_not_backslash_wrapped",
+      "tests/unit/test_wrap.py::test_line_star_import_is_not_wrapped_in_vertical_mode",
+      "tests/unit/test_wrap.py::test_line_star_import_is_not_wrapped_with_parentheses",
+      "tests/unit/test_wrap.py::test_line_star_import_with_comment_wrapped_with_backslash",
+      "tests/unit/test_wrap.py::test_line_star_import_wrapped_with_backslash",
+      "tests/unit/test_wrap.py::test_star_import_wrapped_end_to_end"
+    ]
+  },
+  "prompt": "force_grid_wrap + include_trailing_comma can rewrite a from-import into invalid Python\n\nWith `force_grid_wrap` and `include_trailing_comma`, isort can rewrite a valid `from ... import` statement into invalid Python.\n\n```python\n>>> import isort\n>>> isort.code(\n...     \"from mymodule.sub import y2, long_name\\n\",\n...     force_grid_wrap=2, include_trailing_comma=True, use_parentheses=True, line_length=40,\n... )\n'from mymodule.(\\n    sub import (long_name, y2,),)\\n'\n```\n\nThat output raises `SyntaxError`. With `use_parentheses=False` the same statement is split inside the module path instead, so the requested grid layout is lost.\n\nVersions: current `main` (`a514c71e`) and released 9.0.2 \u2014 long-standing, not a 10.0 regression.\n\nWhy: with those options the grid formatter returns a single line that is one character over `line_length`, because its own length check does not account for the trailing comma appended afterwards (`isort/wrap_modes.py:70` vs `:93`). `wrap.import_statement()` then hands that already-parenthesised statement back to `wrap.line()`, which cannot split at the `import` keyword (it is followed by `(`) and falls back to its `.` splitter, parenthesising the remainder behind the dot of the module path.\n\nExpected either the requested grid layout:\n\n```python\nfrom mymodule.sub import (\n    long_name, y2,)\n```\n\nor at minimum a statement that is valid Python and a fixpoint of a second `isort.code()` run.\n\nI have a fix with a regression test for this - the statement is left alone when it already carries the wrap mode's parentheses, so the existing GRID fallback in `output.sorted_imports()` emits the vertical grid layout. I will open a pull request for it; this issue is to make sure nobody else is on it already.",
+  "pull": 2747,
+  "python": "3.11",
+  "repo": "PyCQA/isort",
+  "source": "github-pr",
+  "test_files": [
+    "tests/unit/test_wrap.py"
+  ]
+}

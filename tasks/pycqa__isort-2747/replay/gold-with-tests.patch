@@ -1,0 +1,45 @@
+diff --git a/isort/wrap.py b/isort/wrap.py
+index 2d005132..7fdb5de3 100644
+--- a/isort/wrap.py
++++ b/isort/wrap.py
+@@ -68,7 +68,7 @@ def import_statement(
+                 remove_comments=config.ignore_comments,
+             )
+             lines = new_import_statement.split(line_separator)
+-    if statement.count(line_separator) == 0 and not _is_wrapped(statement):
++    if statement.count(line_separator) == 0:
+         return _wrap_line(statement, line_separator, config)
+     return statement
+ 
+@@ -84,6 +84,9 @@ def line(content: str, line_separator: str, config: Config = DEFAULT_CONFIG) ->
+             return f"{content}{config.comment_prefix} NOQA"
+         return content
+ 
++    if _is_wrapped(content):
++        return content
++
+     line_without_comment = content
+     comment = None
+     if "#" in content:
+diff --git a/tests/unit/test_wrap.py b/tests/unit/test_wrap.py
+index d3d4bce0..168fbf8a 100644
+--- a/tests/unit/test_wrap.py
++++ b/tests/unit/test_wrap.py
+@@ -52,6 +52,17 @@ def test_line__comment_with_brackets__expects_unchanged_comment(
+     assert wrap.line(content=content, line_separator="\n", config=config) == expected
+ 
+ 
++@pytest.mark.parametrize(
++    "multi_line_output",
++    [WrapModes.VERTICAL_HANGING_INDENT, WrapModes.VERTICAL, WrapModes.GRID],
++)
++def test_line_already_wrapped_statement_is_left_alone(multi_line_output: WrapModes) -> None:
++    content = "from package.module import (alpha, beta, gamma, delta)"
++    config = Config(line_length=35, multi_line_output=multi_line_output)
++
++    assert wrap.line(content=content, line_separator="\n", config=config) == content
++
++
+ def test_line_star_import_wrapped_with_backslash() -> None:
+     """Star imports should use backslashes when parentheses were not requested."""
+     content = "from very.very.very.very.very.very.very.very.very.long.line import *"
