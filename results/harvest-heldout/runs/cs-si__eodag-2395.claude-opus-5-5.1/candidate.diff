@@ -1,0 +1,228 @@
+diff --git a/eodag/plugins/download/base.py b/eodag/plugins/download/base.py
+index fcd47da..b868f2b 100644
+--- a/eodag/plugins/download/base.py
++++ b/eodag/plugins/download/base.py
+@@ -332,10 +332,95 @@ class Download(PluginTopic):
+         archive_depth = getattr(self.config, "archive_depth", 1)
+         count = 1
+         while count < archive_depth:
+-            product_path = os.path.join(product_path, os.listdir(product_path)[0])
++            entries = os.listdir(product_path)
++            # only go down one level when it holds a single directory: picking one entry
++            # among several would silently drop the others from the extracted product
++            if len(entries) != 1 or not os.path.isdir(
++                os.path.join(product_path, entries[0])
++            ):
++                break
++            product_path = os.path.join(product_path, entries[0])
+             count += 1
+         return product_path
+ 
++    @staticmethod
++    def _list_archive_files(fs_path: str) -> Optional[list[tuple[list[str], int]]]:
++        """List the regular files of an archive, with their path parts and size.
++
++        :param fs_path: The path to the archive
++        :returns: A list of (path parts, size) for every regular file of the archive, or
++                  ``None`` if the archive type is not handled or the archive could not be read
++        """
++        fs_path_lower = fs_path.lower()
++        members: list[tuple[str, int]] = []
++        try:
++            if fs_path_lower.endswith(".zip"):
++                with zipfile.ZipFile(fs_path, "r") as zfile:
++                    members = [
++                        (info.filename, info.file_size)
++                        for info in zfile.infolist()
++                        if not info.is_dir()
++                    ]
++            elif fs_path_lower.endswith((".tar", ".tar.gz", ".tgz")):
++                with tarfile.open(fs_path, "r") as tfile:
++                    members = [
++                        (info.name, info.size)
++                        for info in tfile.getmembers()
++                        if info.isfile()
++                    ]
++            else:
++                return None
++        except (OSError, zipfile.BadZipFile, tarfile.TarError) as exc:
++            logger.debug(f"Could not list files of archive {fs_path}: {exc}")
++            return None
++
++        files = []
++        for name, size in members:
++            parts = [
++                part
++                for part in name.replace("\\", "/").split("/")
++                if part not in ("", ".")
++            ]
++            if not parts or ".." in parts or os.path.isabs(name):
++                # not extracted where its name says, it cannot be looked for
++                continue
++            files.append((parts, size))
++        return files
++
++    def _missing_extracted_files(self, fs_path: str, product_path: str) -> list[str]:
++        """Find the files of an archive that are missing from its extraction directory.
++
++        The archive depth is applied to the archive member names the same way it is
++        applied to the extracted tree in :meth:`_resolve_archive_depth`.
++
++        :param fs_path: The path to the archive
++        :param product_path: The path to the directory where the archive was extracted
++        :returns: The relative paths of the archive files missing from ``product_path``
++                  (or having a different size)
++        """
++        files = self._list_archive_files(fs_path)
++        if not files:
++            return []
++        archive_depth = getattr(self.config, "archive_depth", 1)
++        count = 1
++        while count < archive_depth:
++            top_entries = {parts[0] for parts, _ in files}
++            # a single top entry is a directory only if files are below it
++            if len(top_entries) != 1 or any(len(parts) < 2 for parts, _ in files):
++                break
++            files = [(parts[1:], size) for parts, size in files]
++            count += 1
++
++        missing = []
++        for parts, size in files:
++            extracted_path = os.path.join(product_path, *parts)
++            if (
++                not os.path.isfile(extracted_path)
++                or os.path.getsize(extracted_path) != size
++            ):
++                missing.append("/".join(parts))
++        return missing
++
+     def _finalize(
+         self,
+         fs_path: str,
+@@ -398,11 +483,23 @@ class Download(PluginTopic):
+             and os.path.isdir(product_path)
+             and len(os.listdir(product_path)) > 0
+         ):
+-            logger.info(
+-                f"Extraction cancelled, destination directory already exists and is not empty: {product_path}"
++            missing_files = (
++                self._missing_extracted_files(fs_path, product_path)
++                if os.path.isfile(fs_path)
++                else []
+             )
+-            progress_callback(1, total=1)
+-            return product_path
++            if not missing_files:
++                logger.info(
++                    f"Extraction cancelled, destination directory already exists and is not empty: {product_path}"
++                )
++                progress_callback(1, total=1)
++                return product_path
++            logger.warning(
++                f"Existing destination directory {product_path} is incomplete "
++                f"({len(missing_files)} file(s) of {os.path.basename(fs_path)} missing, "
++                f"e.g. {missing_files[0]}), extracting the archive again"
++            )
++            shutil.rmtree(product_path)
+         output_dir = kwargs.pop("output_dir", None) or self.config.output_dir
+ 
+         if not os.path.exists(product_path):
+diff --git a/tests/units/test_download_plugins.py b/tests/units/test_download_plugins.py
+index 79dd6c4..8cb6f79 100644
+--- a/tests/units/test_download_plugins.py
++++ b/tests/units/test_download_plugins.py
+@@ -293,6 +293,94 @@ class TestDownloadPluginBase(BaseDownloadPluginTest):
+             self.assertFalse(arch_path.exists())
+             self.assertTrue(os.path.isfile(Path(output_dir) / "FOO" / "FOO.bar"))
+ 
++    def _write_archive(self, arch_path: Path, contents: dict[str, bytes]) -> None:
++        if arch_path.suffix.lower() == ".zip":
++            with zipfile.ZipFile(arch_path, "w") as zfile:
++                for name, data in contents.items():
++                    zfile.writestr(name, data)
++        else:
++            with tarfile.open(arch_path, "w:gz") as tar:
++                for name, data in contents.items():
++                    member = tarfile.TarInfo(name)
++                    member.size = len(data)
++                    tar.addfile(member, io.BytesIO(data))
++
++    def test_plugins_download_base_finalize_archive_depth_keeps_all_files(self):
++        """Download._finalize must extract every file when archive root holds several entries."""
++        plugin = self.get_download_plugin(self.product)
++        contents = {"EOPMetadata.xml": b"<xml/>", "product.nat": b"data" * 10}
++        for extension in (".zip", ".tgz"):
++            with (
++                self.subTest(extension=extension),
++                TemporaryDirectory() as output_dir,
++                mock.patch.object(plugin.config, "archive_depth", 2, create=True),
++            ):
++                arch_path = Path(output_dir) / f"FOO{extension}"
++                self._write_archive(arch_path, contents)
++                product_path = plugin._finalize(
++                    str(arch_path),
++                    output_dir=output_dir,
++                    extract=True,
++                    delete_archive=False,
++                )
++                self.assertEqual(product_path, os.path.join(output_dir, "FOO"))
++                self.assertCountEqual(os.listdir(product_path), list(contents))
++                for name, data in contents.items():
++                    self.assertEqual((Path(product_path) / name).read_bytes(), data)
++
++    def test_plugins_download_base_finalize_archive_depth_single_dir(self):
++        """Download._finalize must go down a single top directory when archive_depth > 1."""
++        plugin = self.get_download_plugin(self.product)
++        contents = {"top/a.txt": b"a", "top/sub/b.txt": b"bb"}
++        with (
++            TemporaryDirectory() as output_dir,
++            mock.patch.object(plugin.config, "archive_depth", 2, create=True),
++        ):
++            arch_path = Path(output_dir) / "FOO.zip"
++            self._write_archive(arch_path, contents)
++            product_path = plugin._finalize(
++                str(arch_path), output_dir=output_dir, extract=True
++            )
++            self.assertCountEqual(os.listdir(product_path), ["a.txt", "sub"])
++            self.assertTrue(os.path.isfile(Path(product_path) / "sub" / "b.txt"))
++            # complete extraction is not redone
++            with self.assertLogs(level="INFO") as cm:
++                plugin._finalize(str(arch_path), output_dir=output_dir, extract=True)
++            self.assertIn("Extraction cancelled", str(cm.output))
++
++    def test_plugins_download_base_finalize_reextract_incomplete(self):
++        """Download._finalize must extract again a destination directory missing archive files."""
++        plugin = self.get_download_plugin(self.product)
++        contents = {"EOPMetadata.xml": b"<xml/>", "product.nat": b"data" * 10}
++        for archive_depth in (1, 2):
++            with (
++                self.subTest(archive_depth=archive_depth),
++                TemporaryDirectory() as output_dir,
++                mock.patch.object(
++                    plugin.config, "archive_depth", archive_depth, create=True
++                ),
++            ):
++                arch_path = Path(output_dir) / "FOO.zip"
++                self._write_archive(arch_path, contents)
++                # an incomplete previous extraction
++                incomplete_dir = Path(output_dir) / "FOO"
++                incomplete_dir.mkdir()
++                (incomplete_dir / "EOPMetadata.xml").write_bytes(b"<xml/>")
++
++                with self.assertLogs(level="WARNING") as cm:
++                    product_path = plugin._finalize(
++                        str(arch_path),
++                        output_dir=output_dir,
++                        extract=True,
++                        delete_archive=False,
++                    )
++                self.assertIn("is incomplete", str(cm.output))
++                self.assertCountEqual(os.listdir(product_path), list(contents))
++                self.assertEqual(
++                    (Path(product_path) / "product.nat").read_bytes(), b"data" * 10
++                )
++                self.assertTrue(arch_path.is_file())
++
+ 
+ class TestDownloadPluginHttp(BaseDownloadPluginTest):
+     """Test cases for the HTTP download plugin."""
