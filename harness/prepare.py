@@ -45,7 +45,7 @@ def configure(work, arm, emi, task):
         raise SystemExit(f"emi init failed:\n{out}")
     path = work / ".emi" / "config.json"
     config = json.loads(path.read_text())
-    config["tests"]["command"] = test_command(task)
+    config["tests"]["command"] = test_command(task, work)
     if import_roots(task):
         # a src layout: EMI must run the candidate's code, not the installed copy
         config["python_path"] = import_roots(task)

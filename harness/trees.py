@@ -211,11 +211,22 @@ def code_env(task, work):
     return {"PYTHONPATH": ":".join(str(Path(work).resolve() / r) for r in roots)} if roots else {}
 
 
-def test_command(task):
-    """The command that runs the task's visible tests, from the repository root."""
+def test_command(task, work=None):
+    """The command that runs the task's visible tests, from the repository root.
+
+    When `work` is given, any test file that does not exist in `work` (for
+    example a brand-new test file added only by a hidden patch) is omitted so
+    baseline runs do not fail with pytest exit 4.
+    """
     if task.get("kind", "dir") == "dir":
         return [".venv/bin/python", "-m", "pytest", "-q"]
-    return [".venv/bin/python", "-m", "pytest", "-q", "-p", "no:cacheprovider", *task["test_files"]]
+    files = list(task["test_files"])
+    if work is not None:
+        w = Path(work)
+        present = [p for p in files if (w / p).exists()]
+        if present:
+            files = present
+    return [".venv/bin/python", "-m", "pytest", "-q", "-p", "no:cacheprovider", *files]
 
 
 def test_files(test_cmd):

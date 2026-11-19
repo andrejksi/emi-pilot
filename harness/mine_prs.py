@@ -51,7 +51,13 @@ query($owner: String!, $name: String!, $after: String) {
         author { login __typename }
         mergeCommit { oid parents(first: 1) { nodes { oid } } }
         closingIssuesReferences(first: 5) {
-          nodes { number title body createdAt repository { nameWithOwner } }
+          nodes {
+            number title body createdAt
+            repository { nameWithOwner }
+            comments(first: 20) {
+              nodes { author { login __typename } body createdAt }
+            }
+          }
         }
         files(first: %d) { totalCount nodes { path } }
       }
@@ -143,6 +149,29 @@ def split_patch(git_dir, base, head):
     return "".join(fix), "".join(tests)
 
 
+def format_problem_statement(issue, pr_created_at):
+    """Issue title, body, and any non-bot comments posted before the PR was opened."""
+    parts = [f"{issue['title']}\n\n{(issue['body'] or '').strip()}"]
+    nodes = ((issue.get("comments") or {}).get("nodes") or [])
+    pre_pr = []
+    for c in nodes:
+        if not c:
+            continue
+        author = c.get("author") or {}
+        login = author.get("login") or "unknown"
+        if author.get("__typename") == "Bot" or login.endswith("[bot]"):
+            continue
+        created = c.get("createdAt") or ""
+        if pr_created_at and created and created > pr_created_at:
+            continue
+        body = (c.get("body") or "").strip()
+        if body:
+            pre_pr.append(f"@{login}:\n{body}")
+    if pre_pr:
+        parts.append("## Discussion (before PR)\n\n" + "\n\n---\n\n".join(pre_pr))
+    return "\n\n".join(parts).strip() + "\n"
+
+
 def candidate(pr, repo):
     issue = the_issue(pr, repo)
     base = pr["mergeCommit"]["parents"]["nodes"][0]["oid"]
@@ -153,7 +182,7 @@ def candidate(pr, repo):
         "instance_id": task_id(repo, pr["number"]),
         "repo": repo, "pull": pr["number"], "issue": issue["number"],
         "base_commit": base, "merge_commit": head, "merged_at": pr["mergedAt"],
-        "problem_statement": f"{issue['title']}\n\n{(issue['body'] or '').strip()}\n",
+        "problem_statement": format_problem_statement(issue, pr.get("createdAt")),
         "patch": fix, "test_patch": tests,
     }
 

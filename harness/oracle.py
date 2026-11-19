@@ -68,6 +68,38 @@ def judge_dir(task, work, venv):
     return {"passed": code == 0, "exit": code, "output": out[-2000:]}
 
 
+TEST_FILE = re.compile(r"(^|/)test_[^/]*\.py$|_test\.py$")
+STATUS_LINE = re.compile(r"^(PASSED|FAILED|ERROR|XFAIL|XPASS|SKIPPED)\s+(.+)$")
+
+
+def _extract_nodeid(status, rest):
+    """Extract the full pytest node ID from a `-rA` summary line."""
+    rest = rest.strip()
+    if not rest or rest.startswith("["):
+        return None
+    if status == "PASSED":
+        return rest
+    # Pytest formats failures/errors as `<nodeid> - <reason>`.
+    # Handle parametrize brackets that may themselves contain ` - `.
+    close_bracket = rest.rfind("]")
+    sep = rest.find(" - ", close_bracket + 1 if close_bracket != -1 else 0)
+    if sep != -1:
+        return rest[:sep].strip()
+    return rest
+
+
+def test_passed(seen, test_id):
+    """Return True if `test_id` passed in `seen` (with fallback for legacy truncated IDs)."""
+    if test_id in seen:
+        return seen[test_id] == "PASSED"
+    if "[" in test_id and not test_id.endswith("]"):
+        prefix = test_id + " "
+        matches = [st for k, st in seen.items() if k.startswith(prefix)]
+        if matches:
+            return all(st == "PASSED" for st in matches)
+    return False
+
+
 def judge_git(task, work, venv):
     patch = PILOT / "tasks" / task["id"] / "hidden" / "test.patch"
     touched = re.findall(r"^diff --git a/(\S+) b/", patch.read_text(), flags=re.M)
@@ -77,18 +109,21 @@ def judge_git(task, work, venv):
     if code != 0:
         return {"passed": None, "error": f"the hidden tests do not apply: {out[-1000:]}"}
     wanted = task["oracle"]["fail_to_pass"] + task["oracle"]["pass_to_pass"]
+    oracle_files = sorted(
+        set(task["test_files"]) | {p for p in touched if TEST_FILE.search(p)}
+    )
     cmd = [str(venv / "bin" / "python"), "-m", "pytest", "-rA", "--no-header", "--tb=short",
            "--color=no", "-p", "no:cacheprovider", "-W", "ignore::DeprecationWarning",
-           *task["test_files"]]
+           *oracle_files]
     code, out = run(cmd, cwd=work, env=code_env(task, work), timeout=1800)
     out = ANSI.sub("", out)
     seen = outcomes(out)
     if not seen:
         return {"passed": None, "exit": code, "error": out[-3000:]}
-    failing = [t for t in wanted if seen.get(t) != "PASSED"]
+    failing = [t for t in wanted if not test_passed(seen, t)]
     f2p = task["oracle"]["fail_to_pass"]
     verdict = {"passed": not failing, "exit": code,
-               "fail_to_pass_passed": sum(seen.get(t) == "PASSED" for t in f2p),
+               "fail_to_pass_passed": sum(test_passed(seen, t) for t in f2p),
                "fail_to_pass": len(f2p),
                "not_passing": failing[:20], "not_passing_count": len(failing)}
     if failing:
@@ -100,15 +135,17 @@ def judge_git(task, work, venv):
 
 
 def outcomes(out):
-    """Each test's outcome from pytest's -rA summary, keyed as the dataset
-    keys it: the id up to its first space (an id with a space in a parameter
-    is cut there). Tests that share such a key pass only if all of them do."""
+    """Each test's outcome from pytest's -rA summary, keyed by full node ID
+    (preserving spaces inside parametrize brackets)."""
     seen = {}
     for line in out.splitlines():
-        words = line.split()
-        if len(words) < 2 or words[0] not in STATUSES:
+        m = STATUS_LINE.match(line)
+        if not m:
             continue
-        key, status = words[1], words[0]
+        status, rest = m.group(1), m.group(2)
+        key = _extract_nodeid(status, rest)
+        if not key:
+            continue
         if seen.get(key, "PASSED") != "PASSED":
             continue
         seen[key] = status

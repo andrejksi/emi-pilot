@@ -23,7 +23,7 @@ def control(work, ctx):
 
 def naive(work, ctx):
     """The cheapest stop hook there is: the visible tests must pass."""
-    code, out = run(test_command(ctx["task"]), cwd=work, env=code_env(ctx["task"], work),
+    code, out = run(test_command(ctx["task"], work), cwd=work, env=code_env(ctx["task"], work),
                      timeout=1200)
     record = {"gate": "pytest", "exit": code}
     if code == 0:

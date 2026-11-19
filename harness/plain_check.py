@@ -59,7 +59,7 @@ def restore(work):
 def check(task, work, before):
     """(accept, why). `before` is the baseline's outcomes(test_command)."""
     restore(work)
-    now, why = outcomes(task, work, test_command(task))
+    now, why = outcomes(task, work, test_command(task, work))
     if now is None:
         return False, f"the tests gave no result: {why}"
     expected = expected_changes(work)
