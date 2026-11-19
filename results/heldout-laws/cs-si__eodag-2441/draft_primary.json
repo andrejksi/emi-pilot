@@ -1,6 +1,12 @@
 {
+  "checked_files": [
+    "ANSWERS",
+    "answers.txt",
+    "conftest.py",
+    "test_mpc_filter_date.py"
+  ],
   "model": "claude-opus-5-5",
-  "passed": false,
+  "passed": true,
   "role": "primary",
   "rounds": [
     {
@@ -23,6 +29,28 @@
       ],
       "round": 1,
       "seconds": 83.1
+    },
+    {
+      "exit": 3,
+      "files": [
+        "ANSWERS",
+        "answers.txt",
+        "conftest.py",
+        "test_mpc_filter_date.py"
+      ],
+      "round": 2,
+      "seconds": 70.1
+    },
+    {
+      "exit": 0,
+      "files": [
+        "ANSWERS",
+        "answers.txt",
+        "conftest.py",
+        "test_mpc_filter_date.py"
+      ],
+      "round": 3,
+      "seconds": 21.8
     }
   ],
   "task": "cs-si__eodag-2441"

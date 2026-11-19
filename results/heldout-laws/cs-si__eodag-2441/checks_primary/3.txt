@@ -1,0 +1,29 @@
+Rules check: stop. Not checked: none.
+
+.emi/laws/test_mpc_filter_date.py
+  Example, new behaviour: filtering the issue's two MPC results between 2021-02-10 and 2021-02-12 drops the 20210214T105131 product and keeps the 20210212T110059 one (A1, A2).
+      assert [p.properties["id"] for p in filtered] == [ "S2B_MSIL2A_20210212T110059_R094_T30TXP_20210213T073201" ]
+      -> fails on the current code: AssertionError: assert ['S2A_MSIL2A_...10213T073201'] == ['S2B_MSIL2A_...10213T073201']
+At index 0 diff: 'S2A_MSIL2A_20210214T105131_R051_T30TXP_20210215T051748' != 'S2B_MSIL2A_20210212T110059_R094_T30TXP_20210213T073201'
+Left contains one  …
+  Example, guard: filtering the issue's two MPC results over the searched range 2021-02-10 to 2021-02-15 keeps both (A1, A2).
+      assert _ids(filtered) == _ids(products) and len(filtered) == 2
+      -> holds on the current code
+  Example, guard: products that do have start_datetime and end_datetime keep being filtered by them (A1, A3).
+      assert len(products.crunch(FilterDate(dict(start="2025-01-16", end="2025-01-17")))) == 2
+      -> holds on the current code
+
+Answers (proposed: approving the rules agrees to them):
+  - A1 (written by the person): kind is fix: Microsoft Planetary Computer (planetary_computer) search results cannot be filtered by date because their properties have no start_datetime/end_datetime, so filter_date keeps everything.
+  - A2 (written by the person): example: two planetary_computer S2_MSI_L2A results S2A_MSIL2A_20210214T105131_R051_T30TXP_20210215T051748 and S2B_MSIL2A_20210212T110059_R094_T30TXP_20210213T073201; filter_date('2021-02-10T00:00:00', '2021-02-12T00:00:00') must filter out the 20210214T105131 product (only the 20210212T110059 one remains); both were found for the searched range 2021-02-10..2021-02-15.
+  - A3 (written by the person): date filtering of other results (with start_datetime/end_datetime) is not said to change; refusals, edges and implementation location (filter vs metadata mapping): doesn't matter.
+
+Also proposed:
+  - .emi/laws/answers.txt (not a rule file)
+  - .emi/laws/conftest.py (not a rule file)
+
+Noted (blocks nothing):
+  - .emi/laws/test_mpc_filter_date.py: 118 function(s) the rules run outside their area were given no stand-ins (`--scope all` tries them; `laws.area` widens the area): eodag/__init__.py (1), eodag/api/product/__init__.py (2), eodag/api/product/_assets.py (2), eodag/api/product/_product.py (3), eodag/api/product/drivers/generic.py (1), eodag/api/product/drivers/sentinel1.py (1), eodag/api/product/drivers/sentinel2.py (1), eodag/api/product/metadata_mapping.py (19), eodag/api/provider.py (15), eodag/api/search_result.py (3), eodag/config.py (7), eodag/plugins/authentication/base.py (1), eodag/plugins/base.py (4), eodag/plugins/crunch/base.py (1), eodag/plugins/download/base.py (1), eodag/plugins/manager.py (8), eodag/plugins/search/base.py (7), eodag/plugins/search/qssearch.py (14), eodag/types/stac_extensions.py (2), eodag/utils/__init__.py (18), eodag/utils/cache.py (2), eodag/utils/dates.py (1), eodag/utils/yaml.py (4)
+  - .emi/laws/test_mpc_filter_date.py: old tests import what its new rules are about: tests/context.py. If the task changes how they behave, the person lists them as expected changes
+
+Ready for a person: show them the rules above; `emi rules approve` approves and commits them.
