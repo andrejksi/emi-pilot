@@ -137,8 +137,13 @@ class TestReplayGateCeiling(unittest.TestCase):
                 mock.patch.object(replay_gate, "git"),
             ):
                 replay_gate.build_base_tree(task, None, dst, None, "emi", ceiling=True)
-            law_file = dst / ".emi" / "laws" / "test_ceiling_hidden.py"
+            law_file = dst / ".emi" / "laws" / "tests" / "test_ceiling_hidden_test.py"
             self.assertTrue(law_file.exists())
+            # matched by every common collection pattern
+            from fnmatch import fnmatch
+            for pattern in ("test_*.py", "*_test.py"):
+                self.assertTrue(fnmatch(law_file.name, pattern), pattern)
+            self.assertEqual(law_file.parent.name, "tests")
             src = law_file.read_text(encoding="utf-8")
             self.assertIn("IMPORT_ROOTS = ['src']", src)
             self.assertIn("PYTHONPATH", src)

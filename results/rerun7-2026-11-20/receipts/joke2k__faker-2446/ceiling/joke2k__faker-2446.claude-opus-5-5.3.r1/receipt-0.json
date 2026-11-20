@@ -1,0 +1,154 @@
+{
+  "action": "incomplete",
+  "adequacy": null,
+  "ask": [],
+  "assurance": {
+    "isolation": "sandboxed",
+    "setting": "cooperative"
+  },
+  "baseline": {
+    "sha": "ce94fcfcae575d162d9d87a26905e87ea03be1a0",
+    "source": "merge-base:main"
+  },
+  "candidate": {
+    "content_id": "9f8856d5a0581d7b4080218b1083e97436e86601",
+    "id": "worktree"
+  },
+  "change": {
+    "companion_tests": [],
+    "failing_tests": [],
+    "functions": [
+      {
+        "file": "faker/providers/company/pt_BR/__init__.py",
+        "function": "_company_id_base",
+        "laws": [],
+        "line": 107,
+        "status": "unexercised"
+      }
+    ],
+    "not_measured": [],
+    "proving_tests": [],
+    "redundant_tests": [],
+    "skipped_tests": [],
+    "status": "unexercised",
+    "unknown_tests": []
+  },
+  "changed_old_tests": [],
+  "decision_id": "3c2ea99b4d274ac3ff2ec969672398f6d5fde22c8b8d6b80a6ddeecf22864541",
+  "input_id": "f26f1c63c1eb7fb4096d47f924b811332f786c583651d0117346c6c007ffd0c6",
+  "inputs": {
+    "approvals": [],
+    "baseline": "ce94fcfcae575d162d9d87a26905e87ea03be1a0",
+    "candidate": "9f8856d5a0581d7b4080218b1083e97436e86601",
+    "config": "9171e7a719f2660788d623e86a0c019f1f3001a6a68d7f5813aff00b6e829b46",
+    "driver": {
+      "language": "python",
+      "producer": "8c8122711c9324bd3073829e536ad3134c81e327883de61fe0ecbd5628312888"
+    },
+    "emi": "0.1.1",
+    "environment": "6c2d2d6b67276e3508209c54a2b6b89761ad378cc6f75f0870ab76f62b60a74c",
+    "intent": null,
+    "laws": null,
+    "memory": {
+      "laws": {},
+      "schema": "emi-memory-1"
+    },
+    "pins": {
+      "derandomize": true,
+      "hash_seed": 0,
+      "locale": "C.UTF-8",
+      "seed_random": true,
+      "tz": "UTC"
+    },
+    "policy": "emi-policy-10",
+    "search": null,
+    "setting": "cooperative"
+  },
+  "laws": {
+    "checked_functions": {},
+    "digest": null,
+    "fault": "the laws could not be measured: listing the tests at the baseline's laws exited 5",
+    "forgotten": [],
+    "found": {},
+    "laws": [],
+    "not_measured": [],
+    "proposals": []
+  },
+  "meta": {
+    "repo": "/home/runner/work/_temp/work/tmpw74m6n_m/work-ceiling-joke2k__faker-2446.claude-opus-5-5.3-r1"
+  },
+  "not_verified": [
+    "Behaviour that no test exercises: tests passing does not show the task's behaviour exists.",
+    "The baseline's tests are taken as correct. They ran twice under the same pins; a test whose outcome differed is quarantined, and an outcome that depends on something the pins do not hold (the clock, the network, another process) can still differ.",
+    "Tests the baseline already skipped, expected to fail, could not collect or failed are not regression evidence: nothing is known about the behaviour they cover.",
+    "Escape hatches in the change (suppressions, test-runner sniffing, always-equal comparisons) are found by pattern, and only in product lines it added. Only sniffing is also measured: a modified function is replayed as a test run and as a plain process, on the inputs the behaviour comparison has, and only for the clues of a test run that replay plants.",
+    "Cooperative verification: the proposer could alter the controller's inputs (the configuration, the recorded approvals, the dependencies the tests run). It catches a careless proposer, not a cheating one.",
+    "Linked dependencies (.venv) were taken as found on this machine.",
+    "Behaviour was compared with the baseline's on 0 input(s) (0 generated from annotations), as a report that decides nothing, since nobody asked for it to be kept; other inputs are not covered, so this is not a proof of equivalence.",
+    "Not compared: faker/providers/company/pt_BR/__init__.py::Provider._company_id_base: no_inputs.",
+    "the test command on the base commit exited with 1; the recorded inputs may be incomplete"
+  ],
+  "policy": "emi-policy-10",
+  "preserve": {
+    "counts": {
+      "added_or_removed": 0,
+      "compared": 0,
+      "generated": 0,
+      "import_failures": 0,
+      "no_inputs": 1,
+      "not_replayed": 0,
+      "skipped_async": 0,
+      "skipped_method": 0,
+      "skipped_nested": 0,
+      "targets": 1,
+      "timeouts": 0,
+      "unencodable_result": 0,
+      "unrecordable": 401,
+      "unresolved": 0,
+      "unstable": 0,
+      "with_drift": 0
+    },
+    "divergences": [],
+    "functions": [
+      {
+        "compared": 0,
+        "deterministic": false,
+        "file": "faker/providers/company/pt_BR/__init__.py",
+        "function": "Provider._company_id_base",
+        "inputs": 0,
+        "status": "no_inputs"
+      }
+    ],
+    "more_divergences": 0,
+    "not_checked": [
+      "faker/providers/company/pt_BR/__init__.py::Provider._company_id_base: no_inputs"
+    ],
+    "reasons": [
+      "the test command on the base commit exited with 1; the recorded inputs may be incomplete"
+    ],
+    "required": false,
+    "under_test": {
+      "compared": 0,
+      "differences": [],
+      "unmeasured": null
+    }
+  },
+  "regression": {
+    "failed": [],
+    "missing": [],
+    "nondeterministic": [],
+    "quarantined": [],
+    "reasons": [],
+    "status": "held",
+    "tests_run": 93
+  },
+  "repair": [],
+  "rule": "fault",
+  "schema": "emi-done-receipt-1.0",
+  "signals": [],
+  "this_run": [
+    "Behaviour was compared with the baseline's on 0 input(s) (0 generated from annotations), as a report that decides nothing, since nobody asked for it to be kept; other inputs are not covered, so this is not a proof of equivalence.",
+    "Not compared: faker/providers/company/pt_BR/__init__.py::Provider._company_id_base: no_inputs.",
+    "the test command on the base commit exited with 1; the recorded inputs may be incomplete"
+  ]
+}

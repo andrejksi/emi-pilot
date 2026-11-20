@@ -1,0 +1,156 @@
+{
+  "action": "incomplete",
+  "adequacy": null,
+  "ask": [],
+  "assurance": {
+    "isolation": "sandboxed",
+    "setting": "cooperative"
+  },
+  "baseline": {
+    "sha": "3f7605998020d8e2a21deb8b55955417faf4503c",
+    "source": "merge-base:main"
+  },
+  "candidate": {
+    "content_id": "ddfa3467db83e493101574fdce5c34efc3f65712",
+    "id": "worktree"
+  },
+  "change": {
+    "companion_tests": [],
+    "failing_tests": [],
+    "functions": [
+      {
+        "file": "Lib/fontTools/varLib/instancer/names.py",
+        "function": "_updateNameRecords",
+        "laws": [],
+        "line": 201,
+        "status": "unexercised"
+      }
+    ],
+    "not_measured": [
+      "Doc/make.bat: not Python; its changed functions are not measured"
+    ],
+    "proving_tests": [],
+    "redundant_tests": [],
+    "skipped_tests": [],
+    "status": "unexercised",
+    "unknown_tests": []
+  },
+  "changed_old_tests": [],
+  "decision_id": "50034028e8963c0acba8772f1599f64503e35d4a579d5a52738d7372cb9c441f",
+  "input_id": "5285ab3123b0e172cdf5b4f0fae946ca1f3341e897a5af3f11dfb87319da8d3f",
+  "inputs": {
+    "approvals": [],
+    "baseline": "3f7605998020d8e2a21deb8b55955417faf4503c",
+    "candidate": "ddfa3467db83e493101574fdce5c34efc3f65712",
+    "config": "840b9991c78aeaf8d020b4e67f3d3958ec4c22007be1cd955a038fb9c437a542",
+    "driver": {
+      "language": "python",
+      "producer": "8c8122711c9324bd3073829e536ad3134c81e327883de61fe0ecbd5628312888"
+    },
+    "emi": "0.1.1",
+    "environment": "f66aca47dfb01a6a6691e2bd92c78817971cff3ca7e3cb8e437296c586a52139",
+    "intent": null,
+    "laws": null,
+    "memory": {
+      "laws": {},
+      "schema": "emi-memory-1"
+    },
+    "pins": {
+      "derandomize": true,
+      "hash_seed": 0,
+      "locale": "C.UTF-8",
+      "seed_random": true,
+      "tz": "UTC"
+    },
+    "policy": "emi-policy-10",
+    "search": null,
+    "setting": "cooperative"
+  },
+  "laws": {
+    "checked_functions": {},
+    "digest": null,
+    "fault": "the laws could not be measured: listing the tests at the baseline's laws exited 5",
+    "forgotten": [],
+    "found": {},
+    "laws": [],
+    "not_measured": [],
+    "proposals": []
+  },
+  "meta": {
+    "repo": "/home/runner/work/_temp/work/tmpjiil8fj9/work-ceiling-fonttools__fonttools-4371.gpt-6.2-sol.1-r0"
+  },
+  "not_verified": [
+    "Behaviour that no test exercises: tests passing does not show the task's behaviour exists.",
+    "The baseline's tests are taken as correct. They ran twice under the same pins; a test whose outcome differed is quarantined, and an outcome that depends on something the pins do not hold (the clock, the network, another process) can still differ.",
+    "Tests the baseline already skipped, expected to fail, could not collect or failed are not regression evidence: nothing is known about the behaviour they cover.",
+    "Escape hatches in the change (suppressions, test-runner sniffing, always-equal comparisons) are found by pattern, and only in product lines it added. Only sniffing is also measured: a modified function is replayed as a test run and as a plain process, on the inputs the behaviour comparison has, and only for the clues of a test run that replay plants.",
+    "Cooperative verification: the proposer could alter the controller's inputs (the configuration, the recorded approvals, the dependencies the tests run). It catches a careless proposer, not a cheating one.",
+    "Linked dependencies (.venv) were taken as found on this machine.",
+    "Behaviour was compared with the baseline's on 0 input(s) (0 generated from annotations), as a report that decides nothing, since nobody asked for it to be kept; other inputs are not covered, so this is not a proof of equivalence.",
+    "Not compared: Lib/fontTools/varLib/instancer/names.py::_updateNameRecords: no_inputs.",
+    "the test command on the base commit exited with 1; the recorded inputs may be incomplete"
+  ],
+  "policy": "emi-policy-10",
+  "preserve": {
+    "counts": {
+      "added_or_removed": 0,
+      "compared": 0,
+      "generated": 0,
+      "import_failures": 0,
+      "no_inputs": 1,
+      "not_replayed": 0,
+      "skipped_async": 0,
+      "skipped_method": 0,
+      "skipped_nested": 0,
+      "targets": 1,
+      "timeouts": 0,
+      "unencodable_result": 0,
+      "unrecordable": 19,
+      "unresolved": 0,
+      "unstable": 0,
+      "with_drift": 0
+    },
+    "divergences": [],
+    "functions": [
+      {
+        "compared": 0,
+        "deterministic": false,
+        "file": "Lib/fontTools/varLib/instancer/names.py",
+        "function": "_updateNameRecords",
+        "inputs": 0,
+        "status": "no_inputs"
+      }
+    ],
+    "more_divergences": 0,
+    "not_checked": [
+      "Lib/fontTools/varLib/instancer/names.py::_updateNameRecords: no_inputs"
+    ],
+    "reasons": [
+      "the test command on the base commit exited with 1; the recorded inputs may be incomplete"
+    ],
+    "required": false,
+    "under_test": {
+      "compared": 0,
+      "differences": [],
+      "unmeasured": null
+    }
+  },
+  "regression": {
+    "failed": [],
+    "missing": [],
+    "nondeterministic": [],
+    "quarantined": [],
+    "reasons": [],
+    "status": "held",
+    "tests_run": 21
+  },
+  "repair": [],
+  "rule": "fault",
+  "schema": "emi-done-receipt-1.0",
+  "signals": [],
+  "this_run": [
+    "Behaviour was compared with the baseline's on 0 input(s) (0 generated from annotations), as a report that decides nothing, since nobody asked for it to be kept; other inputs are not covered, so this is not a proof of equivalence.",
+    "Not compared: Lib/fontTools/varLib/instancer/names.py::_updateNameRecords: no_inputs.",
+    "the test command on the base commit exited with 1; the recorded inputs may be incomplete"
+  ]
+}

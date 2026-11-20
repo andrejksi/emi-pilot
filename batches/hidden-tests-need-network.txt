@@ -1,0 +1,7 @@
+# Tasks whose hidden tests reach the network (the oracle runs with it; EMI's
+# sandbox has none), so the ceiling (hidden tests as laws) cannot pass a
+# right candidate. study/check_harness.py --network-tasks leaves them out of
+# the ceiling's known answers and names them.
+# huggingface_hub-5287: TestHfFileSystemRepositoryRO creates repositories on
+# the Hub's staging endpoint (tests/test_hf_file_system.py, ENDPOINT_STAGING).
+huggingface__huggingface_hub-5287

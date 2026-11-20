@@ -1,0 +1,156 @@
+{
+  "action": "incomplete",
+  "adequacy": null,
+  "ask": [],
+  "assurance": {
+    "isolation": "sandboxed",
+    "setting": "cooperative"
+  },
+  "baseline": {
+    "sha": "cb1f04b737493a47b32cea78a4f52ac6f0f1c0b2",
+    "source": "merge-base:main"
+  },
+  "candidate": {
+    "content_id": "8533d7a054886c71fd26fa09c2d2e1b0adaddfce",
+    "id": "worktree"
+  },
+  "change": {
+    "companion_tests": [],
+    "failing_tests": [],
+    "functions": [
+      {
+        "file": "Lib/fontTools/cffLib/__init__.py",
+        "function": "fromXML",
+        "laws": [],
+        "line": 245,
+        "status": "unexercised"
+      }
+    ],
+    "not_measured": [
+      "Doc/make.bat: not Python; its changed functions are not measured"
+    ],
+    "proving_tests": [],
+    "redundant_tests": [],
+    "skipped_tests": [],
+    "status": "unexercised",
+    "unknown_tests": []
+  },
+  "changed_old_tests": [],
+  "decision_id": "f0d85d0ec4f09ffb48b3e0f31f3ba0b08902ddc80721896bbe14b7b5e5e29aba",
+  "input_id": "b2228b5394714fea6304f167bb05a84847e0a32518ed4d2d37933fe3d25fec74",
+  "inputs": {
+    "approvals": [],
+    "baseline": "cb1f04b737493a47b32cea78a4f52ac6f0f1c0b2",
+    "candidate": "8533d7a054886c71fd26fa09c2d2e1b0adaddfce",
+    "config": "9a49e611f294d80f8e88817b3c0fb7df0ad3b76db0fad9920a7b71b2a63798b4",
+    "driver": {
+      "language": "python",
+      "producer": "8c8122711c9324bd3073829e536ad3134c81e327883de61fe0ecbd5628312888"
+    },
+    "emi": "0.1.1",
+    "environment": "48af2c05222b0f3943eb364a8f5db6b6c7b48b7780808bbc112cc57b7a548df8",
+    "intent": null,
+    "laws": null,
+    "memory": {
+      "laws": {},
+      "schema": "emi-memory-1"
+    },
+    "pins": {
+      "derandomize": true,
+      "hash_seed": 0,
+      "locale": "C.UTF-8",
+      "seed_random": true,
+      "tz": "UTC"
+    },
+    "policy": "emi-policy-10",
+    "search": null,
+    "setting": "cooperative"
+  },
+  "laws": {
+    "checked_functions": {},
+    "digest": null,
+    "fault": "the laws could not be measured: listing the tests at the baseline's laws exited 5",
+    "forgotten": [],
+    "found": {},
+    "laws": [],
+    "not_measured": [],
+    "proposals": []
+  },
+  "meta": {
+    "repo": "/home/runner/work/_temp/work/tmp3b9o_wwo/work-ceiling-fonttools__fonttools-4388.claude-opus-5-5.2-r0"
+  },
+  "not_verified": [
+    "Behaviour that no test exercises: tests passing does not show the task's behaviour exists.",
+    "The baseline's tests are taken as correct. They ran twice under the same pins; a test whose outcome differed is quarantined, and an outcome that depends on something the pins do not hold (the clock, the network, another process) can still differ.",
+    "Tests the baseline already skipped, expected to fail, could not collect or failed are not regression evidence: nothing is known about the behaviour they cover.",
+    "Escape hatches in the change (suppressions, test-runner sniffing, always-equal comparisons) are found by pattern, and only in product lines it added. Only sniffing is also measured: a modified function is replayed as a test run and as a plain process, on the inputs the behaviour comparison has, and only for the clues of a test run that replay plants.",
+    "Cooperative verification: the proposer could alter the controller's inputs (the configuration, the recorded approvals, the dependencies the tests run). It catches a careless proposer, not a cheating one.",
+    "Linked dependencies (.venv) were taken as found on this machine.",
+    "Behaviour was compared with the baseline's on 0 input(s) (0 generated from annotations), as a report that decides nothing, since nobody asked for it to be kept; other inputs are not covered, so this is not a proof of equivalence.",
+    "Not compared: Lib/fontTools/cffLib/__init__.py::CFFFontSet.fromXML: no_inputs.",
+    "the test command on the base commit exited with 1; the recorded inputs may be incomplete"
+  ],
+  "policy": "emi-policy-10",
+  "preserve": {
+    "counts": {
+      "added_or_removed": 2,
+      "compared": 0,
+      "generated": 0,
+      "import_failures": 0,
+      "no_inputs": 1,
+      "not_replayed": 0,
+      "skipped_async": 0,
+      "skipped_method": 0,
+      "skipped_nested": 0,
+      "targets": 1,
+      "timeouts": 0,
+      "unencodable_result": 0,
+      "unrecordable": 8,
+      "unresolved": 0,
+      "unstable": 0,
+      "with_drift": 0
+    },
+    "divergences": [],
+    "functions": [
+      {
+        "compared": 0,
+        "deterministic": false,
+        "file": "Lib/fontTools/cffLib/__init__.py",
+        "function": "CFFFontSet.fromXML",
+        "inputs": 0,
+        "status": "no_inputs"
+      }
+    ],
+    "more_divergences": 0,
+    "not_checked": [
+      "Lib/fontTools/cffLib/__init__.py::CFFFontSet.fromXML: no_inputs"
+    ],
+    "reasons": [
+      "the test command on the base commit exited with 1; the recorded inputs may be incomplete"
+    ],
+    "required": false,
+    "under_test": {
+      "compared": 0,
+      "differences": [],
+      "unmeasured": null
+    }
+  },
+  "regression": {
+    "failed": [],
+    "missing": [],
+    "nondeterministic": [],
+    "quarantined": [],
+    "reasons": [],
+    "status": "held",
+    "tests_run": 126
+  },
+  "repair": [],
+  "rule": "fault",
+  "schema": "emi-done-receipt-1.0",
+  "signals": [],
+  "this_run": [
+    "Behaviour was compared with the baseline's on 0 input(s) (0 generated from annotations), as a report that decides nothing, since nobody asked for it to be kept; other inputs are not covered, so this is not a proof of equivalence.",
+    "Not compared: Lib/fontTools/cffLib/__init__.py::CFFFontSet.fromXML: no_inputs.",
+    "the test command on the base commit exited with 1; the recorded inputs may be incomplete"
+  ]
+}

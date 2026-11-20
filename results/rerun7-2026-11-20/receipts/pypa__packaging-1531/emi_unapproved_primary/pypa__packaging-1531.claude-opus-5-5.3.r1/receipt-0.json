@@ -1,0 +1,253 @@
+{
+  "action": "ask_person",
+  "adequacy": null,
+  "ask": [],
+  "assurance": {
+    "isolation": "sandboxed",
+    "setting": "cooperative"
+  },
+  "baseline": {
+    "sha": "a36e6dbbe14074aba725280ad947c182d15bb267",
+    "source": "merge-base:main"
+  },
+  "candidate": {
+    "content_id": "77312d8ce9e24a5aa557de044b0c9e79101f2bc8",
+    "id": "worktree"
+  },
+  "change": {
+    "companion_tests": [
+      "tests/test_requirements.py::TestRequirementParsing::test_arbitrary_equality_followed_by_spaced_specifier[x===0 , >= 0-expected2]",
+      "tests/test_requirements.py::TestRequirementParsing::test_arbitrary_equality_followed_by_spaced_specifier[x===0,>=0-expected5]",
+      "tests/test_requirements.py::TestRequirementParsing::test_arbitrary_equality_followed_by_spaced_specifier[x>=1, ===0-expected6]"
+    ],
+    "failing_tests": [],
+    "functions": [],
+    "not_measured": [
+      "src/packaging/_tokenizer.py: 2 changed line(s) outside any function (module or class level); whether a test runs them is not measured"
+    ],
+    "proving_tests": [
+      {
+        "baseline_result": "failed",
+        "edited": false,
+        "id": "tests/test_requirements.py::TestRequirementParsing::test_arbitrary_equality_followed_by_spaced_specifier[x (===0,>= 0)-expected4]"
+      },
+      {
+        "baseline_result": "failed",
+        "edited": false,
+        "id": "tests/test_requirements.py::TestRequirementParsing::test_arbitrary_equality_followed_by_spaced_specifier[x===0, >=0-expected1]"
+      },
+      {
+        "baseline_result": "failed",
+        "edited": false,
+        "id": "tests/test_requirements.py::TestRequirementParsing::test_arbitrary_equality_followed_by_spaced_specifier[x===0,!= 1.0-expected3]"
+      },
+      {
+        "baseline_result": "failed",
+        "edited": false,
+        "id": "tests/test_requirements.py::TestRequirementParsing::test_arbitrary_equality_followed_by_spaced_specifier[x===0,>= 0-expected0]"
+      },
+      {
+        "baseline_result": "failed",
+        "edited": false,
+        "id": "tests/test_requirements.py::TestRequirementParsing::test_arbitrary_equality_followed_by_spaced_specifier[x===0,>= 0; python_version > '3'-expected7]"
+      },
+      {
+        "baseline_result": "failed",
+        "edited": true,
+        "id": "tests/test_requirements.py::TestRequirementParsing::test_error_when_specifier_set_rejects_parsed_specifier"
+      }
+    ],
+    "redundant_tests": [],
+    "skipped_tests": [],
+    "status": "none",
+    "unknown_tests": []
+  },
+  "changed_old_tests": [
+    {
+      "approved": false,
+      "item": "old-test:tests/test_requirements.py",
+      "kind": "modified",
+      "path": "tests/test_requirements.py",
+      "restored_result": "fails",
+      "type": "old-test"
+    }
+  ],
+  "decision_id": "effefd45f92cd8bb1bb47a6d454a065098aae45f1d0f4384f1d191d6f9c76391",
+  "input_id": "83b3e5808901474fee2c5d2af19d1d2d6019159a1fbe935a8bafb4bbdd5ceffd",
+  "inputs": {
+    "approvals": [],
+    "baseline": "a36e6dbbe14074aba725280ad947c182d15bb267",
+    "candidate": "77312d8ce9e24a5aa557de044b0c9e79101f2bc8",
+    "config": "d6ed3cc0c8e69ac9c901b999417ecc2be4e86662de3bcfce385ecb404e75025c",
+    "driver": {
+      "language": "python",
+      "producer": "8c8122711c9324bd3073829e536ad3134c81e327883de61fe0ecbd5628312888"
+    },
+    "emi": "0.1.1",
+    "environment": "b5213c161dcac41c60016c6a5f2ae2f6f2501750ed73da93614a64c679687fee",
+    "intent": null,
+    "laws": "eca6c6fb1c1ede208d71d14a62b4332f8bdafd6df4c442820504dd88fdf40a71",
+    "memory": {
+      "laws": {},
+      "schema": "emi-memory-1"
+    },
+    "pins": {
+      "derandomize": true,
+      "hash_seed": 0,
+      "locale": "C.UTF-8",
+      "seed_random": true,
+      "tz": "UTC"
+    },
+    "policy": "emi-policy-10",
+    "search": {
+      "at_baseline_too": [],
+      "found": {},
+      "seed": "77312d8ce9e24a5aa557de044b0c9e79101f2bc8"
+    },
+    "setting": "cooperative"
+  },
+  "laws": {
+    "checked_functions": {},
+    "digest": "eca6c6fb1c1ede208d71d14a62b4332f8bdafd6df4c442820504dd88fdf40a71",
+    "fault": null,
+    "forgotten": [],
+    "found": {},
+    "laws": [
+      {
+        "baseline": "failed",
+        "candidate": "passed",
+        "counterexample": null,
+        "examples": null,
+        "id": ".emi/laws/test_arbitrary_equality_requirement.py::test_arbitrary_equality_then_spaced_ge_has_two_specifiers",
+        "status": "now_holds"
+      },
+      {
+        "baseline": "failed",
+        "candidate": "passed",
+        "counterexample": null,
+        "examples": null,
+        "id": ".emi/laws/test_arbitrary_equality_requirement.py::test_arbitrary_equality_then_spaced_specifier_parses[x (===0,>= 0)-===0,>= 0]",
+        "status": "now_holds"
+      },
+      {
+        "baseline": "failed",
+        "candidate": "passed",
+        "counterexample": null,
+        "examples": null,
+        "id": ".emi/laws/test_arbitrary_equality_requirement.py::test_arbitrary_equality_then_spaced_specifier_parses[x===0, >=0-===0, >=0]",
+        "status": "now_holds"
+      },
+      {
+        "baseline": "failed",
+        "candidate": "passed",
+        "counterexample": null,
+        "examples": null,
+        "id": ".emi/laws/test_arbitrary_equality_requirement.py::test_arbitrary_equality_then_spaced_specifier_parses[x===0,!= 1.0-===0,!= 1.0]",
+        "status": "now_holds"
+      },
+      {
+        "baseline": "failed",
+        "candidate": "passed",
+        "counterexample": null,
+        "examples": null,
+        "id": ".emi/laws/test_arbitrary_equality_requirement.py::test_arbitrary_equality_then_spaced_specifier_parses[x===0,>= 0-===0,>= 0]",
+        "status": "now_holds"
+      },
+      {
+        "baseline": "passed",
+        "candidate": "passed",
+        "counterexample": null,
+        "examples": null,
+        "id": ".emi/laws/test_arbitrary_equality_requirement.py::test_no_space_form_still_parses",
+        "status": "holds"
+      },
+      {
+        "baseline": "passed",
+        "candidate": "passed",
+        "counterexample": null,
+        "examples": null,
+        "id": ".emi/laws/test_arbitrary_equality_requirement.py::test_specifier_arbitrary_literal_may_hold_comma",
+        "status": "holds"
+      },
+      {
+        "baseline": "passed",
+        "candidate": "passed",
+        "counterexample": null,
+        "examples": null,
+        "id": ".emi/laws/test_arbitrary_equality_requirement.py::test_specifier_set_with_spaced_second_specifier",
+        "status": "holds"
+      }
+    ],
+    "not_measured": [],
+    "proposals": []
+  },
+  "meta": {
+    "repo": "/home/runner/work/_temp/work/tmp44remt81/work-emi_unapproved_primary-pypa__packaging-1531.claude-opus-5-5.3-r1"
+  },
+  "not_verified": [
+    "Behaviour that no test exercises: tests passing does not show the task's behaviour exists.",
+    "The baseline's tests are taken as correct. They ran twice under the same pins; a test whose outcome differed is quarantined, and an outcome that depends on something the pins do not hold (the clock, the network, another process) can still differ.",
+    "Tests the baseline already skipped, expected to fail, could not collect or failed are not regression evidence: nothing is known about the behaviour they cover.",
+    "Escape hatches in the change (suppressions, test-runner sniffing, always-equal comparisons) are found by pattern, and only in product lines it added. Only sniffing is also measured: a modified function is replayed as a test run and as a plain process, on the inputs the behaviour comparison has, and only for the clues of a test run that replay plants.",
+    "Cooperative verification: the proposer could alter the controller's inputs (the configuration, the recorded approvals, the dependencies the tests run). It catches a careless proposer, not a cheating one.",
+    "Linked dependencies (.venv) were taken as found on this machine.",
+    "Behaviour was compared with the baseline's on 1 input(s) (1 generated from annotations), as a report that decides nothing, since nobody asked for it to be kept; other inputs are not covered, so this is not a proof of equivalence."
+  ],
+  "policy": "emi-policy-10",
+  "preserve": {
+    "counts": {
+      "added_or_removed": 1,
+      "compared": 1,
+      "generated": 1,
+      "import_failures": 0,
+      "no_inputs": 0,
+      "not_replayed": 0,
+      "skipped_async": 0,
+      "skipped_method": 0,
+      "skipped_nested": 0,
+      "targets": 1,
+      "timeouts": 0,
+      "unencodable_result": 0,
+      "unrecordable": 0,
+      "unresolved": 0,
+      "unstable": 0,
+      "with_drift": 0
+    },
+    "divergences": [],
+    "functions": [
+      {
+        "compared": 1,
+        "deterministic": true,
+        "file": "tests/test_requirements.py",
+        "function": "TestRequirementParsing.test_error_when_specifier_set_rejects_parsed_specifier",
+        "inputs": 1,
+        "status": "compared"
+      }
+    ],
+    "more_divergences": 0,
+    "not_checked": [],
+    "reasons": [],
+    "required": false,
+    "under_test": {
+      "compared": 1,
+      "differences": [],
+      "unmeasured": null
+    }
+  },
+  "regression": {
+    "failed": [],
+    "missing": [],
+    "nondeterministic": [],
+    "quarantined": [],
+    "reasons": [],
+    "status": "held",
+    "tests_run": 5406
+  },
+  "repair": [],
+  "rule": "unapproved",
+  "schema": "emi-done-receipt-1.0",
+  "signals": [],
+  "this_run": [
+    "Behaviour was compared with the baseline's on 1 input(s) (1 generated from annotations), as a report that decides nothing, since nobody asked for it to be kept; other inputs are not covered, so this is not a proof of equivalence."
+  ]
+}

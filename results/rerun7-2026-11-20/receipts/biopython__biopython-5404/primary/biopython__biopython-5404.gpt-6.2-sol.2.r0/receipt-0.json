@@ -1,0 +1,349 @@
+{
+  "action": "repair",
+  "adequacy": null,
+  "ask": [],
+  "assurance": {
+    "isolation": "sandboxed",
+    "setting": "cooperative"
+  },
+  "baseline": {
+    "sha": "1d05cbeeee4300bb2b06bf5459759110123c513f",
+    "source": "merge-base:main"
+  },
+  "candidate": {
+    "content_id": "2f6ad26afd79fca4a6f679e0a8223ee01207de6d",
+    "id": "worktree"
+  },
+  "change": {
+    "companion_tests": [],
+    "failing_tests": [],
+    "functions": [
+      {
+        "file": "Bio/bgzf.py",
+        "function": "_write_block",
+        "laws": [
+          ".emi/laws/test_incompressible.py::test_random_65500_bytes_write_and_close_without_error",
+          ".emi/laws/test_incompressible.py::test_random_65536_bytes_write_and_close_without_error"
+        ],
+        "line": 822,
+        "status": "exercised"
+      }
+    ],
+    "not_measured": [
+      "Bio/Entrez/DTDs/XHTMLtablesetup.ent: not Python; its changed functions are not measured",
+      "Bio/Entrez/DTDs/archivearticle.dtd: not Python; its changed functions are not measured",
+      "Bio/Entrez/DTDs/archivecustom-classes.ent: not Python; its changed functions are not measured",
+      "Bio/Entrez/DTDs/archivecustom-mixes.ent: not Python; its changed functions are not measured",
+      "Bio/Entrez/DTDs/archivecustom-models.ent: not Python; its changed functions are not measured",
+      "Bio/Entrez/DTDs/archivecustom-modules.ent: not Python; its changed functions are not measured",
+      "Bio/Entrez/DTDs/articlemeta.ent: not Python; its changed functions are not measured",
+      "Bio/Entrez/DTDs/backmatter.ent: not Python; its changed functions are not measured",
+      "Bio/Entrez/DTDs/chars.ent: not Python; its changed functions are not measured",
+      "Bio/Entrez/DTDs/common.ent: not Python; its changed functions are not measured",
+      "Bio/Entrez/DTDs/default-classes.ent: not Python; its changed functions are not measured",
+      "Bio/Entrez/DTDs/default-mixes.ent: not Python; its changed functions are not measured",
+      "Bio/Entrez/DTDs/display.ent: not Python; its changed functions are not measured",
+      "Bio/Entrez/DTDs/format.ent: not Python; its changed functions are not measured",
+      "Bio/Entrez/DTDs/htmltable.dtd: not Python; its changed functions are not measured",
+      "Bio/Entrez/DTDs/journalmeta.ent: not Python; its changed functions are not measured",
+      "Bio/Entrez/DTDs/link.ent: not Python; its changed functions are not measured",
+      "Bio/Entrez/DTDs/list.ent: not Python; its changed functions are not measured",
+      "Bio/Entrez/DTDs/math.ent: not Python; its changed functions are not measured",
+      "Bio/Entrez/DTDs/mathml2.dtd: not Python; its changed functions are not measured",
+      "Bio/Entrez/DTDs/mathmlsetup.ent: not Python; its changed functions are not measured",
+      "Bio/Entrez/DTDs/modules.ent: not Python; its changed functions are not measured",
+      "Bio/Entrez/DTDs/nlmcatalogrecordset_170601.dtd: not Python; its changed functions are not measured",
+      "Bio/Entrez/DTDs/nlmserials_080101.dtd: not Python; its changed functions are not measured",
+      "Bio/Entrez/DTDs/nlmserials_100101.dtd: not Python; its changed functions are not measured",
+      "Bio/Entrez/DTDs/notat.ent: not Python; its changed functions are not measured",
+      "Bio/Entrez/DTDs/para.ent: not Python; its changed functions are not measured",
+      "Bio/Entrez/DTDs/phrase.ent: not Python; its changed functions are not measured",
+      "Bio/Entrez/DTDs/references.ent: not Python; its changed functions are not measured",
+      "Bio/Entrez/DTDs/section.ent: not Python; its changed functions are not measured",
+      "Bio/Entrez/DTDs/xmlspecchars.ent: not Python; its changed functions are not measured",
+      "Doc/images/simple_chrom.pdf: not Python; its changed functions are not measured",
+      "Doc/images/tRNA_chrom.pdf: not Python; its changed functions are not measured",
+      "Tests/Blast/xml_2212L_blastn_001.xml: not Python; its changed functions are not measured",
+      "Tests/Blast/xml_2212L_blastp_001.xml: not Python; its changed functions are not measured",
+      "Tests/Blast/xml_2212L_blastx_001.xml: not Python; its changed functions are not measured",
+      "Tests/Blast/xml_2212L_tblastn_001.xml: not Python; its changed functions are not measured",
+      "Tests/Blast/xml_2212L_tblastx_001.xml: not Python; its changed functions are not measured",
+      "Tests/Emboss/no_oligo.primer3: not Python; its changed functions are not measured",
+      "Tests/Fasta/aster.pro: not Python; its changed functions are not measured",
+      "Tests/Fasta/aster_no_wrap.pro: not Python; its changed functions are not measured",
+      "Tests/Fasta/centaurea.nu: not Python; its changed functions are not measured",
+      "Tests/Fasta/elderberry.nu: not Python; its changed functions are not measured",
+      "Tests/Fasta/lavender.nu: not Python; its changed functions are not measured",
+      "Tests/Fasta/loveliesbleeding.pro: not Python; its changed functions are not measured",
+      "Tests/Fasta/lupine.nu: not Python; its changed functions are not measured",
+      "Tests/Fasta/phlox.nu: not Python; its changed functions are not measured",
+      "Tests/Fasta/rose.pro: not Python; its changed functions are not measured",
+      "Tests/Fasta/rosemary.pro: not Python; its changed functions are not measured",
+      "Tests/Fasta/sweetpea.nu: not Python; its changed functions are not measured",
+      "Tests/Fasta/wisteria.nu: not Python; its changed functions are not measured",
+      "Tests/GenBank/pBAD30.gb: not Python; its changed functions are not measured",
+      "Tests/Geo/GSE16.txt: not Python; its changed functions are not measured",
+      "Tests/Geo/GSM645.txt: not Python; its changed functions are not measured",
+      "Tests/Geo/GSM691.txt: not Python; its changed functions are not measured",
+      "Tests/Geo/GSM700.txt: not Python; its changed functions are not measured",
+      "Tests/Geo/GSM804.txt: not Python; its changed functions are not measured",
+      "Tests/Geo/soft_ex_affy.txt: not Python; its changed functions are not measured",
+      "Tests/Geo/soft_ex_affy_chp.txt: not Python; its changed functions are not measured",
+      "Tests/Geo/soft_ex_dual.txt: not Python; its changed functions are not measured",
+      "Tests/Geo/soft_ex_family.txt: not Python; its changed functions are not measured",
+      "Tests/IntelliGenetics/TAT_mase_nuc.txt: not Python; its changed functions are not measured",
+      "Tests/IntelliGenetics/VIF_mase-pro.txt: not Python; its changed functions are not measured",
+      "Tests/IntelliGenetics/vpu_nucaligned.txt: not Python; its changed functions are not measured",
+      "Tests/MetaTool/Meta3.out: not Python; its changed functions are not measured",
+      "Tests/MetaTool/Meta4.out: not Python; its changed functions are not measured",
+      "Tests/MetaTool/Meta6.out: not Python; its changed functions are not measured",
+      "Tests/MetaTool/Meta7.out: not Python; its changed functions are not measured",
+      "Tests/MetaTool/Meta8.out: not Python; its changed functions are not measured",
+      "Tests/MetaTool/meta.out: not Python; its changed functions are not measured",
+      "Tests/MetaTool/meta2.out: not Python; its changed functions are not measured",
+      "Tests/MetaTool/meta9.out: not Python; its changed functions are not measured",
+      "Tests/PAML/Alignments/lysinYangSwanson2002.nuc: not Python; its changed functions are not measured",
+      "Tests/PAML/Control_files/bad1.ctl: not Python; its changed functions are not measured",
+      "Tests/PAML/Control_files/baseml.ctl: not Python; its changed functions are not measured",
+      "Tests/PAML/Control_files/baseml/SE.ctl: not Python; its changed functions are not measured",
+      "Tests/PAML/Control_files/baseml/alpha1rho1.ctl: not Python; its changed functions are not measured",
+      "Tests/PAML/Control_files/baseml/baseml.ctl: not Python; its changed functions are not measured",
+      "Tests/PAML/Control_files/baseml/model0.ctl: not Python; its changed functions are not measured",
+      "Tests/PAML/Control_files/baseml/model1.ctl: not Python; its changed functions are not measured",
+      "Tests/PAML/Control_files/baseml/model2.ctl: not Python; its changed functions are not measured",
+      "Tests/PAML/Control_files/baseml/model3.ctl: not Python; its changed functions are not measured",
+      "Tests/PAML/Control_files/baseml/model4.ctl: not Python; its changed functions are not measured",
+      "Tests/PAML/Control_files/baseml/model5.ctl: not Python; its changed functions are not measured",
+      "Tests/PAML/Control_files/baseml/model6.ctl: not Python; its changed functions are not measured",
+      "Tests/PAML/Control_files/baseml/model7.ctl: not Python; its changed functions are not measured",
+      "Tests/PAML/Control_files/baseml/model8.ctl: not Python; its changed functions are not measured",
+      "Tests/PAML/Control_files/baseml/nhomo1.ctl: not Python; its changed functions are not measured",
+      "Tests/PAML/Control_files/baseml/nhomo3.ctl: not Python; its changed functions are not measured",
+      "Tests/PAML/Control_files/baseml/nhomo4.ctl: not Python; its changed functions are not measured",
+      "Tests/PAML/Control_files/baseml/nparK1.ctl: not Python; its changed functions are not measured",
+      "Tests/PAML/Control_files/baseml/nparK2.ctl: not Python; its changed functions are not measured",
+      "Tests/PAML/Control_files/baseml/nparK3.ctl: not Python; its changed functions are not measured",
+      "Tests/PAML/Control_files/baseml/nparK4.ctl: not Python; its changed functions are not measured",
+      "Tests/PAML/Control_files/codeml/ngene2_mgene02.ctl: not Python; its changed functions are not measured",
+      "Tests/PAML/Control_files/codeml/ngene2_mgene1.ctl: not Python; its changed functions are not measured",
+      "Tests/PAML/Control_files/codeml/ngene2_mgene34.ctl: not Python; its changed functions are not measured",
+      "Tests/PAML/Control_files/species.tree: not Python; its changed functions are not measured",
+      "Tests/PAML/Control_files/yn00.ctl: not Python; its changed functions are not measured",
+      "Tests/PAML/Control_files/yn00/yn00.ctl: not Python; its changed functions are not measured",
+      "Tests/PAML/Trees/lysin.trees.4.6: not Python; its changed functions are not measured",
+      "Tests/PAML/Trees/lysin.trees: not Python; its changed functions are not measured",
+      "Tests/PAML/Trees/species.tree: not Python; its changed functions are not measured",
+      "Tests/PhyloXML/o_tol_332_d_dollo.xml: not Python; its changed functions are not measured",
+      "Tests/PhyloXML/phyloxml_examples.xml: not Python; its changed functions are not measured",
+      "Tests/PopGen/c2space.gen: not Python; its changed functions are not measured",
+      "Tests/PopGen/c3line.gen: not Python; its changed functions are not measured",
+      "Tests/PopGen/c3space.gen: not Python; its changed functions are not measured",
+      "Tests/PopGen/haplo2.gen: not Python; its changed functions are not measured",
+      "Tests/PopGen/haplo3.gen: not Python; its changed functions are not measured",
+      "Tests/Rebase/bamii.htm: not Python; its changed functions are not measured",
+      "Tests/Rebase/bamii.txt: not Python; its changed functions are not measured",
+      "Tests/Rebase/cac81.htm: not Python; its changed functions are not measured",
+      "Tests/Rebase/cac81.txt: not Python; its changed functions are not measured",
+      "Tests/Rebase/crei.htm: not Python; its changed functions are not measured",
+      "Tests/Rebase/crei.txt: not Python; its changed functions are not measured",
+      "Tests/Rebase/foki.htm: not Python; its changed functions are not measured",
+      "Tests/Rebase/foki.txt: not Python; its changed functions are not measured",
+      "Tests/Rebase/pvuii.htm: not Python; its changed functions are not measured",
+      "Tests/Rebase/pvuii.txt: not Python; its changed functions are not measured",
+      "Tests/Rebase/taqi.htm: not Python; its changed functions are not measured",
+      "Tests/Rebase/taqi.txt: not Python; its changed functions are not measured",
+      "Tests/Saf/saf1.txt: not Python; its changed functions are not measured"
+    ],
+    "proving_tests": [
+      {
+        "baseline_result": "failed",
+        "edited": false,
+        "id": "Tests/test_bgzf.py::test_incompressible_bgzf_data"
+      }
+    ],
+    "redundant_tests": [],
+    "skipped_tests": [],
+    "status": "exercised",
+    "unknown_tests": []
+  },
+  "changed_old_tests": [],
+  "decision_id": "d156fddfeb1182b1908b79b8138832b5260391378facaaf4bec48b3a0c0e6b06",
+  "input_id": "de219b9c08b5776f689eecf15bf1d0a24e6440fb5ab21bf64f611e0a9255cd07",
+  "inputs": {
+    "approvals": [],
+    "baseline": "1d05cbeeee4300bb2b06bf5459759110123c513f",
+    "candidate": "2f6ad26afd79fca4a6f679e0a8223ee01207de6d",
+    "config": "a854532d4e09b4e62b204e23fe9c1370d9b38e20bf8717d9732b3af19c7dfe0d",
+    "driver": {
+      "language": "python",
+      "producer": "8c8122711c9324bd3073829e536ad3134c81e327883de61fe0ecbd5628312888"
+    },
+    "emi": "0.1.1",
+    "environment": "14d41705e9b6638c6763a3f07cbd59d9743c00c2276a0e5aa0ebbb17ded5bd89",
+    "intent": null,
+    "laws": "eb8f6b32c30d14a8d2b023c14851b3ed0ed40e1d4854ac197f9c62890314dc11",
+    "memory": {
+      "laws": {},
+      "schema": "emi-memory-1"
+    },
+    "pins": {
+      "derandomize": true,
+      "hash_seed": 0,
+      "locale": "C.UTF-8",
+      "seed_random": true,
+      "tz": "UTC"
+    },
+    "policy": "emi-policy-10",
+    "search": {
+      "at_baseline_too": [],
+      "found": {
+        ".emi/laws/test_incompressible.py::test_any_incompressible_block_size_round_trips": [
+          "4300ffd34100"
+        ]
+      },
+      "seed": "2f6ad26afd79fca4a6f679e0a8223ee01207de6d"
+    },
+    "setting": "cooperative"
+  },
+  "laws": {
+    "checked_functions": {
+      "Bio/bgzf.py::_write_block": [
+        ".emi/laws/test_incompressible.py::test_random_65500_bytes_write_and_close_without_error",
+        ".emi/laws/test_incompressible.py::test_random_65536_bytes_write_and_close_without_error"
+      ]
+    },
+    "digest": "eb8f6b32c30d14a8d2b023c14851b3ed0ed40e1d4854ac197f9c62890314dc11",
+    "fault": null,
+    "forgotten": [],
+    "found": {
+      ".emi/laws/test_incompressible.py::test_any_incompressible_block_size_round_trips": [
+        "4300ffd34100"
+      ]
+    },
+    "laws": [
+      {
+        "baseline": "failed",
+        "candidate": "failed",
+        "counterexample": "Failing test case: test_any_incompressible_block_size_round_trips( size=65491, seed=0, ) \u2014 NotImplementedError: Don't be greedy, that could be massive!",
+        "examples": {
+          "events": {},
+          "every_input": false,
+          "failing": 1,
+          "invalid": 0,
+          "rules": {},
+          "valid": 0
+        },
+        "id": ".emi/laws/test_incompressible.py::test_any_incompressible_block_size_round_trips",
+        "status": "unmet"
+      },
+      {
+        "baseline": "failed",
+        "candidate": "passed",
+        "counterexample": null,
+        "examples": null,
+        "id": ".emi/laws/test_incompressible.py::test_random_65500_bytes_write_and_close_without_error",
+        "status": "now_holds"
+      },
+      {
+        "baseline": "failed",
+        "candidate": "failed",
+        "counterexample": "NotImplementedError: Don't be greedy, that could be massive!",
+        "examples": null,
+        "id": ".emi/laws/test_incompressible.py::test_random_65536_bytes_round_trip",
+        "status": "unmet"
+      },
+      {
+        "baseline": "failed",
+        "candidate": "passed",
+        "counterexample": null,
+        "examples": null,
+        "id": ".emi/laws/test_incompressible.py::test_random_65536_bytes_write_and_close_without_error",
+        "status": "now_holds"
+      }
+    ],
+    "not_measured": [],
+    "proposals": []
+  },
+  "meta": {
+    "repo": "/home/runner/work/_temp/work/tmp30a1svy4/work-primary-biopython__biopython-5404.gpt-6.2-sol.2-r0"
+  },
+  "not_verified": [
+    "Behaviour that no test exercises: tests passing does not show the task's behaviour exists.",
+    "The baseline's tests are taken as correct. They ran twice under the same pins; a test whose outcome differed is quarantined, and an outcome that depends on something the pins do not hold (the clock, the network, another process) can still differ.",
+    "Tests the baseline already skipped, expected to fail, could not collect or failed are not regression evidence: nothing is known about the behaviour they cover.",
+    "Escape hatches in the change (suppressions, test-runner sniffing, always-equal comparisons) are found by pattern, and only in product lines it added. Only sniffing is also measured: a modified function is replayed as a test run and as a plain process, on the inputs the behaviour comparison has, and only for the clues of a test run that replay plants.",
+    "Cooperative verification: the proposer could alter the controller's inputs (the configuration, the recorded approvals, the dependencies the tests run). It catches a careless proposer, not a cheating one.",
+    "Linked dependencies (.venv) were taken as found on this machine.",
+    "Behaviour was compared with the baseline's on 0 input(s) (0 generated from annotations), as a report that decides nothing, since nobody asked for it to be kept; other inputs are not covered, so this is not a proof of equivalence.",
+    "Not compared: Bio/bgzf.py::BgzfWriter._write_block: no_inputs.",
+    "the test command on the base commit exited with 1; the recorded inputs may be incomplete"
+  ],
+  "policy": "emi-policy-10",
+  "preserve": {
+    "counts": {
+      "added_or_removed": 1,
+      "compared": 0,
+      "generated": 0,
+      "import_failures": 0,
+      "no_inputs": 1,
+      "not_replayed": 0,
+      "skipped_async": 0,
+      "skipped_method": 0,
+      "skipped_nested": 0,
+      "targets": 1,
+      "timeouts": 0,
+      "unencodable_result": 0,
+      "unrecordable": 1013,
+      "unresolved": 0,
+      "unstable": 0,
+      "with_drift": 0
+    },
+    "divergences": [],
+    "functions": [
+      {
+        "compared": 0,
+        "deterministic": false,
+        "file": "Bio/bgzf.py",
+        "function": "BgzfWriter._write_block",
+        "inputs": 0,
+        "status": "no_inputs"
+      }
+    ],
+    "more_divergences": 0,
+    "not_checked": [
+      "Bio/bgzf.py::BgzfWriter._write_block: no_inputs"
+    ],
+    "reasons": [
+      "the test command on the base commit exited with 1; the recorded inputs may be incomplete"
+    ],
+    "required": false,
+    "under_test": {
+      "compared": 0,
+      "differences": [],
+      "unmeasured": null
+    }
+  },
+  "regression": {
+    "failed": [],
+    "missing": [],
+    "nondeterministic": [],
+    "quarantined": [],
+    "reasons": [
+      "20 test(s) already failed at the baseline and are not regression evidence"
+    ],
+    "status": "held",
+    "tests_run": 30
+  },
+  "repair": [
+    ".emi/laws/test_incompressible.py::test_any_incompressible_block_size_round_trips is a law that does not hold yet; make the code satisfy it. It says: Failing test case: test_any_incompressible_block_size_round_trips( size=65491, seed=0, ) \u2014 NotImplementedError: Don't be greedy, that could be massive!",
+    ".emi/laws/test_incompressible.py::test_random_65536_bytes_round_trip is a law that does not hold yet; make the code satisfy it. It says: NotImplementedError: Don't be greedy, that could be massive!"
+  ],
+  "rule": "shows_nothing",
+  "schema": "emi-done-receipt-1.0",
+  "signals": [],
+  "this_run": [
+    "Behaviour was compared with the baseline's on 0 input(s) (0 generated from annotations), as a report that decides nothing, since nobody asked for it to be kept; other inputs are not covered, so this is not a proof of equivalence.",
+    "Not compared: Bio/bgzf.py::BgzfWriter._write_block: no_inputs.",
+    "the test command on the base commit exited with 1; the recorded inputs may be incomplete"
+  ]
+}

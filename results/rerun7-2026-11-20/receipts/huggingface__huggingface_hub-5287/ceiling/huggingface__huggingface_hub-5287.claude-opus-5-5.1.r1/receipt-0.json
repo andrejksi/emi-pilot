@@ -1,0 +1,171 @@
+{
+  "action": "repair",
+  "adequacy": null,
+  "ask": [],
+  "assurance": {
+    "isolation": "sandboxed",
+    "setting": "cooperative"
+  },
+  "baseline": {
+    "sha": "6e2db4b77862048ed9a7ea9f64925ad6c4f73eea",
+    "source": "merge-base:main"
+  },
+  "candidate": {
+    "content_id": "6151430b44e1859f9f91910c24b0c997094485ce",
+    "id": "worktree"
+  },
+  "change": {
+    "companion_tests": [],
+    "failing_tests": [],
+    "functions": [
+      {
+        "file": "src/huggingface_hub/hf_file_system.py",
+        "function": "__init__",
+        "laws": [],
+        "line": 1651,
+        "status": "unexercised"
+      }
+    ],
+    "not_measured": [],
+    "proving_tests": [],
+    "redundant_tests": [],
+    "skipped_tests": [],
+    "status": "unexercised",
+    "unknown_tests": []
+  },
+  "changed_old_tests": [],
+  "decision_id": "3f4b23aa53377e981d50f789661f3d1b3a9f793c0eafc73e3707884f8d89918e",
+  "input_id": "af0fc901c196e346c66174ed4e5b452ab93ebe0ced169bc8feeee0ecc48037dc",
+  "inputs": {
+    "approvals": [],
+    "baseline": "6e2db4b77862048ed9a7ea9f64925ad6c4f73eea",
+    "candidate": "6151430b44e1859f9f91910c24b0c997094485ce",
+    "config": "4bb04494192c1c1c65e48323c7cb1544d36bb527e21d580a7dd1cc8870e0bbd6",
+    "driver": {
+      "language": "python",
+      "producer": "8c8122711c9324bd3073829e536ad3134c81e327883de61fe0ecbd5628312888"
+    },
+    "emi": "0.1.1",
+    "environment": "ef1b753668209e1ea80bee78622dc459ca8ec938811a11946c2a9aaaa9b64265",
+    "intent": null,
+    "laws": "c0f46f5adebe02a74fd1a01277709ffb0a08b0e6980c054fb17c68d51d6cf425",
+    "memory": {
+      "laws": {},
+      "schema": "emi-memory-1"
+    },
+    "pins": {
+      "derandomize": true,
+      "hash_seed": 0,
+      "locale": "C.UTF-8",
+      "seed_random": true,
+      "tz": "UTC"
+    },
+    "policy": "emi-policy-10",
+    "search": {
+      "at_baseline_too": [],
+      "found": {},
+      "seed": "6151430b44e1859f9f91910c24b0c997094485ce"
+    },
+    "setting": "cooperative"
+  },
+  "laws": {
+    "checked_functions": {},
+    "digest": "c0f46f5adebe02a74fd1a01277709ffb0a08b0e6980c054fb17c68d51d6cf425",
+    "fault": null,
+    "forgotten": [],
+    "found": {},
+    "laws": [
+      {
+        "baseline": "failed",
+        "candidate": "failed",
+        "counterexample": "AssertionError: assert 1 == 0\n+  where 1 = CompletedProcess(args=['<tree>/.venv/bin/python', '-m', 'pytest', '-q', '-p', 'no:cacheprovider', 'tests/test_hf_file_system.py::TestHfFileSystemRepositoryRO::test_stream_file_rejects_exclusive_write_modes[x]', 'tests/test_hf_file_system.py::TestHfFileSystemRepositoryRO::test_stream_file_rejects_exclusive_write_modes[xb]'], returncode=1).returncode",
+        "examples": null,
+        "id": ".emi/laws/test_ceiling_hidden.py::test_hidden_fail_to_pass",
+        "status": "unmet"
+      }
+    ],
+    "not_measured": [],
+    "proposals": []
+  },
+  "meta": {
+    "repo": "/home/runner/work/_temp/work/tmp4lf9rksq/work-ceiling-huggingface__huggingface_hub-5287.claude-opus-5-5.1-r1"
+  },
+  "not_verified": [
+    "Behaviour that no test exercises: tests passing does not show the task's behaviour exists.",
+    "The baseline's tests are taken as correct. They ran twice under the same pins; a test whose outcome differed is quarantined, and an outcome that depends on something the pins do not hold (the clock, the network, another process) can still differ.",
+    "Tests the baseline already skipped, expected to fail, could not collect or failed are not regression evidence: nothing is known about the behaviour they cover.",
+    "Escape hatches in the change (suppressions, test-runner sniffing, always-equal comparisons) are found by pattern, and only in product lines it added. Only sniffing is also measured: a modified function is replayed as a test run and as a plain process, on the inputs the behaviour comparison has, and only for the clues of a test run that replay plants.",
+    "Cooperative verification: the proposer could alter the controller's inputs (the configuration, the recorded approvals, the dependencies the tests run). It catches a careless proposer, not a cheating one.",
+    "Linked dependencies (.venv) were taken as found on this machine.",
+    "Behaviour was compared with the baseline's on 0 input(s) (0 generated from annotations), as a report that decides nothing, since nobody asked for it to be kept; other inputs are not covered, so this is not a proof of equivalence.",
+    "Not compared: src/huggingface_hub/hf_file_system.py::HfFileSystemStreamFile.__init__: no_inputs.",
+    "the test command on the base commit exited with 1; the recorded inputs may be incomplete"
+  ],
+  "policy": "emi-policy-10",
+  "preserve": {
+    "counts": {
+      "added_or_removed": 0,
+      "compared": 0,
+      "generated": 0,
+      "import_failures": 0,
+      "no_inputs": 1,
+      "not_replayed": 0,
+      "skipped_async": 0,
+      "skipped_method": 0,
+      "skipped_nested": 0,
+      "targets": 1,
+      "timeouts": 0,
+      "unencodable_result": 0,
+      "unrecordable": 1,
+      "unresolved": 0,
+      "unstable": 0,
+      "with_drift": 0
+    },
+    "divergences": [],
+    "functions": [
+      {
+        "compared": 0,
+        "deterministic": false,
+        "file": "src/huggingface_hub/hf_file_system.py",
+        "function": "HfFileSystemStreamFile.__init__",
+        "inputs": 0,
+        "status": "no_inputs"
+      }
+    ],
+    "more_divergences": 0,
+    "not_checked": [
+      "src/huggingface_hub/hf_file_system.py::HfFileSystemStreamFile.__init__: no_inputs"
+    ],
+    "reasons": [
+      "the test command on the base commit exited with 1; the recorded inputs may be incomplete"
+    ],
+    "required": false,
+    "under_test": {
+      "compared": 0,
+      "differences": [],
+      "unmeasured": null
+    }
+  },
+  "regression": {
+    "failed": [],
+    "missing": [],
+    "nondeterministic": [],
+    "quarantined": [],
+    "reasons": [
+      "55 test(s) already failed at the baseline and are not regression evidence"
+    ],
+    "status": "held",
+    "tests_run": 135
+  },
+  "repair": [
+    ".emi/laws/test_ceiling_hidden.py::test_hidden_fail_to_pass is a law that does not hold yet; make the code satisfy it. It says: AssertionError: assert 1 == 0\n+  where 1 = CompletedProcess(args=['<tree>/.venv/bin/python', '-m', 'pytest', '-q', '-p', 'no:cacheprovider', 'tests/test_hf_file_system.py::TestHfFileSystemRepositoryRO::test_stream_file_rejects_exclusive_write_modes[x]', 'tests/test_hf_file_system.py::TestHfFileSystemRepositoryRO::test_stream_file_rejects_exclusive_write_modes[xb]'], returncode=1).returncode"
+  ],
+  "rule": "shows_nothing",
+  "schema": "emi-done-receipt-1.0",
+  "signals": [],
+  "this_run": [
+    "Behaviour was compared with the baseline's on 0 input(s) (0 generated from annotations), as a report that decides nothing, since nobody asked for it to be kept; other inputs are not covered, so this is not a proof of equivalence.",
+    "Not compared: src/huggingface_hub/hf_file_system.py::HfFileSystemStreamFile.__init__: no_inputs.",
+    "the test command on the base commit exited with 1; the recorded inputs may be incomplete"
+  ]
+}

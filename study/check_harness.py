@@ -52,12 +52,18 @@ def blocked(row: dict[str, Any]) -> bool:
     return row["action"] != "stop"
 
 
-def check_ceiling(rows: list[dict[str, Any]], max_block: float) -> tuple[list[str], list[str]]:
-    """(failures, details) for the ceiling's two known answers."""
-    ceiling = [r for r in rows if r["condition"] == "ceiling"]
+def check_ceiling(rows: list[dict[str, Any]], max_block: float,
+                  network_tasks: frozenset[str] = frozenset()) -> tuple[list[str], list[str]]:
+    """(failures, details) for the ceiling's two known answers.
+
+    Tasks whose hidden tests need the network are left out: the sandbox has
+    none, so the ceiling cannot hold there. They are named, never hidden.
+    """
+    skipped = sorted({r["task"] for r in rows if r["condition"] == "ceiling" and r["task"] in network_tasks})
+    ceiling = [r for r in rows if r["condition"] == "ceiling" and r["task"] not in network_tasks]
     if not ceiling:
         return ["ceiling: no ceiling rows; the harness's main known answer was not run"], []
-    failures, details = [], []
+    failures, details = [], [f"  ceiling not judged (hidden tests need the network): {t}" for t in skipped]
     missed = sorted({r["candidate"] for r in ceiling if not r["right"] and not blocked(r)})
     if missed:
         failures.append(f"ceiling_catch: {len(missed)} wrong candidate(s) passed the hidden tests as laws")
@@ -134,8 +140,9 @@ def warn_outcome_mix(rows: list[dict[str, Any]], max_uniform: float) -> list[str
 
 
 def run_checks(rows: list[dict[str, Any]], *, max_ceiling_block: float = 0.02,
-               max_uniform: float = 1 / 3) -> dict[str, list[str]]:
-    failures, details = check_ceiling(rows, max_ceiling_block)
+               max_uniform: float = 1 / 3,
+               network_tasks: frozenset[str] = frozenset()) -> dict[str, list[str]]:
+    failures, details = check_ceiling(rows, max_ceiling_block, network_tasks)
     failures += check_disagreement(rows) + check_errors(rows)
     warnings = (warn_pytest_baseline(rows) + warn_unexplained(rows)
                 + warn_outcome_mix(rows, max_uniform))
@@ -148,9 +155,15 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--max-ceiling-block", type=float, default=0.02)
     ap.add_argument("--max-uniform", type=float, default=1 / 3,
                     help="largest share of all-right (or all-wrong) tasks before a warning")
+    ap.add_argument("--network-tasks", type=Path,
+                    help="file of task ids whose hidden tests need the network (one per line, # comments)")
     args = ap.parse_args(argv)
+    network: frozenset[str] = frozenset()
+    if args.network_tasks:
+        network = frozenset(line.strip() for line in args.network_tasks.read_text(encoding="utf-8").splitlines()
+                            if line.strip() and not line.startswith("#"))
     result = run_checks(load(args.replays), max_ceiling_block=args.max_ceiling_block,
-                        max_uniform=args.max_uniform)
+                        max_uniform=args.max_uniform, network_tasks=network)
     for line in result["failures"]:
         print(f"FAIL {line}")
     for line in result["details"]:

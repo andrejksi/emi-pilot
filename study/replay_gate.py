@@ -56,6 +56,9 @@ ALL_CONDITIONS = (
 )
 
 
+CEILING_LAW = "tests/test_ceiling_hidden_test.py"
+
+
 def has_law_files(laws_dir: Path | None) -> bool:
     if not laws_dir or not laws_dir.is_dir():
         return False
@@ -277,7 +280,7 @@ def build_base_tree(
                     f"IMPORT_ROOTS = {roots!r}\n\n"
                     "def test_hidden_fail_to_pass():\n"
                     '    """New: all hidden fail_to_pass tests must pass."""\n'
-                    "    work = Path(__file__).resolve().parents[2]\n"
+                    "    work = next(p for p in Path(__file__).resolve().parents if p.name == '.emi').parent\n"
                     "    env = os.environ.copy()\n"
                     "    if IMPORT_ROOTS:\n"
                     '        extra = [str(work / r) for r in IMPORT_ROOTS]\n'
@@ -286,7 +289,12 @@ def build_base_tree(
                     '    res = subprocess.run([sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider", *TESTS], cwd=work, env=env)\n'
                     "    assert res.returncode == 0\n"
                 )
-                (laws_dir / "test_ceiling_hidden.py").write_text(law_src, encoding="utf-8")
+                # Named and placed to match every pattern a project may
+                # collect by (test_*.py, *_test.py, tests/*.py): a law file
+                # the project's pytest settings skip is never run, and EMI
+                # rightly answers incomplete for every candidate.
+                (laws_dir / CEILING_LAW).parent.mkdir(parents=True, exist_ok=True)
+                (laws_dir / CEILING_LAW).write_text(law_src, encoding="utf-8")
         git(dst, "add", "-A")
         git(dst, "commit", "-q", "--no-verify", "-m", "ceiling: hidden tests as laws")
         git(dst, "branch", "-f", "main", "HEAD")

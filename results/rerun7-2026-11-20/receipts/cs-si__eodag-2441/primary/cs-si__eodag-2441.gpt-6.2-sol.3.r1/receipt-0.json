@@ -1,0 +1,185 @@
+{
+  "action": "repair",
+  "adequacy": null,
+  "ask": [],
+  "assurance": {
+    "isolation": "sandboxed",
+    "setting": "cooperative"
+  },
+  "baseline": {
+    "sha": "d7bec60b55cb3b6eee694e1f109adf2467559778",
+    "source": "merge-base:main"
+  },
+  "candidate": {
+    "content_id": "88b7bb79acad4e26abfde795b13f37cc67fa4de9",
+    "id": "worktree"
+  },
+  "change": {
+    "companion_tests": [],
+    "failing_tests": [],
+    "functions": [
+      {
+        "file": "eodag/plugins/crunch/filter_date.py",
+        "function": "proceed",
+        "laws": [
+          ".emi/laws/test_mpc_filter_date.py::test_mpc_results_filtered_over_the_whole_range_keep_both",
+          ".emi/laws/test_mpc_filter_date.py::test_products_with_start_and_end_datetime_still_filter_as_before"
+        ],
+        "line": 53,
+        "status": "unexercised"
+      }
+    ],
+    "not_measured": [],
+    "proving_tests": [],
+    "redundant_tests": [],
+    "skipped_tests": [],
+    "status": "unexercised",
+    "unknown_tests": []
+  },
+  "changed_old_tests": [],
+  "decision_id": "0874a34773c5c17b27b9d23ba7c316fde15c386cdd333053d6629fccf93842fb",
+  "input_id": "445629605ee89200896b8507386f95b158693d691986147bfc810529f2b6c17c",
+  "inputs": {
+    "approvals": [],
+    "baseline": "d7bec60b55cb3b6eee694e1f109adf2467559778",
+    "candidate": "88b7bb79acad4e26abfde795b13f37cc67fa4de9",
+    "config": "7ac60e13f87c1e41aca6e49c2d7205bdd74ab986225d5dd8d4ff20b12df60580",
+    "driver": {
+      "language": "python",
+      "producer": "8c8122711c9324bd3073829e536ad3134c81e327883de61fe0ecbd5628312888"
+    },
+    "emi": "0.1.1",
+    "environment": "2156a211aa52f3c5c0bb8d1f8d0426a28d5b8575b1c348ba4457a3c05a8b2b53",
+    "intent": null,
+    "laws": "504fd32a7f4ad12f0de27882f9fcc3a05399cfed0a0cc53942a32a5bc3e4abbf",
+    "memory": {
+      "laws": {},
+      "schema": "emi-memory-1"
+    },
+    "pins": {
+      "derandomize": true,
+      "hash_seed": 0,
+      "locale": "C.UTF-8",
+      "seed_random": true,
+      "tz": "UTC"
+    },
+    "policy": "emi-policy-10",
+    "search": {
+      "at_baseline_too": [],
+      "found": {},
+      "seed": "88b7bb79acad4e26abfde795b13f37cc67fa4de9"
+    },
+    "setting": "cooperative"
+  },
+  "laws": {
+    "checked_functions": {
+      "eodag/plugins/crunch/filter_date.py::proceed": [
+        ".emi/laws/test_mpc_filter_date.py::test_mpc_results_filtered_over_the_whole_range_keep_both",
+        ".emi/laws/test_mpc_filter_date.py::test_products_with_start_and_end_datetime_still_filter_as_before"
+      ]
+    },
+    "digest": "504fd32a7f4ad12f0de27882f9fcc3a05399cfed0a0cc53942a32a5bc3e4abbf",
+    "fault": null,
+    "forgotten": [],
+    "found": {},
+    "laws": [
+      {
+        "baseline": "failed",
+        "candidate": "failed",
+        "counterexample": "AssertionError: assert [] == ['S2B_MSIL2A_...10213T073201']\nRight contains one more item: 'S2B_MSIL2A_20210212T110059_R094_T30TXP_20210213T073201'\nUse -v to get more diff",
+        "examples": null,
+        "id": ".emi/laws/test_mpc_filter_date.py::test_mpc_results_filtered_by_date_drop_the_later_product",
+        "status": "unmet"
+      },
+      {
+        "baseline": "passed",
+        "candidate": "passed",
+        "counterexample": null,
+        "examples": null,
+        "id": ".emi/laws/test_mpc_filter_date.py::test_mpc_results_filtered_over_the_whole_range_keep_both",
+        "status": "holds"
+      },
+      {
+        "baseline": "passed",
+        "candidate": "passed",
+        "counterexample": null,
+        "examples": null,
+        "id": ".emi/laws/test_mpc_filter_date.py::test_products_with_start_and_end_datetime_still_filter_as_before",
+        "status": "holds"
+      }
+    ],
+    "not_measured": [],
+    "proposals": []
+  },
+  "meta": {
+    "repo": "/home/runner/work/_temp/work/tmp2aq36mim/work-primary-cs-si__eodag-2441.gpt-6.2-sol.3-r1"
+  },
+  "not_verified": [
+    "Behaviour that no test exercises: tests passing does not show the task's behaviour exists.",
+    "The baseline's tests are taken as correct. They ran twice under the same pins; a test whose outcome differed is quarantined, and an outcome that depends on something the pins do not hold (the clock, the network, another process) can still differ.",
+    "Tests the baseline already skipped, expected to fail, could not collect or failed are not regression evidence: nothing is known about the behaviour they cover.",
+    "Escape hatches in the change (suppressions, test-runner sniffing, always-equal comparisons) are found by pattern, and only in product lines it added. Only sniffing is also measured: a modified function is replayed as a test run and as a plain process, on the inputs the behaviour comparison has, and only for the clues of a test run that replay plants.",
+    "Cooperative verification: the proposer could alter the controller's inputs (the configuration, the recorded approvals, the dependencies the tests run). It catches a careless proposer, not a cheating one.",
+    "Linked dependencies (.venv) were taken as found on this machine.",
+    "Behaviour was compared with the baseline's on 1 input(s) (0 generated from annotations), as a report that decides nothing, since nobody asked for it to be kept; other inputs are not covered, so this is not a proof of equivalence."
+  ],
+  "policy": "emi-policy-10",
+  "preserve": {
+    "counts": {
+      "added_or_removed": 1,
+      "compared": 1,
+      "generated": 0,
+      "import_failures": 0,
+      "no_inputs": 0,
+      "not_replayed": 0,
+      "skipped_async": 0,
+      "skipped_method": 0,
+      "skipped_nested": 0,
+      "targets": 1,
+      "timeouts": 0,
+      "unencodable_result": 0,
+      "unrecordable": 14,
+      "unresolved": 0,
+      "unstable": 0,
+      "with_drift": 0
+    },
+    "divergences": [],
+    "functions": [
+      {
+        "compared": 1,
+        "deterministic": true,
+        "file": "eodag/plugins/crunch/filter_date.py",
+        "function": "FilterDate.proceed",
+        "inputs": 1,
+        "status": "compared"
+      }
+    ],
+    "more_divergences": 0,
+    "not_checked": [],
+    "reasons": [],
+    "required": false,
+    "under_test": {
+      "compared": 1,
+      "differences": [],
+      "unmeasured": null
+    }
+  },
+  "regression": {
+    "failed": [],
+    "missing": [],
+    "nondeterministic": [],
+    "quarantined": [],
+    "reasons": [],
+    "status": "held",
+    "tests_run": 225
+  },
+  "repair": [
+    ".emi/laws/test_mpc_filter_date.py::test_mpc_results_filtered_by_date_drop_the_later_product is a law that does not hold yet; make the code satisfy it. It says: AssertionError: assert [] == ['S2B_MSIL2A_...10213T073201']\nRight contains one more item: 'S2B_MSIL2A_20210212T110059_R094_T30TXP_20210213T073201'\nUse -v to get more diff"
+  ],
+  "rule": "shows_nothing",
+  "schema": "emi-done-receipt-1.0",
+  "signals": [],
+  "this_run": [
+    "Behaviour was compared with the baseline's on 1 input(s) (0 generated from annotations), as a report that decides nothing, since nobody asked for it to be kept; other inputs are not covered, so this is not a proof of equivalence."
+  ]
+}

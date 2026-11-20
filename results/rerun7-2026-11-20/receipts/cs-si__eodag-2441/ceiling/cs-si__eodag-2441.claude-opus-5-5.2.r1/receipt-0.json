@@ -1,0 +1,186 @@
+{
+  "action": "repair",
+  "adequacy": null,
+  "ask": [],
+  "assurance": {
+    "isolation": "sandboxed",
+    "setting": "cooperative"
+  },
+  "baseline": {
+    "sha": "2a227abd23bcd37b36e6634b176c317671476ef4",
+    "source": "merge-base:main"
+  },
+  "candidate": {
+    "content_id": "48de142ab435cca280c546ddcdae6f87a3a52f7f",
+    "id": "worktree"
+  },
+  "change": {
+    "companion_tests": [],
+    "failing_tests": [],
+    "functions": [
+      {
+        "file": "eodag/plugins/crunch/filter_date.py",
+        "function": "sort_product_by_start_date",
+        "laws": [],
+        "line": 45,
+        "status": "unexercised"
+      },
+      {
+        "file": "eodag/plugins/crunch/filter_date.py",
+        "function": "proceed",
+        "laws": [],
+        "line": 55,
+        "status": "unexercised"
+      }
+    ],
+    "not_measured": [],
+    "proving_tests": [],
+    "redundant_tests": [],
+    "skipped_tests": [],
+    "status": "unexercised",
+    "unknown_tests": []
+  },
+  "changed_old_tests": [],
+  "decision_id": "e0cb27c9bef8093ceb675606208ffd9d0242d4591485315fc2a5e25a1e1703ea",
+  "input_id": "8da2e24cd33cfa3c36cbc99c3abb2afdacfa38217e1eae8f7265478193c8220c",
+  "inputs": {
+    "approvals": [],
+    "baseline": "2a227abd23bcd37b36e6634b176c317671476ef4",
+    "candidate": "48de142ab435cca280c546ddcdae6f87a3a52f7f",
+    "config": "7ac60e13f87c1e41aca6e49c2d7205bdd74ab986225d5dd8d4ff20b12df60580",
+    "driver": {
+      "language": "python",
+      "producer": "8c8122711c9324bd3073829e536ad3134c81e327883de61fe0ecbd5628312888"
+    },
+    "emi": "0.1.1",
+    "environment": "2156a211aa52f3c5c0bb8d1f8d0426a28d5b8575b1c348ba4457a3c05a8b2b53",
+    "intent": null,
+    "laws": "f79a31d3ad78a771d773c1c9f119cd98b4a6b0e43cfb3cc8f9b20fc57e1e937a",
+    "memory": {
+      "laws": {},
+      "schema": "emi-memory-1"
+    },
+    "pins": {
+      "derandomize": true,
+      "hash_seed": 0,
+      "locale": "C.UTF-8",
+      "seed_random": true,
+      "tz": "UTC"
+    },
+    "policy": "emi-policy-10",
+    "search": {
+      "at_baseline_too": [],
+      "found": {},
+      "seed": "48de142ab435cca280c546ddcdae6f87a3a52f7f"
+    },
+    "setting": "cooperative"
+  },
+  "laws": {
+    "checked_functions": {},
+    "digest": "f79a31d3ad78a771d773c1c9f119cd98b4a6b0e43cfb3cc8f9b20fc57e1e937a",
+    "fault": null,
+    "forgotten": [],
+    "found": {},
+    "laws": [
+      {
+        "baseline": "failed",
+        "candidate": "failed",
+        "counterexample": "AssertionError: assert 1 == 0\n+  where 1 = CompletedProcess(args=['<tree>/.venv/bin/python', '-m', 'pytest',...earch_plugins.py::TestSearchPluginStacSearch::test_plugins_search_stacsearch_filter_date_datetime_only'], returncode=1).returncode",
+        "examples": null,
+        "id": ".emi/laws/test_ceiling_hidden.py::test_hidden_fail_to_pass",
+        "status": "unmet"
+      }
+    ],
+    "not_measured": [],
+    "proposals": []
+  },
+  "meta": {
+    "repo": "/home/runner/work/_temp/work/tmp2aq36mim/work-ceiling-cs-si__eodag-2441.claude-opus-5-5.2-r1"
+  },
+  "not_verified": [
+    "Behaviour that no test exercises: tests passing does not show the task's behaviour exists.",
+    "The baseline's tests are taken as correct. They ran twice under the same pins; a test whose outcome differed is quarantined, and an outcome that depends on something the pins do not hold (the clock, the network, another process) can still differ.",
+    "Tests the baseline already skipped, expected to fail, could not collect or failed are not regression evidence: nothing is known about the behaviour they cover.",
+    "Escape hatches in the change (suppressions, test-runner sniffing, always-equal comparisons) are found by pattern, and only in product lines it added. Only sniffing is also measured: a modified function is replayed as a test run and as a plain process, on the inputs the behaviour comparison has, and only for the clues of a test run that replay plants.",
+    "Cooperative verification: the proposer could alter the controller's inputs (the configuration, the recorded approvals, the dependencies the tests run). It catches a careless proposer, not a cheating one.",
+    "Linked dependencies (.venv) were taken as found on this machine.",
+    "Behaviour was compared with the baseline's on 1 input(s) (0 generated from annotations), as a report that decides nothing, since nobody asked for it to be kept; other inputs are not covered, so this is not a proof of equivalence.",
+    "Not compared: eodag/plugins/crunch/filter_date.py::FilterDate.sort_product_by_start_date: no_inputs.",
+    "the test command on the base commit exited with 1; the recorded inputs may be incomplete"
+  ],
+  "policy": "emi-policy-10",
+  "preserve": {
+    "counts": {
+      "added_or_removed": 0,
+      "compared": 1,
+      "generated": 0,
+      "import_failures": 0,
+      "no_inputs": 1,
+      "not_replayed": 0,
+      "skipped_async": 0,
+      "skipped_method": 0,
+      "skipped_nested": 0,
+      "targets": 2,
+      "timeouts": 0,
+      "unencodable_result": 0,
+      "unrecordable": 28,
+      "unresolved": 0,
+      "unstable": 0,
+      "with_drift": 0
+    },
+    "divergences": [],
+    "functions": [
+      {
+        "compared": 0,
+        "deterministic": false,
+        "file": "eodag/plugins/crunch/filter_date.py",
+        "function": "FilterDate.sort_product_by_start_date",
+        "inputs": 0,
+        "status": "no_inputs"
+      },
+      {
+        "compared": 1,
+        "deterministic": true,
+        "file": "eodag/plugins/crunch/filter_date.py",
+        "function": "FilterDate.proceed",
+        "inputs": 1,
+        "status": "compared"
+      }
+    ],
+    "more_divergences": 0,
+    "not_checked": [
+      "eodag/plugins/crunch/filter_date.py::FilterDate.sort_product_by_start_date: no_inputs"
+    ],
+    "reasons": [
+      "the test command on the base commit exited with 1; the recorded inputs may be incomplete"
+    ],
+    "required": false,
+    "under_test": {
+      "compared": 1,
+      "differences": [],
+      "unmeasured": null
+    }
+  },
+  "regression": {
+    "failed": [],
+    "missing": [],
+    "nondeterministic": [],
+    "quarantined": [],
+    "reasons": [
+      "1 test(s) already failed at the baseline and are not regression evidence"
+    ],
+    "status": "held",
+    "tests_run": 227
+  },
+  "repair": [
+    ".emi/laws/test_ceiling_hidden.py::test_hidden_fail_to_pass is a law that does not hold yet; make the code satisfy it. It says: AssertionError: assert 1 == 0\n+  where 1 = CompletedProcess(args=['<tree>/.venv/bin/python', '-m', 'pytest',...earch_plugins.py::TestSearchPluginStacSearch::test_plugins_search_stacsearch_filter_date_datetime_only'], returncode=1).returncode"
+  ],
+  "rule": "shows_nothing",
+  "schema": "emi-done-receipt-1.0",
+  "signals": [],
+  "this_run": [
+    "Behaviour was compared with the baseline's on 1 input(s) (0 generated from annotations), as a report that decides nothing, since nobody asked for it to be kept; other inputs are not covered, so this is not a proof of equivalence.",
+    "Not compared: eodag/plugins/crunch/filter_date.py::FilterDate.sort_product_by_start_date: no_inputs.",
+    "the test command on the base commit exited with 1; the recorded inputs may be incomplete"
+  ]
+}

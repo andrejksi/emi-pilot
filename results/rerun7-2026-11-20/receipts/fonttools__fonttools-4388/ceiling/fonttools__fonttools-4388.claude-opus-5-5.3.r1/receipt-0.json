@@ -1,0 +1,136 @@
+{
+  "action": "incomplete",
+  "adequacy": null,
+  "ask": [],
+  "assurance": {
+    "isolation": "sandboxed",
+    "setting": "cooperative"
+  },
+  "baseline": {
+    "sha": "cb1f04b737493a47b32cea78a4f52ac6f0f1c0b2",
+    "source": "merge-base:main"
+  },
+  "candidate": {
+    "content_id": "7987b713c1f0e7872c259abc9aeb75fe82367e29",
+    "id": "worktree"
+  },
+  "change": {
+    "companion_tests": [],
+    "failing_tests": [],
+    "functions": [
+      {
+        "file": "Lib/fontTools/cffLib/__init__.py",
+        "function": "fromXML",
+        "laws": [],
+        "line": 2662,
+        "status": "unexercised"
+      }
+    ],
+    "not_measured": [
+      "Doc/make.bat: not Python; its changed functions are not measured"
+    ],
+    "proving_tests": [],
+    "redundant_tests": [],
+    "skipped_tests": [],
+    "status": "unexercised",
+    "unknown_tests": []
+  },
+  "changed_old_tests": [],
+  "decision_id": "f185a15030afba2a202e45a779b03fcf206655d059ccd6fa30bc983453f125f4",
+  "input_id": "3fffa70580deaab3642a0d9d339e98c91ffce6df4c55d89cc671bc437a290c59",
+  "inputs": {
+    "approvals": [],
+    "baseline": "cb1f04b737493a47b32cea78a4f52ac6f0f1c0b2",
+    "candidate": "7987b713c1f0e7872c259abc9aeb75fe82367e29",
+    "config": "9a49e611f294d80f8e88817b3c0fb7df0ad3b76db0fad9920a7b71b2a63798b4",
+    "driver": {
+      "language": "python",
+      "producer": "8c8122711c9324bd3073829e536ad3134c81e327883de61fe0ecbd5628312888"
+    },
+    "emi": "0.1.1",
+    "environment": "48af2c05222b0f3943eb364a8f5db6b6c7b48b7780808bbc112cc57b7a548df8",
+    "intent": null,
+    "laws": null,
+    "memory": {
+      "laws": {},
+      "schema": "emi-memory-1"
+    },
+    "pins": {
+      "derandomize": true,
+      "hash_seed": 0,
+      "locale": "C.UTF-8",
+      "seed_random": true,
+      "tz": "UTC"
+    },
+    "policy": "emi-policy-10",
+    "search": null,
+    "setting": "cooperative"
+  },
+  "laws": {
+    "checked_functions": {},
+    "digest": null,
+    "fault": "the laws could not be measured: listing the tests at the baseline's laws exited 5",
+    "forgotten": [],
+    "found": {},
+    "laws": [],
+    "not_measured": [],
+    "proposals": []
+  },
+  "meta": {
+    "repo": "/home/runner/work/_temp/work/tmp3b9o_wwo/work-ceiling-fonttools__fonttools-4388.claude-opus-5-5.3-r1"
+  },
+  "not_verified": [
+    "Behaviour that no test exercises: tests passing does not show the task's behaviour exists.",
+    "The baseline's tests are taken as correct. They ran twice under the same pins; a test whose outcome differed is quarantined, and an outcome that depends on something the pins do not hold (the clock, the network, another process) can still differ.",
+    "Tests the baseline already skipped, expected to fail, could not collect or failed are not regression evidence: nothing is known about the behaviour they cover.",
+    "Escape hatches in the change (suppressions, test-runner sniffing, always-equal comparisons) are found by pattern, and only in product lines it added. Only sniffing is also measured: a modified function is replayed as a test run and as a plain process, on the inputs the behaviour comparison has, and only for the clues of a test run that replay plants.",
+    "Cooperative verification: the proposer could alter the controller's inputs (the configuration, the recorded approvals, the dependencies the tests run). It catches a careless proposer, not a cheating one.",
+    "Linked dependencies (.venv) were taken as found on this machine."
+  ],
+  "policy": "emi-policy-10",
+  "preserve": {
+    "counts": {
+      "added_or_removed": 1,
+      "compared": 0,
+      "generated": 0,
+      "import_failures": 0,
+      "no_inputs": 0,
+      "not_replayed": 0,
+      "skipped_async": 0,
+      "skipped_method": 0,
+      "skipped_nested": 0,
+      "targets": 0,
+      "timeouts": 0,
+      "unencodable_result": 0,
+      "unrecordable": 0,
+      "unresolved": 0,
+      "unstable": 0,
+      "with_drift": 0
+    },
+    "divergences": [],
+    "functions": [],
+    "more_divergences": 0,
+    "not_checked": [],
+    "reasons": [],
+    "required": false,
+    "under_test": {
+      "compared": 0,
+      "differences": [],
+      "unmeasured": null
+    }
+  },
+  "regression": {
+    "failed": [],
+    "missing": [],
+    "nondeterministic": [],
+    "quarantined": [],
+    "reasons": [],
+    "status": "held",
+    "tests_run": 126
+  },
+  "repair": [],
+  "rule": "fault",
+  "schema": "emi-done-receipt-1.0",
+  "signals": [],
+  "this_run": []
+}

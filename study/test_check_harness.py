@@ -40,6 +40,12 @@ class TestCheckHarness(unittest.TestCase):
         self.assertTrue(any(f.startswith("ceiling_blocks") for f in res["failures"]))
         self.assertTrue(any("t1 incomplete incomplete:not_verified" in d for d in res["details"]))
 
+    def test_network_tasks_are_named_not_judged(self):
+        rows = sound() + [row("t2.r", "ceiling", "repair", True, 0, task="t2")]
+        res = check_harness.run_checks(rows, network_tasks=frozenset({"t2"}))
+        self.assertEqual(res["failures"], [])
+        self.assertTrue(any("need the network): t2" in d for d in res["details"]))
+
     def test_ceiling_missing_a_wrong_candidate_fails(self):
         rows = [r for r in sound() if not (r["condition"] == "ceiling" and not r["right"])]
         rows.append(row("t1.w", "ceiling", "stop", False))
