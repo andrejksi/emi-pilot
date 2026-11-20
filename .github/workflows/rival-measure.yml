@@ -1,0 +1,140 @@
+# Phase 1 (a1: rivals-only) and Phase 2 (a2: alternatives + effect probes) measurement.
+name: rival-measure
+
+on:
+  workflow_dispatch:
+    inputs:
+      tasks:
+        description: "tasks: @heldout or space-separated task ids"
+        default: "@heldout"
+      mode:
+        description: "measurement mode: a1, a2, or both"
+        default: "both"
+      emi_ref:
+        description: "andrejksi/EMI git ref (must include `emi rules compare`)"
+        default: "emi"
+  push:
+    branches:
+      - "study/rival-measurement"
+    paths:
+      - ".github/workflows/rival-measure.yml"
+      - "study/measure_rivals.py"
+      - "results/rival-alternatives/**"
+
+permissions:
+  contents: read
+
+jobs:
+  build-emi:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: andrejksi/EMI
+          ref: ${{ inputs.emi_ref || 'emi' }}
+          persist-credentials: false
+      - name: Build emi
+        run: cargo build --release -p emi-cli --bin emi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: emi-bin-rival
+          path: target/release/emi
+          if-no-files-found: error
+
+  plan:
+    runs-on: ubuntu-24.04
+    outputs:
+      tasks: ${{ steps.plan.outputs.tasks }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - id: plan
+        env:
+          TASKS: ${{ inputs.tasks || '@heldout' }}
+        run: |
+          # shellcheck disable=SC2086
+          tasks="$(python3 harness/plan.py chat --arms cooperative --tasks $TASKS --task-list)"
+          echo "tasks=$tasks" | tee -a "$GITHUB_OUTPUT"
+
+  measure:
+    needs: [plan, build-emi]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      max-parallel: 15
+      matrix:
+        task: ${{ fromJSON(needs.plan.outputs.tasks) }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Sandbox
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq bubblewrap
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+      - uses: actions/download-artifact@v4
+        with:
+          name: emi-bin-rival
+          path: ${{ runner.temp }}/tools/bin
+      - name: EMI and uv
+        run: |
+          chmod +x "$RUNNER_TEMP/tools/bin/emi"
+          python3 -m venv "$RUNNER_TEMP/uv-venv"
+          "$RUNNER_TEMP/uv-venv/bin/pip" install -q uv
+          echo "$RUNNER_TEMP/tools/bin" >>"$GITHUB_PATH"
+          echo "$RUNNER_TEMP/uv-venv/bin" >>"$GITHUB_PATH"
+      - name: Measure task
+        env:
+          EMI: ${{ runner.temp }}/tools/bin/emi
+          WORK: ${{ runner.temp }}/work
+          TASK: ${{ matrix.task }}
+          MODE: ${{ inputs.mode || 'both' }}
+        run: |
+          mkdir -p "$WORK" out
+          python3 study/measure_rivals.py run \
+            --task "$TASK" \
+            --mode "$MODE" \
+            --attempts results/harvest-heldout/runs \
+            --oracles results/gate-replay-heldout/oracles \
+            --alt-root results/rival-alternatives \
+            --emi "$EMI" \
+            --out "out/${TASK}.jsonl"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: rival-measure-${{ matrix.task }}
+          path: out/
+          if-no-files-found: error
+
+  summarize:
+    needs: measure
+    if: always() && needs.measure.result != 'skipped'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: rival-measure-*
+          path: raw/
+          merge-multiple: true
+      - name: Summarize measurements
+        run: |
+          mkdir -p out
+          LC_ALL=C cat raw/*.jsonl | sort > out/measurements.jsonl
+          wc -l out/measurements.jsonl
+          python3 study/measure_rivals.py summarize \
+            --in out/measurements.jsonl \
+            --json out/summary.json \
+            --md out/summary.md
+          cat out/summary.md >>"$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rival-measure-results
+          path: |
+            out/measurements.jsonl
+            out/summary.json
+            out/summary.md
