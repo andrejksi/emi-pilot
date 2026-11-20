@@ -38,6 +38,16 @@ out is left out in writing, with the reason, before the plan is signed.
 - [ ] **Every approver is recruited before signing**, or the criterion
       that needs them is dropped in writing. *(The outside approver never
       took part.)*
+- [ ] **Or the person is simulated, by code, from the known truth.** For a
+      study of how correct EMI can make a patch, a simulated answerer is
+      the default: it runs the merged fix on each question's input and
+      answers A, B, "neither" (with the merged fix's output) or "either"
+      when the merged fix or the hidden tests do not settle it. It never
+      answers what the truth does not decide. No agent that authors
+      laws, scenarios or questions sees what it runs. Its results are
+      reported as an upper bound (a person who always knows), beside the
+      number of questions per task as the cost, and the plan marks it as
+      a departure from real use.
 - [ ] **What a pass and a fail each lead to is written in the plan.**
 
 ## Stage 2: the harness gives its known answers
