@@ -1,0 +1,177 @@
+diff --git a/src/smolagents/models.py b/src/smolagents/models.py
+index d21ea6b..0666829 100644
+--- a/src/smolagents/models.py
++++ b/src/smolagents/models.py
+@@ -329,6 +329,53 @@ def get_tool_json_schema(tool: Tool) -> dict:
+     }
+ 
+ 
++def _as_content_list(content: str | list[dict[str, Any]] | None) -> list[dict[str, Any]]:
++    """Returns message content as a list of content elements, wrapping plain strings as a text element."""
++    if content is None:
++        return []
++    if isinstance(content, str):
++        return [{"type": "text", "text": content}]
++    return content
++
++
++def _first_text(content: str | list[dict[str, Any]] | None) -> str | None:
++    """Returns the text of a message content when flattening messages as text."""
++    if content is None or isinstance(content, str):
++        return content
++    return content[0]["text"]
++
++
++def _merge_message_content(
++    previous_message: dict[str, Any],
++    content: str | list[dict[str, Any]] | None,
++    flatten_messages_as_text: bool,
++) -> None:
++    """Merges `content` into `previous_message`, which has the same role, in place."""
++    if content is None or content == [] or content == "":
++        return
++    if flatten_messages_as_text:
++        new_text = _first_text(content)
++        if previous_message["content"]:
++            previous_message["content"] += "\n" + new_text
++        else:
++            previous_message["content"] = new_text
++        return
++    previous_content = previous_message["content"]
++    if isinstance(previous_content, str) and isinstance(content, str):
++        # Keep plain string contents as strings
++        previous_message["content"] = previous_content + "\n" + content if previous_content else content
++        return
++    merged_content = list(_as_content_list(previous_content))
++    for el in _as_content_list(content):
++        assert isinstance(el, dict), "Error: this element should be a dict:" + str(el)
++        if el["type"] == "text" and len(merged_content) > 0 and merged_content[-1]["type"] == "text":
++            # Merge consecutive text messages rather than creating new ones
++            merged_content[-1] = {**merged_content[-1], "text": merged_content[-1]["text"] + "\n" + el["text"]}
++        else:
++            merged_content.append(el)
++    previous_message["content"] = merged_content
++
++
+ def get_clean_message_list(
+     message_list: list[ChatMessage | dict],
+     role_conversions: dict[MessageRole, MessageRole] | dict[str, str] = {},
+@@ -373,19 +420,10 @@ def get_clean_message_list(
+                         element["image"] = encode_image_base64(element["image"])
+ 
+         if len(output_message_list) > 0 and message.role == output_message_list[-1]["role"]:
+-            assert isinstance(message.content, list), "Error: wrong content:" + str(message.content)
+-            if flatten_messages_as_text:
+-                output_message_list[-1]["content"] += "\n" + message.content[0]["text"]
+-            else:
+-                for el in message.content:
+-                    if el["type"] == "text" and output_message_list[-1]["content"][-1]["type"] == "text":
+-                        # Merge consecutive text messages rather than creating new ones
+-                        output_message_list[-1]["content"][-1]["text"] += "\n" + el["text"]
+-                    else:
+-                        output_message_list[-1]["content"].append(el)
++            _merge_message_content(output_message_list[-1], message.content, flatten_messages_as_text)
+         else:
+             if flatten_messages_as_text:
+-                content = message.content[0]["text"]
++                content = _first_text(message.content)
+             else:
+                 content = message.content
+             output_message_list.append(
+diff --git a/tests/test_models.py b/tests/test_models.py
+index 4264fad..0070ee7 100644
+--- a/tests/test_models.py
++++ b/tests/test_models.py
+@@ -15,6 +15,7 @@
+ import json
+ import sys
+ from contextlib import ExitStack
++from copy import deepcopy
+ from unittest.mock import MagicMock, patch
+ 
+ import pytest
+@@ -913,6 +914,84 @@ def test_get_clean_message_list_flatten_messages_as_text():
+     assert result[0]["content"] == "Hello!\nHow are you?"
+ 
+ 
++@pytest.mark.parametrize(
++    "messages, flatten_messages_as_text, expected",
++    [
++        # Consecutive string contents stay strings
++        (
++            [
++                {"role": "system", "content": "Start with 'FOO'"},
++                {"role": "system", "content": "End with 'BAR'"},
++                {"role": "user", "content": "Just say '.'"},
++            ],
++            False,
++            [
++                {"role": "system", "content": "Start with 'FOO'\nEnd with 'BAR'"},
++                {"role": "user", "content": "Just say '.'"},
++            ],
++        ),
++        (
++            [
++                {"role": "system", "content": "Start with 'FOO'"},
++                {"role": "system", "content": "End with 'BAR'"},
++                {"role": "user", "content": "Just say '.'"},
++            ],
++            True,
++            [
++                {"role": "system", "content": "Start with 'FOO'\nEnd with 'BAR'"},
++                {"role": "user", "content": "Just say '.'"},
++            ],
++        ),
++        # String followed by list content
++        (
++            [
++                {"role": "system", "content": "Start with 'FOO'"},
++                {"role": "system", "content": [{"type": "text", "text": "End with 'BAR'"}]},
++            ],
++            False,
++            [{"role": "system", "content": [{"type": "text", "text": "Start with 'FOO'\nEnd with 'BAR'"}]}],
++        ),
++        # List followed by string content
++        (
++            [
++                {"role": "system", "content": [{"type": "text", "text": "Start with 'FOO'"}]},
++                {"role": "system", "content": "End with 'BAR'"},
++            ],
++            False,
++            [{"role": "system", "content": [{"type": "text", "text": "Start with 'FOO'\nEnd with 'BAR'"}]}],
++        ),
++        (
++            [
++                {"role": "system", "content": [{"type": "text", "text": "Start with 'FOO'"}]},
++                {"role": "system", "content": "End with 'BAR'"},
++            ],
++            True,
++            [{"role": "system", "content": "Start with 'FOO'\nEnd with 'BAR'"}],
++        ),
++    ],
++)
++def test_get_clean_message_list_consecutive_messages_with_string_content(messages, flatten_messages_as_text, expected):
++    original_messages = deepcopy(messages)
++    result = get_clean_message_list(messages, flatten_messages_as_text=flatten_messages_as_text)
++    assert result == expected
++    assert messages == original_messages
++
++
++def test_litellm_model_consecutive_system_messages():
++    with patch.object(LiteLLMModel, "create_client", return_value=MagicMock()):
++        model = LiteLLMModel(model_id="test-model")
++    messages = [
++        {"role": "system", "content": "Start with 'FOO'"},
++        {"role": "system", "content": "End with 'BAR'"},
++        {"role": "user", "content": "Just say '.'"},
++    ]
++    completion_kwargs = model._prepare_completion_kwargs(messages=messages, model=model.model_id)
++    assert completion_kwargs["messages"] == [
++        {"role": "system", "content": "Start with 'FOO'\nEnd with 'BAR'"},
++        {"role": "user", "content": "Just say '.'"},
++    ]
++
++
+ @pytest.mark.parametrize(
+     "model_class, model_kwargs, patching, expected_flatten_messages_as_text",
+     [

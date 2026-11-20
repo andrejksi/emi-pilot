@@ -1,0 +1,103 @@
+{
+  "arms": {
+    "a1": {
+      "by_pair_kind": {
+        "right_vs_right": {
+          "pair_disagree_rate": 0.0571,
+          "pairs": 35,
+          "pairs_agreed": 18,
+          "pairs_disagreed": 2,
+          "pairs_incomplete": 15,
+          "task_disagree_rate": 0.0556,
+          "tasks": 18,
+          "tasks_disagreed": 1
+        },
+        "right_vs_wrong": {
+          "pair_disagree_rate": 0.1429,
+          "pairs": 21,
+          "pairs_agreed": 0,
+          "pairs_disagreed": 3,
+          "pairs_incomplete": 18,
+          "task_disagree_rate": 0.1429,
+          "tasks": 7,
+          "tasks_disagreed": 1
+        },
+        "wrong_vs_wrong": {
+          "pair_disagree_rate": 0.1111,
+          "pairs": 9,
+          "pairs_agreed": 1,
+          "pairs_disagreed": 1,
+          "pairs_incomplete": 7,
+          "task_disagree_rate": 0.1111,
+          "tasks": 9,
+          "tasks_disagreed": 1
+        }
+      },
+      "fork_mechanisms": {
+        "explicit_raise_vs_value": 20,
+        "value_diff": 4
+      },
+      "fork_scopes": {
+        "interface_fork": 20,
+        "leaf_fork": 4
+      },
+      "identical_code_pairs": 4,
+      "pairs": 65,
+      "reach": {
+        "functions_compared": 30,
+        "functions_no_inputs": 56,
+        "functions_not_checked": 56
+      },
+      "status_counts": {
+        "agreed": 19,
+        "disagreed": 6,
+        "incomplete": 40
+      }
+    },
+    "a2": {
+      "by_pair_kind": {
+        "alt_vs_right": {
+          "pair_disagree_rate": 0.0,
+          "pairs": 2,
+          "pairs_agreed": 0,
+          "pairs_disagreed": 0,
+          "pairs_incomplete": 2,
+          "task_disagree_rate": 0.0,
+          "tasks": 2,
+          "tasks_disagreed": 0
+        },
+        "alt_vs_wrong": {
+          "pair_disagree_rate": 1.0,
+          "pairs": 4,
+          "pairs_agreed": 0,
+          "pairs_disagreed": 4,
+          "pairs_incomplete": 0,
+          "task_disagree_rate": 1.0,
+          "tasks": 4,
+          "tasks_disagreed": 4
+        }
+      },
+      "fork_mechanisms": {
+        "crash_unintended": 1,
+        "explicit_raise_vs_value": 2,
+        "value_diff": 9
+      },
+      "fork_scopes": {
+        "interface_fork": 2,
+        "leaf_fork": 10
+      },
+      "identical_code_pairs": 0,
+      "pairs": 6,
+      "reach": {
+        "functions_compared": 0,
+        "functions_no_inputs": 0,
+        "functions_not_checked": 0
+      },
+      "status_counts": {
+        "disagreed": 4,
+        "incomplete": 2
+      }
+    }
+  },
+  "total_rows": 71
+}
