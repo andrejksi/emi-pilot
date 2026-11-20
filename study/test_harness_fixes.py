@@ -147,6 +147,24 @@ class TestReplayGateCeiling(unittest.TestCase):
             self.assertIn("'tests/test_req.py::test_clean[ok]'", src)
 
 
+class TestMinerSkipsImportedTasks(unittest.TestCase):
+    def test_already_imported_task_is_skipped_and_does_not_fill_the_cap(self):
+        prs = [{"number": 1}, {"number": 2}]
+        args = mock.Mock(since="2026-10-24", min_issue=300, per_repo=1)
+        skipped = mine_prs.Counter()
+        with (
+            mock.patch.object(mine_prs, "merged_since", return_value=prs),
+            mock.patch.object(mine_prs, "reason_to_skip", return_value=None),
+            mock.patch.object(mine_prs, "seen", return_value=set()),
+            mock.patch.object(mine_prs, "imported", return_value={"o__r-1"}),
+            mock.patch.object(mine_prs, "candidate", side_effect=lambda pr, repo: {"n": pr["number"]}),
+            mock.patch.object(mine_prs, "size_reason", return_value=None),
+        ):
+            kept = mine_prs.mine_repo("o/r", args, "token", skipped)
+        self.assertEqual(kept, [{"n": 2}])
+        self.assertEqual(skipped["already a task (tasks/)"], 1)
+
+
 class TestCodeEnvPath(unittest.TestCase):
     def test_task_virtualenv_comes_first_on_path(self):
         with tempfile.TemporaryDirectory() as tmp:

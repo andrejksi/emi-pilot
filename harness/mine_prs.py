@@ -217,12 +217,22 @@ def seen():
     return {x.strip().lower() for x in lines if x.strip() and not x.startswith("#")}
 
 
+def imported():
+    """Tasks already under tasks/: a new mining run must not hand them back,
+    or the per-repository cap fills with tasks a study already used."""
+    root = PILOT / "tasks"
+    return {d.name.lower() for d in root.iterdir() if d.is_dir()} if root.is_dir() else set()
+
+
 def mine_repo(repo, args, token, skipped):
-    kept, read = [], seen()
+    kept, read, have = [], seen(), imported()
     for pr in merged_since(repo, args.since, token):
         why = reason_to_skip(pr, repo, args.since, args.min_issue)
-        if task_id(repo, pr["number"]) in read:
+        tid = task_id(repo, pr["number"])
+        if tid in read:
             why = "read while testing the miner (batches/seen.txt)"
+        elif tid in have:
+            why = "already a task (tasks/)"
         if why is None and len(kept) < args.per_repo:
             c = candidate(pr, repo)
             why = size_reason(c)
