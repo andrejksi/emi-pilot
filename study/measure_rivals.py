@@ -351,11 +351,18 @@ def run_effect_probe(
             py = str(w / ".venv" / "bin" / "python")
             if not Path(py).exists():
                 py = sys.executable
-            env = {**code_env(task, w), "PYTHONHASHSEED": "0"}
+            cenv = code_env(task, w)
+            py_paths = [str(w.resolve())]
+            if cenv.get("PYTHONPATH"):
+                py_paths = [cenv["PYTHONPATH"], *py_paths]
+            env = {**cenv, "PYTHONPATH": os.pathsep.join(py_paths), "PYTHONHASHSEED": "0"}
             code, out = run([py, str(probe_file.resolve())], cwd=w, env=env, timeout=180)
             if code != 0:
                 return None, f"probe_exit_{code}: {out[-400:]}"
-            return json.loads(out[out.index("{") :]), None
+            json_lines = [l for l in out.splitlines() if l.strip().startswith("{")]
+            if not json_lines:
+                return None, f"probe_no_json: {out[-400:]}"
+            return json.loads(json_lines[-1]), None
         except Exception as exc:
             return None, f"probe_error: {exc}"
         finally:
