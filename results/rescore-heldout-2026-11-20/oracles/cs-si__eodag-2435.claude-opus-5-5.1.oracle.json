@@ -1,0 +1,33 @@
+{
+  "exit": 1,
+  "fail_to_pass": 2,
+  "fail_to_pass_passed": 1,
+  "failure_lines": [
+    "ERROR    eodag.core:core.py:1960 Error while searching on provider cop_dataspace (ignored):",
+    "ERROR    eodag.core:core.py:1960 Error while searching on provider cop_dataspace (ignored):",
+    "ERROR    eodag.core:core.py:1960 Error while searching on provider cop_dataspace (ignored):",
+    "ERROR    eodag.core:core.py:1960 Error while searching on provider cop_dataspace (ignored):",
+    "ERROR    eodag.core:core.py:1960 Error while searching on provider cop_dataspace (ignored):",
+    "ERROR    eodag.core:core.py:1960 Error while searching on provider cop_dataspace (ignored):",
+    "ERROR    eodag.core:core.py:1960 Error while searching on provider cop_dataspace (ignored):",
+    "ERROR    eodag.core:core.py:1960 Error while searching on provider cop_dataspace (ignored):",
+    "ERROR    eodag.core:core.py:1960 Error while searching on provider aws_eos (ignored):",
+    "ERROR    eodag.core:core.py:1960 Error while searching on provider cop_dataspace (ignored):",
+    "ERROR    eodag.core:core.py:1960 Error while searching on provider cop_dataspace_s3 (ignored):",
+    "ERROR    eodag.core:core.py:1960 Error while searching on provider creodias (ignored):",
+    "ERROR    eodag.core:core.py:1960 Error while searching on provider creodias_s3 (ignored):",
+    "ERROR    eodag.core:core.py:1960 Error while searching on provider dedl (ignored):",
+    "ERROR    eodag.core:core.py:1960 Error while searching on provider earth_search (ignored):",
+    "ERROR    eodag.core:core.py:1960 Error while searching on provider earth_search_gcs (ignored):",
+    "ERROR    eodag.core:core.py:1960 Error while searching on provider geodes (ignored):",
+    "ERROR    eodag.core:core.py:1960 Error while searching on provider geodes_s3 (ignored):",
+    "ERROR    eodag.core:core.py:1960 Error while searching on provider sara (ignored):",
+    "ERROR    eodag.core:core.py:1960 Error while searching on provider usgs (ignored):"
+  ],
+  "not_passing": [
+    "tests/units/test_core.py::TestCoreSearch::test__prepare_search_dates"
+  ],
+  "not_passing_count": 1,
+  "output_tail": "ollection_with_kwargs\nPASSED tests/units/test_core.py::TestCoreSearch::test_guess_collection_without_kwargs\nPASSED tests/units/test_core.py::TestCoreSearch::test_search_all_ignores_next_page_request_error\nPASSED tests/units/test_core.py::TestCoreSearch::test_search_all_must_collect_them_all\nPASSED tests/units/test_core.py::TestCoreSearch::test_search_all_request_error\nPASSED tests/units/test_core.py::TestCoreSearch::test_search_all_unknown_collection\nPASSED tests/units/test_core.py::TestCoreSearch::test_search_all_use_default_value\nPASSED tests/units/test_core.py::TestCoreSearch::test_search_all_use_max_limit\nPASSED tests/units/test_core.py::TestCoreSearch::test_search_all_user_limit\nPASSED tests/units/test_core.py::TestCoreSearch::test_search_all_warns_on_deprecated_items_per_page\nPASSED tests/units/test_core.py::TestCoreSearch::test_search_iter_page_count\nPASSED tests/units/test_core.py::TestCoreSearch::test_search_iter_page_does_not_handle_query_errors\nPASSED tests/units/test_core.py::TestCoreSearch::test_search_iter_page_exhaust_get_all_pages_and_quit_early\nPASSED tests/units/test_core.py::TestCoreSearch::test_search_iter_page_exhaust_get_all_pages_no_products_last_page\nPASSED tests/units/test_core.py::TestCoreSearch::test_search_iter_page_must_reset_next_attrs_if_next_mechanism\nPASSED tests/units/test_core.py::TestCoreSearch::test_search_iter_page_plugin_warns_on_deprecated_items_per_page\nPASSED tests/units/test_core.py::TestCoreSearch::test_search_iter_page_requesterror_all_fail\nPASSED tests/units/test_core.py::TestCoreSearch::test_search_iter_page_requesterror_retry\nPASSED tests/units/test_core.py::TestCoreSearch::test_search_iter_page_returns_iterator\nPASSED tests/units/test_core.py::TestCoreSearch::test_search_iter_page_warns_on_deprecated_items_per_page\nPASSED tests/units/test_core.py::TestCoreSearch::test_search_sort_by\nPASSED tests/units/test_core.py::TestCoreSearch::test_search_sort_by_raise_errors\nPASSED tests/units/test_core.py::TestCoreSearch::test_search_warns_on_deprecated_page_and_items_per_page\nPASSED tests/units/test_core.py::TestCoreSearch::test_setup_downloader_with_auth_none\nPASSED tests/units/test_core.py::TestCoreSearch::test_setup_downloader_with_existing_auth\nPASSED tests/units/test_core.py::TestCoreDownload::test_download_all_no_executor\nPASSED tests/units/test_core.py::TestCoreDownload::test_download_all_with_executor\nPASSED tests/units/test_core.py::TestCoreDownload::test_download_local_product\nPASSED tests/units/test_core.py::TestCoreProductAlias::test_get_alias_from_collection\nPASSED tests/units/test_core.py::TestCoreProductAlias::test_get_collection_from_alias\nPASSED tests/units/test_core.py::TestCoreProductAlias::test_get_collection_from_alias_multiple_matches\nPASSED tests/units/test_core.py::TestCoreProviderGroup::test_available_providers\nPASSED tests/units/test_core.py::TestCoreProviderGroup::test_available_providers_by_group\nPASSED tests/units/test_core.py::TestCoreProviderGroup::test_available_providers_for_collection\nPASSED tests/units/test_core.py::TestCoreProviderGroup::test_discover_collections_grouped_providers\nPASSED tests/units/test_core.py::TestCoreProviderGroup::test_fetch_collections_list_grouped_providers\nPASSED tests/units/test_core.py::TestCoreProviderGroup::test_get_search_plugins\nPASSED tests/units/test_core.py::TestCoreProviderGroup::test_get_search_plugins_pruned_provider\nPASSED tests/units/test_core.py::TestCoreProviderGroup::test_get_search_plugins_unknown_provider\nPASSED tests/units/test_core.py::TestCoreProviderGroup::test_list_collections\nPASSED tests/units/test_core.py::TestCoreStrictMode::test_list_collections_permissive_mode\nPASSED tests/units/test_core.py::TestCoreStrictMode::test_list_collections_strict_mode\nFAILED tests/units/test_core.py::TestCoreSearch::test__prepare_search_dates - AssertionError: '2020-01-01' != '2020-01-01T00:00:00.000Z'\n- 2020-01-01\n+ 2020-01-01T00:00:00.000Z\n======================== 1 failed, 142 passed in 13.85s ========================\n",
+  "passed": false
+}

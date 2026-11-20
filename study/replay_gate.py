@@ -439,7 +439,16 @@ def receipt_why(receipt: dict[str, Any] | None) -> list[str]:
     lines = receipt.get("repair") or []
     if not isinstance(lines, list):
         return []
-    return [str(line)[:WHY_CHARS] for line in lines[:WHY_LINES]]
+    out = [str(line)[:WHY_CHARS] for line in lines[:WHY_LINES]]
+    # ask_person carries no repair lines: what waits for a person is the
+    # changed old tests (and laws, settings) it names as unapproved
+    for item in receipt.get("changed_old_tests") or []:
+        if len(out) >= WHY_LINES:
+            break
+        if isinstance(item, dict) and not item.get("approved"):
+            out.append(f"unapproved {item.get('kind', 'change')} of {item.get('path', '?')} "
+                       f"(restored, it {item.get('restored_result', '?')})"[:WHY_CHARS])
+    return out
 
 
 def replay_task(

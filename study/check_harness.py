@@ -84,9 +84,14 @@ def check_ceiling(rows: list[dict[str, Any]], max_block: float,
     return failures, details
 
 
-def check_disagreement(rows: list[dict[str, Any]]) -> list[str]:
+def check_disagreement(rows: list[dict[str, Any]], network_tasks: frozenset[str] = frozenset()) -> list[str]:
+    """Replays that disagree. A task whose hidden tests need the network is
+    named in the ceiling's details and left out here too: its runs reach a
+    server the pins do not hold."""
     runs: dict[tuple[str, str], set[str]] = defaultdict(set)
     for r in rows:
+        if r["task"] in network_tasks:
+            continue
         runs[(r["candidate"], r["condition"])].add(r["action"])
     split = sorted(k for k, actions in runs.items() if len(actions) > 1)
     return [f"disagreement: {c} under {cond} answered differently on two replays" for c, cond in split]
@@ -143,7 +148,7 @@ def run_checks(rows: list[dict[str, Any]], *, max_ceiling_block: float = 0.02,
                max_uniform: float = 1 / 3,
                network_tasks: frozenset[str] = frozenset()) -> dict[str, list[str]]:
     failures, details = check_ceiling(rows, max_ceiling_block, network_tasks)
-    failures += check_disagreement(rows) + check_errors(rows)
+    failures += check_disagreement(rows, network_tasks) + check_errors(rows)
     warnings = (warn_pytest_baseline(rows) + warn_unexplained(rows)
                 + warn_outcome_mix(rows, max_uniform))
     return {"failures": failures, "warnings": warnings, "details": details}

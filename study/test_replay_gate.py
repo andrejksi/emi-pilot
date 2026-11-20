@@ -174,6 +174,13 @@ class TestReplayGate(unittest.TestCase):
         self.assertTrue(why[0].startswith("line 0"))
         self.assertEqual(len(why[0]), replay_gate.WHY_CHARS)
 
+    def test_receipt_why_names_unapproved_old_tests_for_ask_person(self):
+        receipt = {"action": "ask_person", "repair": [], "changed_old_tests": [
+            {"approved": False, "kind": "modified", "path": "tests/test_x.py", "restored_result": "fails"},
+            {"approved": True, "kind": "deleted", "path": "tests/test_y.py"}]}
+        self.assertEqual(replay_gate.receipt_why(receipt),
+                         ["unapproved modified of tests/test_x.py (restored, it fails)"])
+
     def test_rows_carry_pytest_baseline_why_and_keep_blocking_receipts(self):
         with tempfile.TemporaryDirectory() as tmp_str:
             tmp = Path(tmp_str)
