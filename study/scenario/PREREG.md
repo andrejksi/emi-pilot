@@ -11,9 +11,13 @@ On tasks nobody has used, does one public scenario per task, written from
 the task text before any candidate exists, catch wrong patches that EMI's
 completion check lets through, without flagging right ones?
 
-A scenario is an ordinary test in the project's own runner that records
-one named observation, stated in one sentence a person can read ("calls
+A scenario is a plain Python script, run with the task's own interpreter
+from the repository root (`study/scenario/run_scenario.py`), that does what
+the task text describes through the project's public names and prints one
+named observation, stated in one sentence a person can read ("calls
 `download_all` twice and counts the requests"), instead of asserting it.
+A script and not a pytest test: a project's pytest settings decide what is
+collected, and a skipped file is never run (`results/rerun7-2026-11-20`).
 It is the cheapest form of the disagreement idea: one candidate, one
 well-chosen observation, no rival implementations. Rivals and generated
 alternatives are a later study, run only if this one leaves a gap
