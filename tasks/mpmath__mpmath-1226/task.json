@@ -1,0 +1,34 @@
+{
+  "base_commit": "758e736b9ebacb730febd34940372db6efaedb92",
+  "created_at": "2026-11-12T03:23:50Z",
+  "install": [
+    "pip install -q -e .",
+    "pip install -q pytest"
+  ],
+  "install_from": "default",
+  "issue": 1225,
+  "kind": "git",
+  "license": null,
+  "oracle": {
+    "fail_to_pass": [
+      "mpmath/tests/test_division.py::test_issue_1225"
+    ],
+    "pass_to_pass": [
+      "mpmath/tests/test_division.py::test_div_1_3",
+      "mpmath/tests/test_division.py::test_div_300",
+      "mpmath/tests/test_division.py::test_div_negative_rnd_bug",
+      "mpmath/tests/test_division.py::test_epsilon_rounding",
+      "mpmath/tests/test_division.py::test_mod",
+      "mpmath/tests/test_division.py::test_mpf_divi_1_3",
+      "mpmath/tests/test_division.py::test_tight_integer_division"
+    ]
+  },
+  "prompt": "mpf_div at prec=0 with a power-of-two divisor rounds to one bit, or doesn't return (round_floor, round_down)\n\nHi Mpmath devs.   I've been doing some optimization related to mpmath for https://sagebrush.space/ and hit an edge case that seems like a bug and way to hang mpmath.  Here's some more details. There's a simple 2-line fix.\n\nmpmath 1.4.1, python backend (MPMATH_NOGMPY=1), CPython 3.14.4.\n\nIn 1.4.1, `mpf_div(s, t, 0, rnd)`'s general path handles `prec=0`: `extra` is computed for it, and the quotient is normalized to its own bit count (`prec or bc`). The first branch, for a divisor whose mantissa is 1 (a power of two), still passes `prec` unchanged to `normalize`:\n\n```python\nif tman == 1:\n    return normalize(sign, sman, sexp-texp, sbc, prec, rnd)\n```\n\nAt `prec=0`, that rounds the quotient to one bit, or, with `round_floor` and `round_down`, doesn't return (we stopped it after 5 s). `from_rational(p, q, 0)` divides through `mpf_div`, so `from_rational(3, 4, 0)` (default rounding `round_fast`, which is `round_down`) doesn't return either.\n\n```python\nimport os; os.environ[\"MPMATH_NOGMPY\"] = \"1\"\nfrom mpmath.libmp import mpf_div, from_int, from_rational\n\nprint(mpf_div(from_int(3), from_int(7), 0, \"f\"))  # (0, 439, -10, 9): the general path is fine\nprint(mpf_div(from_int(3), from_int(4), 0, \"n\"))  # (0, 1, 0, 1): 3/4 rounded to one bit, i.e. 1\nprint(mpf_div(from_int(3), from_int(4), 0, \"f\"))  # doesn't return\nprint(from_rational(3, 4, 0))                     # doesn't return\n```\n\n<img width=\"1592\" height=\"500\" alt=\"image\" src=\"https://github.com/user-attachments/assets/7677522e-a56b-4932-a143-f04122fc73c0\" />\n(hangs)\n\nIn the other cases we tried, 3/1 and 5/2 with `round_nearest` give one bit, (0, 1, 2, 1). These don't return within 5 s: 1/2 with `round_nearest`, and 3/4, 1/2, 3/1 and 5/2 with `round_floor` and with `round_down`.\n\nExpected: the exact quotient, the dividend's own bits with the exponent moved, for every rounding. 3/4 gives (0, 3, -2, 2) and 1/2 gives (0, 1, -1, 1). Division by a power of two is always exact, so this needs no rounding at all. A fix consistent with the general path:\n\n```python\nif tman == 1:\n    return normalize1(sign, sman, sexp-texp, sbc, prec or sbc, rnd)\n```\n\n(`normalize` or `normalize1`; `sman` is already normalized, so either one works.)\n\n## Discussion (before PR)\n\n@skirpichev:\nOn the development version I see something different.  It doesn't hang.\n\nWith python backend:\n```pycon\n>>> mpf_div(from_int(3), from_int(4), 0, \"f\")\n(0, 0, 0, 0)\n>>> from_rational(3, 4, 0)\n(0, 0, 0, 0)\n```\n\nWith python-gmp:\n```pycon\n>>> mpf_div(from_int(3), from_int(4), 0, \"f\")\n(0, mpz(0), 0, 0)\n>>> from_rational(3, 4, 0)\n(0, mpz(0), 0, 0)\n```\n\nWith gmpy2:\n```pycon\n>>> mpf_div(from_int(3), from_int(4), 0, \"f\")\n(0, mpz(0), 18446744073709551615, 1)\n>>> from_rational(3, 4, 0)\n(0, mpz(0), 18446744073709551615, 1)\n```\n(looks to be a bug in `_mpmath_normalize()`.)\n\nI don't think that prec=0 is supported for all functions with meaning \"no rounding\".  Take look on mpf_mod(), which is nearby of mpf_div().  So, in general such issues are feature requests.\n\nBut as you correctly noted, for mpf_div() this prec value supported *partially*.  Issue seems valid and bugfix is correct.",
+  "pull": 1226,
+  "python": "3.11",
+  "repo": "mpmath/mpmath",
+  "source": "github-pr",
+  "test_files": [
+    "mpmath/tests/test_division.py"
+  ]
+}

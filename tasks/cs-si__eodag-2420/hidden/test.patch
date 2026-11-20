@@ -1,0 +1,56 @@
+diff --git a/tests/units/test_metadata_mapping.py b/tests/units/test_metadata_mapping.py
+index 531dc7034..b18701c3a 100644
+--- a/tests/units/test_metadata_mapping.py
++++ b/tests/units/test_metadata_mapping.py
+@@ -1287,6 +1287,18 @@ class TestMetadataMappingFunctions(unittest.TestCase):
+         expected = Queryables.get_queryable_from_alias("year")
+         self.assertEqual(result, expected)
+ 
++    def test_get_queryable_from_provider_prefers_matching_name(self):
++        metadata_mapping = {
++            "id": ['{{"format": "{id#get_group_name(GeoPackage)}"}}', "$.id"],
++            "format": ['{{"format": "{format}"}}', "$.id"],
++        }
++        self.assertEqual(
++            get_queryable_from_provider(
++                "format", metadata_mapping, provider="wekeo_main"
++            ),
++            "wekeo_main_format",
++        )
++
+     def test_get_provider_queryable_path(self):
+         """Test getting the provider queryable path"""
+         metadata_mapping = {"id": "id", "path": ["path1", "path2"]}
+diff --git a/tests/units/test_search_types.py b/tests/units/test_search_types.py
+index 28076a96b..cc2c027f5 100644
+--- a/tests/units/test_search_types.py
++++ b/tests/units/test_search_types.py
+@@ -286,6 +286,28 @@ class TestQueryables(unittest.TestCase):
+ 
+ 
+ class TestFieldDefinition(unittest.TestCase):
++    def test_json_field_definition_oneof_constants(self):
++        definition = json_field_definition_to_python(
++            {
++                "title": "Format",
++                "type": "string",
++                "oneOf": [
++                    {"const": "GeoPackage", "title": "GeoPackage", "group": None},
++                    {"const": "ESRI fgdb"},
++                    {"const": "GeoTiff100mt"},
++                ],
++            },
++            required=True,
++        )
++        model = create_model("FormatQueryables", format=get_args(definition))
++        self.assertEqual(
++            model.model_json_schema()["properties"]["format"]["enum"],
++            ["GeoPackage", "ESRI fgdb", "GeoTiff100mt"],
++        )
++        self.assertEqual(model(format="GeoPackage").format, "GeoPackage")
++        with self.assertRaises(ValidationError):
++            model(format="unsupported")
++
+     def test_json_field_definition_to_python(self):
+         """Python field definition reflects the provided configuration"""
+ 

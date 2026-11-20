@@ -1,0 +1,112 @@
+diff --git a/eodag/api/product/metadata_mapping.py b/eodag/api/product/metadata_mapping.py
+index 5f8bdc298..0e6bae78a 100644
+--- a/eodag/api/product/metadata_mapping.py
++++ b/eodag/api/product/metadata_mapping.py
+@@ -1990,14 +1990,20 @@ def get_queryable_from_provider(
+             list(metadata_mapping.keys())[ind]
+         )
+     else:
+-        for param, param_conf in metadata_mapping.items():
+-            if (
+-                isinstance(param_conf, list)
+-                and param_conf[0]
+-                and re.search(pattern, param_conf[0])
+-            ):
+-                eodag_queryable = StacQueryables.get_queryable_from_alias(param)
+-                break
++        matching_params = [
++            param
++            for param, param_conf in metadata_mapping.items()
++            if isinstance(param_conf, list)
++            and param_conf[0]
++            and re.search(pattern, param_conf[0])
++        ]
++        if matching_params:
++            param = (
++                provider_queryable
++                if provider_queryable in matching_params
++                else matching_params[0]
++            )
++            eodag_queryable = StacQueryables.get_queryable_from_alias(param)
+ 
+     # no provider-specific resolution
+     if provider is None:
+diff --git a/eodag/types/__init__.py b/eodag/types/__init__.py
+index aff08d4bf..1bd0524a5 100644
+--- a/eodag/types/__init__.py
++++ b/eodag/types/__init__.py
+@@ -255,6 +255,7 @@ def json_field_definition_to_python(
+     enum = json_field_definition.get("enum")
+     const = json_field_definition.get("const")
+     anyOf = json_field_definition.get("anyOf")
++    one_of = json_field_definition.get("oneOf")
+ 
+     if python_type in (list, set):
+         items = json_field_definition.get("items")
+@@ -295,6 +296,10 @@ def json_field_definition_to_python(
+     elif const:
+         literal = Literal[const]
+         python_type = list[literal] if python_type in (list, set) else literal  # type: ignore
++    elif one_of and all(
++        isinstance(option, dict) and "const" in option for option in one_of
++    ):
++        python_type = Literal[tuple(option["const"] for option in one_of)]  # type: ignore
+     elif anyOf:
+         python_type = str
+ 
+diff --git a/tests/units/test_metadata_mapping.py b/tests/units/test_metadata_mapping.py
+index 531dc7034..b18701c3a 100644
+--- a/tests/units/test_metadata_mapping.py
++++ b/tests/units/test_metadata_mapping.py
+@@ -1287,6 +1287,18 @@ class TestMetadataMappingFunctions(unittest.TestCase):
+         expected = Queryables.get_queryable_from_alias("year")
+         self.assertEqual(result, expected)
+ 
++    def test_get_queryable_from_provider_prefers_matching_name(self):
++        metadata_mapping = {
++            "id": ['{{"format": "{id#get_group_name(GeoPackage)}"}}', "$.id"],
++            "format": ['{{"format": "{format}"}}', "$.id"],
++        }
++        self.assertEqual(
++            get_queryable_from_provider(
++                "format", metadata_mapping, provider="wekeo_main"
++            ),
++            "wekeo_main_format",
++        )
++
+     def test_get_provider_queryable_path(self):
+         """Test getting the provider queryable path"""
+         metadata_mapping = {"id": "id", "path": ["path1", "path2"]}
+diff --git a/tests/units/test_search_types.py b/tests/units/test_search_types.py
+index 28076a96b..cc2c027f5 100644
+--- a/tests/units/test_search_types.py
++++ b/tests/units/test_search_types.py
+@@ -286,6 +286,28 @@ class TestQueryables(unittest.TestCase):
+ 
+ 
+ class TestFieldDefinition(unittest.TestCase):
++    def test_json_field_definition_oneof_constants(self):
++        definition = json_field_definition_to_python(
++            {
++                "title": "Format",
++                "type": "string",
++                "oneOf": [
++                    {"const": "GeoPackage", "title": "GeoPackage", "group": None},
++                    {"const": "ESRI fgdb"},
++                    {"const": "GeoTiff100mt"},
++                ],
++            },
++            required=True,
++        )
++        model = create_model("FormatQueryables", format=get_args(definition))
++        self.assertEqual(
++            model.model_json_schema()["properties"]["format"]["enum"],
++            ["GeoPackage", "ESRI fgdb", "GeoTiff100mt"],
++        )
++        self.assertEqual(model(format="GeoPackage").format, "GeoPackage")
++        with self.assertRaises(ValidationError):
++            model(format="unsupported")
++
+     def test_json_field_definition_to_python(self):
+         """Python field definition reflects the provided configuration"""
+ 

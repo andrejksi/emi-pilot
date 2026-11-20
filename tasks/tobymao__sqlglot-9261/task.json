@@ -1,0 +1,73 @@
+{
+  "base_commit": "2deb754793ee39a69c2535b198b5b07d2cf04f31",
+  "created_at": "2026-11-19T17:47:08Z",
+  "install": [
+    "pip install -q -e .",
+    "pip install -q pytest"
+  ],
+  "install_from": "default",
+  "issue": 9260,
+  "kind": "git",
+  "license": null,
+  "oracle": {
+    "fail_to_pass": [
+      "tests/dialects/test_postgres.py::TestPostgres::test_postgres"
+    ],
+    "pass_to_pass": [
+      "tests/dialects/test_postgres.py::TestPostgres::test_absolute_value_operator",
+      "tests/dialects/test_postgres.py::TestPostgres::test_alter_drop_column",
+      "tests/dialects/test_postgres.py::TestPostgres::test_alter_mixed_actions",
+      "tests/dialects/test_postgres.py::TestPostgres::test_analyze",
+      "tests/dialects/test_postgres.py::TestPostgres::test_array_length",
+      "tests/dialects/test_postgres.py::TestPostgres::test_array_offset",
+      "tests/dialects/test_postgres.py::TestPostgres::test_begin_transaction",
+      "tests/dialects/test_postgres.py::TestPostgres::test_bool_or",
+      "tests/dialects/test_postgres.py::TestPostgres::test_called_on_null_input_malformed",
+      "tests/dialects/test_postgres.py::TestPostgres::test_convert",
+      "tests/dialects/test_postgres.py::TestPostgres::test_corr",
+      "tests/dialects/test_postgres.py::TestPostgres::test_create_tablespace",
+      "tests/dialects/test_postgres.py::TestPostgres::test_datatype",
+      "tests/dialects/test_postgres.py::TestPostgres::test_datetime_arithmetic",
+      "tests/dialects/test_postgres.py::TestPostgres::test_ddl",
+      "tests/dialects/test_postgres.py::TestPostgres::test_extract_date_parts",
+      "tests/dialects/test_postgres.py::TestPostgres::test_function_parameter_mode_without_copy",
+      "tests/dialects/test_postgres.py::TestPostgres::test_generate_series_decimal_steps",
+      "tests/dialects/test_postgres.py::TestPostgres::test_generate_series_steps",
+      "tests/dialects/test_postgres.py::TestPostgres::test_grant",
+      "tests/dialects/test_postgres.py::TestPostgres::test_interval_positive_fraction",
+      "tests/dialects/test_postgres.py::TestPostgres::test_interval_span",
+      "tests/dialects/test_postgres.py::TestPostgres::test_is_precedence",
+      "tests/dialects/test_postgres.py::TestPostgres::test_json_extract",
+      "tests/dialects/test_postgres.py::TestPostgres::test_json_value",
+      "tests/dialects/test_postgres.py::TestPostgres::test_locks",
+      "tests/dialects/test_postgres.py::TestPostgres::test_make_date",
+      "tests/dialects/test_postgres.py::TestPostgres::test_postgis_distance_3d",
+      "tests/dialects/test_postgres.py::TestPostgres::test_postgres_create_trigger",
+      "tests/dialects/test_postgres.py::TestPostgres::test_preserve_is_not_null",
+      "tests/dialects/test_postgres.py::TestPostgres::test_recursive_cte",
+      "tests/dialects/test_postgres.py::TestPostgres::test_regexp_binary",
+      "tests/dialects/test_postgres.py::TestPostgres::test_regexp_replace_omitted_replacement",
+      "tests/dialects/test_postgres.py::TestPostgres::test_revoke",
+      "tests/dialects/test_postgres.py::TestPostgres::test_root_operator_precedence",
+      "tests/dialects/test_postgres.py::TestPostgres::test_round",
+      "tests/dialects/test_postgres.py::TestPostgres::test_rows_from",
+      "tests/dialects/test_postgres.py::TestPostgres::test_star_except",
+      "tests/dialects/test_postgres.py::TestPostgres::test_string_concat",
+      "tests/dialects/test_postgres.py::TestPostgres::test_table_query",
+      "tests/dialects/test_postgres.py::TestPostgres::test_udt",
+      "tests/dialects/test_postgres.py::TestPostgres::test_unicode_string",
+      "tests/dialects/test_postgres.py::TestPostgres::test_unnest",
+      "tests/dialects/test_postgres.py::TestPostgres::test_unnest_json_array",
+      "tests/dialects/test_postgres.py::TestPostgres::test_variance",
+      "tests/dialects/test_postgres.py::TestPostgres::test_xmlelement"
+    ]
+  },
+  "prompt": "Postgres: LISTEN, NOTIFY, UNLISTEN, DEALLOCATE and DISCARD are parsed as aliased columns\n\nPostgres' `LISTEN`, `UNLISTEN`, `NOTIFY`, `DEALLOCATE` and `DISCARD` statements are parsed as a column with an alias. Some come back as invalid SQL, and others don't parse at all.\n\n```python\nfrom sqlglot import transpile\nfor sql in [\"LISTEN c\", \"NOTIFY c\", \"DEALLOCATE p\", \"DISCARD ALL\"]:\n    print(transpile(sql, read=\"postgres\", write=\"postgres\"))\n# ['LISTEN AS c']\n# ['NOTIFY AS c']\n# ['DEALLOCATE AS p']\n# ['DISCARD AS ALL']\n\ntranspile(\"UNLISTEN *\", read=\"postgres\")             # ParseError: Required keyword: 'expression' missing\ntranspile(\"NOTIFY c, 'hi'\", read=\"postgres\")         # ParseError: Invalid expression / Unexpected token\ntranspile(\"DEALLOCATE PREPARE p\", read=\"postgres\")   # ParseError: Invalid expression / Unexpected token\n```\n\nPostgres 17 runs all of the original statements. Each rewritten one fails with `syntax error at or near \"AS\"`.\n\nThe Postgres tokenizer already maps similar statements (`DECLARE`, `DO`, `REINDEX`, `RESET`) to `TokenType.COMMAND`. Presto does the same for `DEALLOCATE PREPARE` (#4423).\n\nDocs: https://www.postgresql.org/docs/current/sql-listen.html, https://www.postgresql.org/docs/current/sql-notify.html, https://www.postgresql.org/docs/current/sql-unlisten.html, https://www.postgresql.org/docs/current/sql-deallocate.html, https://www.postgresql.org/docs/current/sql-discard.html",
+  "pull": 9261,
+  "python": "3.11",
+  "repo": "tobymao/sqlglot",
+  "source": "github-pr",
+  "test_files": [
+    "tests/dialects/test_postgres.py"
+  ]
+}

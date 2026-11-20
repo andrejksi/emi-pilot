@@ -1,0 +1,56 @@
+diff --git a/eodag/api/product/metadata_mapping.py b/eodag/api/product/metadata_mapping.py
+index 5f8bdc298..0e6bae78a 100644
+--- a/eodag/api/product/metadata_mapping.py
++++ b/eodag/api/product/metadata_mapping.py
+@@ -1990,14 +1990,20 @@ def get_queryable_from_provider(
+             list(metadata_mapping.keys())[ind]
+         )
+     else:
+-        for param, param_conf in metadata_mapping.items():
+-            if (
+-                isinstance(param_conf, list)
+-                and param_conf[0]
+-                and re.search(pattern, param_conf[0])
+-            ):
+-                eodag_queryable = StacQueryables.get_queryable_from_alias(param)
+-                break
++        matching_params = [
++            param
++            for param, param_conf in metadata_mapping.items()
++            if isinstance(param_conf, list)
++            and param_conf[0]
++            and re.search(pattern, param_conf[0])
++        ]
++        if matching_params:
++            param = (
++                provider_queryable
++                if provider_queryable in matching_params
++                else matching_params[0]
++            )
++            eodag_queryable = StacQueryables.get_queryable_from_alias(param)
+ 
+     # no provider-specific resolution
+     if provider is None:
+diff --git a/eodag/types/__init__.py b/eodag/types/__init__.py
+index aff08d4bf..1bd0524a5 100644
+--- a/eodag/types/__init__.py
++++ b/eodag/types/__init__.py
+@@ -255,6 +255,7 @@ def json_field_definition_to_python(
+     enum = json_field_definition.get("enum")
+     const = json_field_definition.get("const")
+     anyOf = json_field_definition.get("anyOf")
++    one_of = json_field_definition.get("oneOf")
+ 
+     if python_type in (list, set):
+         items = json_field_definition.get("items")
+@@ -295,6 +296,10 @@ def json_field_definition_to_python(
+     elif const:
+         literal = Literal[const]
+         python_type = list[literal] if python_type in (list, set) else literal  # type: ignore
++    elif one_of and all(
++        isinstance(option, dict) and "const" in option for option in one_of
++    ):
++        python_type = Literal[tuple(option["const"] for option in one_of)]  # type: ignore
+     elif anyOf:
+         python_type = str
+ 
