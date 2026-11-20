@@ -57,8 +57,8 @@ every conan run).
   the cost of a right candidate), tornado (3 of 6, by EMI's own check as
   well), huggingface_hub-5080 (2 of 6, also EMI's own check). On the other
   11 tasks with wrong candidates restore accepts, nothing catches them.
-- **Unapproved laws still catch more** (21 against 18): the approval step's
-  rejections removed catches on tornado and sqlglot-9180 and no false block.
+- **Unapproved laws still catch more** (21 against 18): rejecting tornado's
+  laws at approval removed 3 catches there and prevented no false block.
 
 ## What it means for the next study
 
