@@ -205,10 +205,19 @@ def import_roots(task):
 
 
 def code_env(task, work):
-    """PYTHONPATH for a test run in `work`, or nothing when the project
-    needs none."""
+    """The environment for a test run in `work`: PYTHONPATH when the project
+    needs one, and the task's virtualenv first on PATH, as an activated
+    environment has it. Without it, tests that call the project's own
+    command (isort's `isort`, a console script) fail before any change and
+    every candidate looks wrong to a plain test run."""
+    env = {}
     roots = import_roots(task)
-    return {"PYTHONPATH": ":".join(str(Path(work).resolve() / r) for r in roots)} if roots else {}
+    if roots:
+        env["PYTHONPATH"] = ":".join(str(Path(work).resolve() / r) for r in roots)
+    venv_bin = Path(work).resolve() / ".venv" / "bin"
+    if venv_bin.is_dir():
+        env["PATH"] = os.pathsep.join([str(venv_bin), os.environ.get("PATH", "")])
+    return env
 
 
 def test_command(task, work=None):

@@ -336,6 +336,23 @@ def eval_pytest(task: dict[str, Any], base: Path, attempt_dir: Path, work: Path)
     return {"action": "repair", "cause": f"pytest_exit_{record.get('exit')}", "seconds": seconds}
 
 
+def pytest_at_baseline(task: dict[str, Any], base: Path, work: Path) -> str:
+    """The pytest condition on the unchanged baseline: `pass` or `fail`.
+
+    A known answer for the condition itself. When the visible tests already
+    fail with no change, plain pytest blocks every candidate, right or
+    wrong, and its blocks say nothing about the candidates.
+    """
+    copy_tree(base, work)
+    try:
+        verdict, _, _ = naive_gate(work, {"task": task})
+    except subprocess.TimeoutExpired:
+        return "timeout"
+    finally:
+        shutil.rmtree(work, ignore_errors=True)
+    return "pass" if verdict == "accepted" else "fail"
+
+
 def eval_restore(
     task: dict[str, Any],
     base: Path,
@@ -390,7 +407,31 @@ def eval_emi(
         if rpath.exists():
             receipt = json.loads(rpath.read_text(encoding="utf-8"))
     cause = classify_emi_cause(receipt, record)
-    return {"action": str(action), "cause": cause, "seconds": seconds}
+    out = {"action": str(action), "cause": cause, "seconds": seconds}
+    why = receipt_why(receipt)
+    if why:
+        out["why"] = why
+    return out
+
+
+WHY_LINES = 3
+WHY_CHARS = 400
+
+
+def receipt_why(receipt: dict[str, Any] | None) -> list[str]:
+    """What the receipt told the proposer, first lines only.
+
+    A decision-table row such as `shows_nothing` covers several facts
+    (failing added tests, unmet laws, divergences, tests that show nothing,
+    vacuous proposals); the receipt's own repair lines say which one fired,
+    so a block can be explained without rerunning it.
+    """
+    if not receipt:
+        return []
+    lines = receipt.get("repair") or []
+    if not isinstance(lines, list):
+        return []
+    return [str(line)[:WHY_CHARS] for line in lines[:WHY_LINES]]
 
 
 def replay_task(
@@ -450,10 +491,13 @@ def replay_task(
                 before_outcomes[key] = before
             return before_outcomes[key]
 
+        pytest_baseline: str | None = None
         for cond in selected:
             if cond in ("pytest", "restore", "emi_default"):
                 base, exclude = get_base("none", None)
                 before = get_before("none", base) if cond == "restore" else None
+                if cond == "pytest" and pytest_baseline is None:
+                    pytest_baseline = pytest_at_baseline(task, base, tmp / "pytest-baseline")
             elif cond in ("restore_laws", "primary"):
                 base, exclude = get_base("approved", law_dirs["approved"])
                 before = get_before("approved", base) if cond == "restore_laws" else None
@@ -499,6 +543,10 @@ def replay_task(
                         "cause": res["cause"],
                         "seconds": res["seconds"],
                     }
+                    if cond == "pytest":
+                        row["baseline"] = pytest_baseline
+                    if res.get("why"):
+                        row["why"] = res["why"]
                     if cond == "primary" and not right and res["action"] == "stop":
                         row["stage"] = infer_slipped_stage(
                             has_approved=has_approved,
@@ -510,6 +558,13 @@ def replay_task(
 
                     shutil.rmtree(work, ignore_errors=True)
                     shutil.rmtree(work.parent / (work.name + ".emi-state"), ignore_errors=True)
+                    # A block nobody can explain afterwards is not evidence:
+                    # every receipt that did not answer stop is kept.
+                    if res["action"] != "stop" and cond not in ("pytest", "restore", "restore_laws"):
+                        kept = out_jsonl.parent / "receipts" / task_id / cond / f"{cid}.r{run_idx}"
+                        if rdir.exists() and rdir != kept:
+                            kept.parent.mkdir(parents=True, exist_ok=True)
+                            shutil.copytree(rdir, kept, dirs_exist_ok=True)
                     if not receipts_dir:
                         shutil.rmtree(rdir, ignore_errors=True)
 

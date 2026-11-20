@@ -165,6 +165,62 @@ class TestReplayGate(unittest.TestCase):
             self.assertEqual(rep["primary"]["false_block_rate"]["rate"], 0.0)
             self.assertEqual(rep["gate"]["verdict"], "pass")
 
+    def test_receipt_why_takes_the_first_repair_lines(self):
+        self.assertEqual(replay_gate.receipt_why(None), [])
+        self.assertEqual(replay_gate.receipt_why({"repair": "not a list"}), [])
+        lines = [f"line {i} " + "x" * 600 for i in range(5)]
+        why = replay_gate.receipt_why({"repair": lines})
+        self.assertEqual(len(why), replay_gate.WHY_LINES)
+        self.assertTrue(why[0].startswith("line 0"))
+        self.assertEqual(len(why[0]), replay_gate.WHY_CHARS)
+
+    def test_rows_carry_pytest_baseline_why_and_keep_blocking_receipts(self):
+        with tempfile.TemporaryDirectory() as tmp_str:
+            tmp = Path(tmp_str)
+            attempts = tmp / "attempts"
+            for cid, right in [("t1.wrong", False), ("t1.right", True)]:
+                d = attempts / cid
+                d.mkdir(parents=True)
+                (d / "run.json").write_text(json.dumps({"task": "t1", "model": "m"}), encoding="utf-8")
+                (d / "oracle.json").write_text(json.dumps({"passed": right}), encoding="utf-8")
+                (d / "candidate.diff").write_text("", encoding="utf-8")
+            out_jsonl = tmp / "out" / "replays.jsonl"
+
+            def fake_base(task, laws, dst, venv, emi_bin, *, ceiling=False):
+                dst.mkdir(parents=True, exist_ok=True)
+                return []
+
+            def fake_emi(task, base, attempt_dir, work, emi_bin, rdir, *, exclude_paths=None):
+                rdir.mkdir(parents=True, exist_ok=True)
+                (rdir / "receipt-0.json").write_text("{}", encoding="utf-8")
+                if attempt_dir.name.endswith(".right"):
+                    return {"action": "repair", "cause": "shows_nothing", "seconds": 0.1,
+                            "why": ["tests/test_new.py::test_x fails on the change"]}
+                return {"action": "stop", "cause": None, "seconds": 0.1}
+
+            with (
+                mock.patch.object(replay_gate, "load_task", return_value={"id": "t1", "kind": "dir"}),
+                mock.patch.object(replay_gate, "build_base_tree", side_effect=fake_base),
+                mock.patch.object(replay_gate, "pytest_at_baseline", return_value="fail"),
+                mock.patch.object(replay_gate, "eval_pytest",
+                                  return_value={"action": "repair", "cause": "pytest_exit_1", "seconds": 0.1}),
+                mock.patch.object(replay_gate, "eval_emi", side_effect=fake_emi),
+            ):
+                rows = replay_gate.replay_task(
+                    "t1", [attempts], out_jsonl, emi_bin="emi",
+                    conditions=["pytest", "emi_default"], runs=1, include_gold=False,
+                )
+
+            pytest_rows = [r for r in rows if r["condition"] == "pytest"]
+            self.assertTrue(pytest_rows)
+            self.assertTrue(all(r["baseline"] == "fail" for r in pytest_rows))
+            blocked = [r for r in rows if r["condition"] == "emi_default" and r["action"] != "stop"]
+            self.assertEqual([r["candidate"] for r in blocked], ["t1.right"])
+            self.assertEqual(blocked[0]["why"], ["tests/test_new.py::test_x fails on the change"])
+            kept = out_jsonl.parent / "receipts" / "t1" / "emi_default"
+            self.assertTrue((kept / "t1.right.r0" / "receipt-0.json").exists())
+            self.assertFalse((kept / "t1.wrong.r0").exists())
+
 
 if __name__ == "__main__":
     unittest.main()

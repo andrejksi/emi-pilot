@@ -147,5 +147,24 @@ class TestReplayGateCeiling(unittest.TestCase):
             self.assertIn("'tests/test_req.py::test_clean[ok]'", src)
 
 
+class TestCodeEnvPath(unittest.TestCase):
+    def test_task_virtualenv_comes_first_on_path(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            work = Path(tmp)
+            (work / ".venv" / "bin").mkdir(parents=True)
+            with mock.patch.object(trees, "import_roots", return_value=[]):
+                env = trees.code_env({"kind": "git"}, work)
+            first = env["PATH"].split(trees.os.pathsep)[0]
+            self.assertEqual(first, str((work / ".venv" / "bin").resolve()))
+            self.assertNotIn("PYTHONPATH", env)
+
+    def test_no_virtualenv_leaves_path_alone(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            with mock.patch.object(trees, "import_roots", return_value=["src"]):
+                env = trees.code_env({"kind": "git"}, Path(tmp))
+            self.assertNotIn("PATH", env)
+            self.assertTrue(env["PYTHONPATH"].endswith("/src"))
+
+
 if __name__ == "__main__":
     unittest.main()
