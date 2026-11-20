@@ -1,0 +1,6 @@
+{
+  "alt_right": true,
+  "candidate_id": "huggingface__smolagents-2356.gpt-6.2-sol.1",
+  "notes": "Probes return shape of consecutive system message merging",
+  "task": "huggingface__smolagents-2356"
+}
